@@ -133,6 +133,21 @@ textarea{resize:vertical;min-height:70px;}
 .del-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;padding:0;margin-top:12px;}
 .del-btn:hover{opacity:.7;}
 hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
+
+/* PHONES */
+.phone-row{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+.phone-row input{flex:1;}
+.phone-row select{width:130px;flex-shrink:0;}
+.phone-del{width:28px;height:28px;border-radius:50%;background:none;border:0.5px solid var(--border2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
+.phone-del:hover{background:var(--surface3);color:var(--red);}
+.btn-add-phone{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;margin-bottom:10px;}
+.btn-add-phone:hover{opacity:.7;}
+.phone-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;background:var(--surface2);border:0.5px solid var(--border);margin-right:4px;margin-bottom:4px;}
+.phones-in-detail{display:flex;flex-wrap:wrap;gap:0;margin-bottom:10px;}
+.phone-edit-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.phone-edit-row input{flex:1;}
+.phone-edit-row select{width:120px;flex-shrink:0;}
+
 </style>
 </head>
 <body>
@@ -168,10 +183,12 @@ hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
       <div class="form-row"><label class="form-label">Имя *</label><input id="f-name" placeholder="Иван Петров"/></div>
       <div class="form-row"><label class="form-label">Компания</label><input id="f-company" placeholder="ООО Ромашка"/></div>
     </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Телефон</label><input id="f-phone" placeholder="+7 900 000 00 00"/></div>
-      <div class="form-row"><label class="form-label">Email</label><input id="f-email" placeholder="ivan@company.ru"/></div>
+    <div class="form-row">
+      <label class="form-label">Телефоны и мессенджеры</label>
+      <div id="f-phones-list"></div>
+      <button class="btn-add-phone" onclick="addPhoneRow()"><i class="ti ti-plus" style="font-size:13px;"></i> Добавить номер</button>
     </div>
+    <div class="form-row"><label class="form-label">Email</label><input id="f-email" placeholder="ivan@company.ru"/></div>
     <div class="form-row"><label class="form-label">Сумма сделки, ₽</label><input id="f-amount" type="number" placeholder="100000"/></div>
     <div class="form-row"><label class="form-label">Этап</label>
       <select id="f-stage"><option value="0">Первый звонок</option><option value="1">Переговоры</option><option value="2">Коммерческое предложение</option><option value="3">Согласование</option><option value="4">Закрытие сделки</option></select>
@@ -206,6 +223,7 @@ hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
     <div id="d-timer"></div>
     <div class="tabs">
       <button class="tab active" id="tab-tasks" onclick="switchTab('tasks')">📋 Задачи</button>
+      <button class="tab" id="tab-phones" onclick="switchTab('phones')">📱 Контакты</button>
       <button class="tab" id="tab-notes" onclick="switchTab('notes')">📝 Заметки</button>
       <button class="tab" id="tab-history" onclick="switchTab('history')">📊 История</button>
     </div>
@@ -216,7 +234,17 @@ hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
       </div>
       <div id="d-tasks"></div>
     </div>
-    <div id="panel-notes" style="display:none;">
+    <div id="panel-phones" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sec-head" style="margin:0;"><i class="ti ti-phone"></i> Телефоны и мессенджеры</div>
+        <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="addDetailPhoneRow()"><i class="ti ti-plus"></i> Добавить</button>
+      </div>
+      <div id="d-phones"></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);">
+        <div class="sec-head"><i class="ti ti-mail"></i> Email</div>
+        <div id="d-email-block"></div>
+      </div>
+    </div>
       <div class="sec-head"><i class="ti ti-notes"></i> Заметки</div>
       <div id="d-notes"></div>
       <div class="note-row">
@@ -239,6 +267,40 @@ const STAGES=['Первый звонок','Переговоры','Коммерч
 const COLORS=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75'];
 let clients=JSON.parse(localStorage.getItem('crm_v3')||'[]');
 let activeId=null,dragId=null,qtCid=null;
+
+const MESSENGERS=[
+  {val:'phone',    label:'📞 Только звонки', color:'#555'},
+  {val:'whatsapp', label:'💬 WhatsApp',       color:'#25D366'},
+  {val:'telegram', label:'✈️ Telegram',        color:'#229ED9'},
+  {val:'viber',    label:'💜 Viber',           color:'#7360F2'},
+  {val:'instagram',label:'📸 Instagram',       color:'#E1306C'},
+  {val:'vk',       label:'🔵 ВКонтакте',       color:'#0077FF'},
+  {val:'other',    label:'💬 Другой',          color:'#888'},
+];
+function messengerLabel(val){return(MESSENGERS.find(m=>m.val===val)||MESSENGERS[0]).label;}
+function messengerColor(val){return(MESSENGERS.find(m=>m.val===val)||MESSENGERS[0]).color;}
+function messengerOptions(selected='phone'){return MESSENGERS.map(m=>`<option value="${m.val}"${m.val===selected?' selected':''}>${m.label}</option>`).join('');}
+
+/* phone rows in ADD form */
+let phoneRowCount=0;
+function addPhoneRow(num='',msn='phone'){
+  phoneRowCount++;
+  const id='ph-'+phoneRowCount;
+  const div=document.createElement('div');
+  div.className='phone-row';div.id=id;
+  div.innerHTML=`<input placeholder="+7 900 000 00 00" value="${num}" class="ph-num"/><select class="ph-msn">${messengerOptions(msn)}</select><button class="phone-del" onclick="document.getElementById('${id}').remove()"><i class="ti ti-x"></i></button>`;
+  document.getElementById('f-phones-list').appendChild(div);
+}
+function getFormPhones(){
+  const rows=document.getElementById('f-phones-list').querySelectorAll('.phone-row');
+  const phones=[];
+  rows.forEach(r=>{
+    const num=r.querySelector('.ph-num').value.trim();
+    const msn=r.querySelector('.ph-msn').value;
+    if(num)phones.push({num,msn});
+  });
+  return phones;
+}
 
 function save(){localStorage.setItem('crm_v3',JSON.stringify(clients));}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
@@ -324,7 +386,7 @@ function render(){
       card.innerHTML=`
         <div class="card-top"><div class="card-name">${c.name}</div><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div>
         ${c.company?`<div class="card-company"><i class="ti ti-building" style="font-size:11px;"></i>${c.company}</div>`:''}
-        <div class="card-dates">
+        ${(()=>{const ph=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);return ph.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${ph.map(p=>`<span class="phone-badge"><span>${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`).join('')}</div>`:''})()}        <div class="card-dates">
           <span><i class="ti ti-phone-call" style="font-size:11px;"></i>Первый контакт: <b style="color:var(--text2);">${fmtDs(c.createdAt)}</b></span>
           ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${fmtDs(lastMove.date)}</b></span>`:''}
         </div>
@@ -348,17 +410,24 @@ function render(){
 }
 
 /* ── ADD CLIENT ── */
-function openAdd(){document.getElementById('modal-add').classList.add('open');setTimeout(()=>document.getElementById('f-name').focus(),50);}
+function openAdd(){
+  document.getElementById('f-phones-list').innerHTML='';
+  addPhoneRow();
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(()=>document.getElementById('f-name').focus(),50);
+}
 function closeAdd(){document.getElementById('modal-add').classList.remove('open');}
 function saveClient(){
   const name=document.getElementById('f-name').value.trim();
   if(!name){alert('Введите имя');return;}
   const si=parseInt(document.getElementById('f-stage').value);
   const note=document.getElementById('f-note').value.trim();
-  const c={id:genId(),name,company:document.getElementById('f-company').value.trim(),phone:document.getElementById('f-phone').value.trim(),email:document.getElementById('f-email').value.trim(),amount:document.getElementById('f-amount').value,stage:si,stageHistory:[{stage:si,stageName:STAGES[si],date:new Date().toISOString()}],notes:note?[{text:note,date:new Date().toISOString(),stage:STAGES[si]}]:[],tasks:[],createdAt:new Date().toISOString()};
+  const phones=getFormPhones();
+  const c={id:genId(),name,company:document.getElementById('f-company').value.trim(),phones,email:document.getElementById('f-email').value.trim(),amount:document.getElementById('f-amount').value,stage:si,stageHistory:[{stage:si,stageName:STAGES[si],date:new Date().toISOString()}],notes:note?[{text:note,date:new Date().toISOString(),stage:STAGES[si]}]:[],tasks:[],createdAt:new Date().toISOString()};
   clients.push(c);save();render();closeAdd();
-  ['f-name','f-company','f-phone','f-email','f-amount','f-note'].forEach(id=>document.getElementById(id).value='');
+  ['f-name','f-company','f-email','f-amount','f-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-stage').value='0';
+  document.getElementById('f-phones-list').innerHTML='';
 }
 
 /* ── TASK ── */
@@ -398,7 +467,9 @@ function openDetail(id){
   document.getElementById('d-name').textContent=c.name;
   const mi=[];
   if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
-  if(c.phone)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-phone"></i>${c.phone}</span>`);
+  // phones badges
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:3px;"><span style="font-size:13px;">${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`));
   if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
   if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
   document.getElementById('d-meta').innerHTML=mi.join('');
@@ -412,14 +483,62 @@ function openDetail(id){
   document.getElementById('modal-detail').classList.add('open');
 }
 function switchTab(tab){
-  ['tasks','notes','history'].forEach(t=>{
+  ['tasks','phones','notes','history'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('panel-'+t).style.display=t===tab?'':'none';
   });
   const c=clients.find(x=>x.id===activeId);if(!c)return;
   if(tab==='tasks')renderTasks(c);
+  if(tab==='phones')renderPhones(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
+}
+function renderPhones(c){
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  const el=document.getElementById('d-phones');
+  if(!phones.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:10px 0;">Номеров нет</div>';}
+  else{
+    el.innerHTML=phones.map((p,i)=>`
+      <div class="phone-edit-row" id="dph-${i}">
+        <input value="${p.num}" onchange="updatePhone(${i},'num',this.value)" placeholder="+7 900 000 00 00"/>
+        <select onchange="updatePhone(${i},'msn',this.value)">${messengerOptions(p.msn)}</select>
+        <button class="phone-del" onclick="deletePhone(${i})"><i class="ti ti-x"></i></button>
+      </div>`).join('');
+  }
+  const emailEl=document.getElementById('d-email-block');
+  emailEl.innerHTML=`<input value="${c.email||''}" placeholder="ivan@company.ru" style="margin-top:4px;" onchange="updateEmail(this.value)"/>`;
+}
+function updatePhone(i,field,val){
+  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  if(c.phones[i])c.phones[i][field]=val;
+  save();renderPhones(c);
+  // refresh meta
+  openDetailMeta(c);
+}
+function updateEmail(val){
+  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  c.email=val;save();openDetailMeta(c);
+}
+function openDetailMeta(c){
+  const mi=[];
+  if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:3px;"><span style="font-size:13px;">${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`));
+  if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
+  if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
+  document.getElementById('d-meta').innerHTML=mi.join('');
+}
+function deletePhone(i){
+  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  c.phones.splice(i,1);save();render();renderPhones(c);
+}
+function addDetailPhoneRow(){
+  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  c.phones.push({num:'',msn:'phone'});
+  save();renderPhones(c);
 }
 function renderTasks(c){
   const el=document.getElementById('d-tasks');
@@ -493,11 +612,11 @@ function closeDetail(){document.getElementById('modal-detail').classList.remove(
 if(!clients.length){
   const today=todayStr();
   clients=[
-    {id:genId(),name:'Алексей Смирнов',company:'ООО ТехПром',phone:'+7 901 234 56 78',email:'a.smirnov@techprom.ru',amount:'350000',stage:0,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Позвонил сам. Интересует CRM. Перезвонить в среду.',date:new Date(Date.now()-86400000*3).toISOString(),stage:'Первый звонок'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Уточнить требования к системе',date:today,time:'14:30',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*3).toISOString()},
-    {id:genId(),name:'Марина Козлова',company:'Агентство "Медиа+"',phone:'+7 912 345 67 89',email:'m.kozlova@mediaplus.ru',amount:'180000',stage:1,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*10).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Встреча прошла отлично. Отправить КП до пятницы.',date:new Date(Date.now()-86400000).toISOString(),stage:'Переговоры'}],tasks:[{id:genId(),type:'📄 Отправить КП',text:'Коммерческое предложение',date:today,time:'11:00',done:true,createdAt:new Date().toISOString()},{id:genId(),type:'📞 Созвон',text:'Обсудить КП',date:today,time:'16:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*10).toISOString()},
-    {id:genId(),name:'Дмитрий Волков',company:'ИП Волков Д.А.',phone:'+7 923 456 78 90',email:'volkov@mail.ru',amount:'95000',stage:2,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*25).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*15).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*5).toISOString()}],notes:[{text:'КП отправлено. Ждём ответа.',date:new Date(Date.now()-3600000*5).toISOString(),stage:'Коммерческое предложение'}],tasks:[],createdAt:new Date(Date.now()-86400000*25).toISOString()},
-    {id:genId(),name:'Ольга Новикова',company:'Сеть магазинов "Уют"',phone:'+7 934 567 89 01',email:'o.novikova@uyut.ru',amount:'620000',stage:3,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*40).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*30).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*18).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*4).toISOString()}],notes:[{text:'Договор у юристов. Ориентир — 22 мая.',date:new Date(Date.now()-3600000*2).toISOString(),stage:'Согласование'}],tasks:[{id:genId(),type:'🤝 Встреча',text:'Подписание договора',date:today,time:'10:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*40).toISOString()},
-    {id:genId(),name:'Сергей Михайлов',company:'Строй-Инвест',phone:'+7 945 678 90 12',email:'s.mikhailov@stroi.ru',amount:'1200000',stage:4,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*60).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*45).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*30).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*10).toISOString()},{stage:4,stageName:'Закрытие сделки',date:new Date(Date.now()-86400000*2).toISOString()}],notes:[{text:'Договор подписан! Счёт выставлен.',date:new Date().toISOString(),stage:'Закрытие сделки'}],tasks:[],createdAt:new Date(Date.now()-86400000*60).toISOString()},
+    {id:genId(),name:'Алексей Смирнов',company:'ООО ТехПром',phones:[{num:'+7 901 234 56 78',msn:'telegram'},{num:'+7 901 234 56 79',msn:'whatsapp'}],email:'a.smirnov@techprom.ru',amount:'350000',stage:0,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Позвонил сам. Интересует CRM. Перезвонить в среду.',date:new Date(Date.now()-86400000*3).toISOString(),stage:'Первый звонок'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Уточнить требования к системе',date:today,time:'14:30',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*3).toISOString()},
+    {id:genId(),name:'Марина Козлова',company:'Агентство "Медиа+"',phones:[{num:'+7 912 345 67 89',msn:'whatsapp'}],email:'m.kozlova@mediaplus.ru',amount:'180000',stage:1,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*10).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Встреча прошла отлично. Отправить КП до пятницы.',date:new Date(Date.now()-86400000).toISOString(),stage:'Переговоры'}],tasks:[{id:genId(),type:'📄 Отправить КП',text:'Коммерческое предложение',date:today,time:'11:00',done:true,createdAt:new Date().toISOString()},{id:genId(),type:'📞 Созвон',text:'Обсудить КП',date:today,time:'16:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*10).toISOString()},
+    {id:genId(),name:'Дмитрий Волков',company:'ИП Волков Д.А.',phones:[{num:'+7 923 456 78 90',msn:'telegram'},{num:'+7 923 456 78 91',msn:'viber'}],email:'volkov@mail.ru',amount:'95000',stage:2,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*25).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*15).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*5).toISOString()}],notes:[{text:'КП отправлено. Ждём ответа.',date:new Date(Date.now()-3600000*5).toISOString(),stage:'Коммерческое предложение'}],tasks:[],createdAt:new Date(Date.now()-86400000*25).toISOString()},
+    {id:genId(),name:'Ольга Новикова',company:'Сеть магазинов "Уют"',phones:[{num:'+7 934 567 89 01',msn:'whatsapp'}],email:'o.novikova@uyut.ru',amount:'620000',stage:3,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*40).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*30).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*18).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*4).toISOString()}],notes:[{text:'Договор у юристов. Ориентир — 22 мая.',date:new Date(Date.now()-3600000*2).toISOString(),stage:'Согласование'}],tasks:[{id:genId(),type:'🤝 Встреча',text:'Подписание договора',date:today,time:'10:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*40).toISOString()},
+    {id:genId(),name:'Сергей Михайлов',company:'Строй-Инвест',phones:[{num:'+7 945 678 90 12',msn:'phone'}],email:'s.mikhailov@stroi.ru',amount:'1200000',stage:4,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*60).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*45).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*30).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*10).toISOString()},{stage:4,stageName:'Закрытие сделки',date:new Date(Date.now()-86400000*2).toISOString()}],notes:[{text:'Договор подписан! Счёт выставлен.',date:new Date().toISOString(),stage:'Закрытие сделки'}],tasks:[],createdAt:new Date(Date.now()-86400000*60).toISOString()},
   ];
   save();
 }
