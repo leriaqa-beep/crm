@@ -8,63 +8,58 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#F0EEE6;--surface:#FFFFFF;--surface2:#F5F3EC;--surface3:#ECEAE2;
-  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.20);
+  --bg:#F0EEE6;--surface:#FFF;--surface2:#F5F3EC;--surface3:#ECEAE2;
+  --border:rgba(0,0,0,.10);--border2:rgba(0,0,0,.20);
   --text:#1A1A18;--text2:#6B6B67;--text3:#A8A8A3;
-  --green:#1A9E72;--blue:#2E7FD4;--amber:#C07A10;--purple:#5B4BC4;--pink:#C44070;--red:#D94040;
+  --green:#1A9E72;--blue:#2E7FD4;--amber:#C07A10;--red:#D94040;
   --r-sm:6px;--r-md:9px;--r-lg:13px;--r-xl:18px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-
-/* TOPBAR */
-.topbar{background:var(--surface);border-bottom:0.5px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.logo{font-size:16px;font-weight:700;letter-spacing:-.3px;}.logo span{color:var(--green);}
+.topbar{background:var(--surface);border-bottom:.5px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-size:16px;font-weight:700;}.logo span{color:var(--green);}
 .topbar-stats{display:flex;gap:6px;}
 .tstat{background:var(--surface2);border-radius:var(--r-md);padding:5px 12px;text-align:center;}
 .tstat-val{font-size:15px;font-weight:600;}.tstat-lbl{font-size:10px;color:var(--text2);}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r-md);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r-md);font-size:13px;font-weight:500;cursor:pointer;border:none;}
 .btn-dark{background:var(--text);color:#fff;}.btn-dark:hover{opacity:.85;}
-.btn-outline{background:transparent;border:0.5px solid var(--border2);color:var(--text);}.btn-outline:hover{background:var(--surface2);}
-
-/* LAYOUT */
+.btn-outline{background:transparent;border:.5px solid var(--border2);color:var(--text);}.btn-outline:hover{background:var(--surface2);}
 .layout{display:flex;flex:1;overflow:hidden;}
 
 /* SIDEBAR */
-.sidebar{width:272px;flex-shrink:0;background:var(--surface);border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.sidebar-head{padding:14px 16px 10px;border-bottom:0.5px solid var(--border);}
+.sidebar{width:272px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-head{padding:14px 16px 10px;border-bottom:.5px solid var(--border);}
 .sidebar-head h2{font-size:14px;font-weight:600;margin-bottom:2px;}
 .sidebar-date{font-size:11px;color:var(--text2);}
 .sidebar-body{flex:1;overflow-y:auto;padding:10px 12px;}
-.task-group-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 4px 6px;}
+.grp-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 4px 6px;}
 .task-item{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;border-left:3px solid transparent;cursor:pointer;}
 .task-item:hover{background:var(--surface3);}
 .task-item.done-item{opacity:.5;}
-.task-time{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;}
-.task-time.over{color:var(--red);}
-.task-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px;}
-.task-client{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px;}
-.task-actions{display:flex;gap:5px;margin-top:7px;}
-.t-btn{font-size:10px;padding:2px 9px;border-radius:99px;border:0.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;}
+.t-time{font-size:12px;font-weight:700;margin-bottom:2px;}.t-time.over{color:var(--red);}
+.t-title{font-size:12px;line-height:1.4;margin-bottom:3px;}
+.t-client{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:3px;}
+.t-actions{display:flex;gap:5px;margin-top:7px;}
+.t-btn{font-size:10px;padding:2px 9px;border-radius:99px;border:.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;}
 .t-btn:hover{background:var(--surface3);}
-.t-btn-green{color:var(--green);border-color:var(--green);}
+.t-btn-g{color:var(--green);border-color:var(--green);}
 .no-tasks{text-align:center;padding:30px 10px;color:var(--text3);font-size:12px;}
 
 /* BOARD */
 .main{flex:1;overflow:auto;padding:14px;}
 .board{display:grid;grid-template-columns:repeat(5,minmax(210px,1fr));gap:10px;min-width:900px;}
-.col{background:var(--surface2);border-radius:var(--r-lg);padding:10px;display:flex;flex-direction:column;min-height:calc(100vh - 110px);}
-.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:0.5px solid var(--border);}
+.col{background:var(--surface2);border-radius:var(--r-lg);padding:10px;min-height:calc(100vh - 112px);}
+.col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:.5px solid var(--border);}
 .col-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
 .col-badge{font-size:11px;padding:2px 7px;border-radius:99px;}
-.col-cards{flex:1;}
 .col.drag-over{outline:2px dashed var(--border2);outline-offset:-3px;}
-
-.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-md);padding:11px;margin-bottom:7px;cursor:grab;user-select:none;transition:box-shadow .15s,border-color .15s,opacity .15s;}
+.card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r-md);padding:11px;margin-bottom:7px;cursor:grab;user-select:none;transition:box-shadow .15s,border-color .15s,opacity .15s;}
 .card:hover{border-color:var(--border2);box-shadow:0 2px 10px rgba(0,0,0,.07);}
 .card.dragging{opacity:.3;cursor:grabbing;}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:2px;}
 .card-name{font-size:13px;font-weight:600;}
 .card-company{font-size:11px;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;gap:3px;}
+.card-phones{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.ph-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;background:var(--surface2);border:.5px solid var(--border);}
 .card-dates{font-size:10px;color:var(--text3);margin-bottom:7px;display:flex;flex-direction:column;gap:2px;}
 .card-dates span{display:flex;align-items:center;gap:4px;}
 .card-next{background:rgba(46,127,212,.09);border-left:2px solid var(--blue);border-radius:var(--r-sm);padding:5px 8px;margin-bottom:7px;}
@@ -74,16 +69,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-amount{font-size:12px;font-weight:700;color:var(--green);}
 .card-meta{display:flex;align-items:center;gap:6px;}
 .card-counter{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:2px;}
-.card-add-task{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);}
+.card-add-task{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);}
 .card-add-task:hover{background:var(--surface3);color:var(--text);}
 .age-badge{font-size:10px;padding:2px 7px;border-radius:99px;flex-shrink:0;}
 .af{background:#E1F5EE;color:#0F6E56;}.am{background:#FEF3DC;color:#854F0B;}.ao{background:#FCEBEB;color:#A32D2D;}
 .empty-col{text-align:center;padding:20px 8px;color:var(--text3);font-size:11px;}
 
 /* MODAL */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
 .modal-bg.open{display:flex;}
-.modal{background:var(--surface);border-radius:var(--r-xl);border:0.5px solid var(--border);width:520px;max-width:96vw;max-height:90vh;overflow-y:auto;padding:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.14);}
+.modal{background:var(--surface);border-radius:var(--r-xl);border:.5px solid var(--border);width:520px;max-width:96vw;max-height:90vh;overflow-y:auto;padding:1.5rem;box-shadow:0 24px 60px rgba(0,0,0,.14);}
 .modal-sm{width:390px;}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
 .modal-title{font-size:17px;font-weight:600;}
@@ -91,25 +86,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-close:hover{background:var(--surface3);}
 .form-row{margin-bottom:11px;}
 .form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px;display:block;}
-input,select,textarea{width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--r-md);background:var(--surface);color:var(--text);outline:none;transition:border-color .15s;font-family:inherit;}
+input,select,textarea{width:100%;font-size:13px;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r-md);background:var(--surface);color:var(--text);outline:none;transition:border-color .15s;font-family:inherit;}
 input:focus,select:focus,textarea:focus{border-color:var(--text);}
 textarea{resize:vertical;min-height:70px;}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .btn-primary{width:100%;padding:10px;background:var(--text);color:#fff;border:none;border-radius:var(--r-md);font-size:14px;font-weight:500;cursor:pointer;margin-top:6px;}
 .btn-primary:hover{opacity:.85;}
 
-/* DETAIL */
+/* PHONES */
+.phone-row{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
+.phone-row input{flex:1;}
+.phone-row .msn-sel{width:50px;flex-shrink:0;padding:8px 4px;text-align:center;}
+.phone-del{width:28px;height:28px;border-radius:50%;background:none;border:.5px solid var(--border2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.phone-del:hover{background:var(--surface3);color:var(--red);}
+.add-phone-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;padding:2px 0;margin-bottom:10px;}
+
+/* DETAIL TABS */
 .tabs{display:flex;gap:2px;background:var(--surface2);border-radius:var(--r-md);padding:3px;margin-bottom:14px;}
-.tab{flex:1;text-align:center;padding:6px;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;}
+.tab{flex:1;text-align:center;padding:6px 4px;border-radius:var(--r-sm);font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;white-space:nowrap;}
 .tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .deal-timer{background:var(--surface2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
 .deal-timer-val{font-size:16px;font-weight:700;}
 .stage-move{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;}
-.stage-btn{font-size:11px;padding:5px 11px;border:0.5px solid var(--border2);border-radius:99px;background:var(--surface);color:var(--text2);cursor:pointer;}
-.stage-btn:hover{background:var(--surface2);}
+.stage-btn{font-size:11px;padding:5px 11px;border:.5px solid var(--border2);border-radius:99px;background:var(--surface);color:var(--text2);cursor:pointer;}
 .stage-btn.active{color:#fff;border-color:transparent;}
 .sec-head{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
-
 .dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;}
 .dtask.done{opacity:.5;}
 .dtask-chk{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;}
@@ -117,37 +118,21 @@ textarea{resize:vertical;min-height:70px;}
 .dtask-time{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:1px;}
 .dtask-text{font-size:13px;color:var(--text);}
 .dtask-date{font-size:10px;color:var(--text3);margin-top:2px;}
-
 .note-item{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;}
 .note-meta{font-size:10px;color:var(--text3);margin-bottom:3px;}
-.note-text{font-size:13px;color:var(--text);line-height:1.5;}
+.note-text{font-size:13px;line-height:1.5;}
 .note-tag{display:inline-block;font-size:10px;margin-top:4px;background:var(--border);color:var(--text2);padding:1px 7px;border-radius:99px;}
-.note-row{display:flex;gap:7px;}
+.note-row{display:flex;gap:7px;margin-top:8px;}
 .note-row input{flex:1;}
-.btn-send{padding:0 13px;border:0.5px solid var(--border2);border-radius:var(--r-md);background:var(--surface);color:var(--text);cursor:pointer;}
+.btn-send{padding:0 13px;border:.5px solid var(--border2);border-radius:var(--r-md);background:var(--surface);color:var(--text);cursor:pointer;}
 .btn-send:hover{background:var(--surface2);}
-
 .tl-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:4px;}
 .tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
 .tl-line{width:1px;background:var(--border2);margin:0 4.5px;height:14px;}
 .del-btn{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;padding:0;margin-top:12px;}
-.del-btn:hover{opacity:.7;}
-hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
-
-/* PHONES */
-.phone-row{display:flex;gap:6px;align-items:center;margin-bottom:7px;}
-.phone-row input{flex:1;}
-.phone-row select{width:130px;flex-shrink:0;}
-.phone-del{width:28px;height:28px;border-radius:50%;background:none;border:0.5px solid var(--border2);color:var(--text3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;}
-.phone-del:hover{background:var(--surface3);color:var(--red);}
-.btn-add-phone{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;margin-bottom:10px;}
-.btn-add-phone:hover{opacity:.7;}
-.phone-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;background:var(--surface2);border:0.5px solid var(--border);margin-right:4px;margin-bottom:4px;}
-.phones-in-detail{display:flex;flex-wrap:wrap;gap:0;margin-bottom:10px;}
-.phone-edit-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
-.phone-edit-row input{flex:1;}
-.phone-edit-row select{width:120px;flex-shrink:0;}
-
+.ph-edit-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.ph-edit-row input{flex:1;}
+.ph-edit-row .msn-sel{width:50px;flex-shrink:0;padding:8px 4px;text-align:center;}
 </style>
 </head>
 <body>
@@ -168,187 +153,200 @@ hr.div{border:none;border-top:0.5px solid var(--border);margin:14px 0;}
   <div class="sidebar">
     <div class="sidebar-head">
       <h2><i class="ti ti-calendar-event" style="margin-right:5px;font-size:14px;vertical-align:-2px;"></i>Сегодня</h2>
-      <div class="sidebar-date" id="today-date"></div>
+      <div class="sidebar-date" id="today-label"></div>
     </div>
-    <div class="sidebar-body" id="sidebar-tasks"></div>
+    <div class="sidebar-body" id="sidebar-body"></div>
   </div>
   <div class="main"><div class="board" id="board"></div></div>
 </div>
 
-<!-- ДОБАВИТЬ КЛИЕНТА -->
+<!-- ══ МОДАЛ: ДОБАВИТЬ КЛИЕНТА ══ -->
 <div class="modal-bg" id="modal-add">
-  <div class="modal">
-    <div class="modal-header"><span class="modal-title">Новый клиент</span><button class="modal-close" onclick="closeAdd()"><i class="ti ti-x"></i></button></div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Имя *</label><input id="f-name" placeholder="Иван Петров"/></div>
-      <div class="form-row"><label class="form-label">Компания</label><input id="f-company" placeholder="ООО Ромашка"/></div>
-    </div>
-    <div class="form-row">
-      <label class="form-label">Телефоны и мессенджеры</label>
-      <div id="f-phones-list"></div>
-      <button class="btn-add-phone" onclick="addPhoneRow()"><i class="ti ti-plus" style="font-size:13px;"></i> Добавить номер</button>
-    </div>
-    <div class="form-row"><label class="form-label">Email</label><input id="f-email" placeholder="ivan@company.ru"/></div>
-    <div class="form-row"><label class="form-label">Сумма сделки, ₽</label><input id="f-amount" type="number" placeholder="100000"/></div>
-    <div class="form-row"><label class="form-label">Этап</label>
-      <select id="f-stage"><option value="0">Первый звонок</option><option value="1">Переговоры</option><option value="2">Коммерческое предложение</option><option value="3">Согласование</option><option value="4">Закрытие сделки</option></select>
-    </div>
-    <div class="form-row"><label class="form-label">Первая заметка</label><textarea id="f-note" placeholder="Клиент заинтересован в..."></textarea></div>
-    <button class="btn-primary" onclick="saveClient()">Добавить клиента</button>
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">Новый клиент</span>
+    <button class="modal-close" onclick="closeAdd()"><i class="ti ti-x"></i></button>
   </div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Имя *</label><input id="f-name" placeholder="Иван Петров"/></div>
+    <div class="form-row"><label class="form-label">Компания</label><input id="f-company" placeholder="ООО Ромашка"/></div>
+  </div>
+  <div class="form-row">
+    <label class="form-label">Дата первого контакта</label>
+    <input id="f-date" type="date"/>
+  </div>
+  <div class="form-row">
+    <label class="form-label">Телефоны и мессенджеры</label>
+    <div id="f-phones"></div>
+    <button class="add-phone-btn" onclick="addPhoneRow()"><i class="ti ti-plus" style="font-size:13px;"></i> Добавить номер</button>
+  </div>
+  <div class="form-row"><label class="form-label">Email</label><input id="f-email" placeholder="ivan@company.ru"/></div>
+  <div class="form-row"><label class="form-label">Сумма сделки, ₽</label><input id="f-amount" type="number" placeholder="100000"/></div>
+  <div class="form-row"><label class="form-label">Этап</label>
+    <select id="f-stage">
+      <option value="0">Первый звонок</option><option value="1">Переговоры</option>
+      <option value="2">Коммерческое предложение</option><option value="3">Согласование</option>
+      <option value="4">Закрытие сделки</option>
+    </select>
+  </div>
+  <div class="form-row"><label class="form-label">Первая заметка</label><textarea id="f-note" placeholder="Клиент заинтересован в..."></textarea></div>
+  <button class="btn-primary" onclick="saveClient()">Добавить клиента</button>
+</div>
 </div>
 
-<!-- ЗАДАЧА -->
+<!-- ══ МОДАЛ: ЗАДАЧА ══ -->
 <div class="modal-bg" id="modal-task">
-  <div class="modal modal-sm">
-    <div class="modal-header"><span class="modal-title">Запланировать задачу</span><button class="modal-close" onclick="closeTask()"><i class="ti ti-x"></i></button></div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:5px;"><i class="ti ti-user"></i><span id="qt-name"></span></div>
-    <div class="form-row"><label class="form-label">Тип</label>
-      <select id="qt-type"><option>📞 Созвон</option><option>🤝 Встреча</option><option>📧 Письмо</option><option>📄 Отправить КП</option><option>✅ Другое</option></select>
-    </div>
-    <div class="form-row"><label class="form-label">Описание</label><input id="qt-text" placeholder="Обсудить условия..."/></div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">Дата</label><input id="qt-date" type="date"/></div>
-      <div class="form-row"><label class="form-label">Время</label><input id="qt-time" type="time"/></div>
-    </div>
-    <button class="btn-primary" onclick="saveTask()">Сохранить</button>
+<div class="modal modal-sm">
+  <div class="modal-header">
+    <span class="modal-title">Запланировать задачу</span>
+    <button class="modal-close" onclick="closeTask()"><i class="ti ti-x"></i></button>
   </div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;"><i class="ti ti-user"></i><span id="qt-name"></span></div>
+  <div class="form-row"><label class="form-label">Тип</label>
+    <select id="qt-type"><option>📞 Созвон</option><option>🤝 Встреча</option><option>📧 Письмо</option><option>📄 Отправить КП</option><option>✅ Другое</option></select>
+  </div>
+  <div class="form-row"><label class="form-label">Описание</label><input id="qt-text" placeholder="Обсудить условия..."/></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Дата</label><input id="qt-date" type="date"/></div>
+    <div class="form-row"><label class="form-label">Время</label><input id="qt-time" type="time"/></div>
+  </div>
+  <button class="btn-primary" onclick="saveTask()">Сохранить</button>
+</div>
 </div>
 
-<!-- ДЕТАЛИ -->
+<!-- ══ МОДАЛ: ДЕТАЛИ КЛИЕНТА ══ -->
 <div class="modal-bg" id="modal-detail">
-  <div class="modal">
-    <div class="modal-header"><span class="modal-title" id="d-name"></span><button class="modal-close" onclick="closeDetail()"><i class="ti ti-x"></i></button></div>
-    <div id="d-meta" style="font-size:12px;color:var(--text2);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;"></div>
-    <div id="d-timer"></div>
-    <div class="tabs">
-      <button class="tab active" id="tab-tasks" onclick="switchTab('tasks')">📋 Задачи</button>
-      <button class="tab" id="tab-phones" onclick="switchTab('phones')">📱 Контакты</button>
-      <button class="tab" id="tab-notes" onclick="switchTab('notes')">📝 Заметки</button>
-      <button class="tab" id="tab-history" onclick="switchTab('history')">📊 История</button>
-    </div>
-    <div id="panel-tasks">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="sec-head" style="margin:0;"><i class="ti ti-checklist"></i> Задачи</div>
-        <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="openTaskFromDetail()"><i class="ti ti-plus"></i> Добавить</button>
-      </div>
-      <div id="d-tasks"></div>
-    </div>
-    <div id="panel-phones" style="display:none;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div class="sec-head" style="margin:0;"><i class="ti ti-phone"></i> Телефоны и мессенджеры</div>
-        <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="addDetailPhoneRow()"><i class="ti ti-plus"></i> Добавить</button>
-      </div>
-      <div id="d-phones"></div>
-      <div style="font-size:12px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);">
-        <div class="sec-head"><i class="ti ti-mail"></i> Email</div>
-        <div id="d-email-block"></div>
-      </div>
-    </div>
-    <div id="panel-notes" style="display:none;">
-      <div class="sec-head"><i class="ti ti-notes"></i> Заметки</div>
-      <div id="d-notes"></div>
-      <div class="note-row">
-        <input id="d-note-input" placeholder="Быстрая заметка — Enter для сохранения..." onkeydown="if(event.key==='Enter')addNote()"/>
-        <button class="btn-send" onclick="addNote()"><i class="ti ti-send"></i></button>
-      </div>
-    </div>
-    <div id="panel-history" style="display:none;">
-      <div class="sec-head"><i class="ti ti-map-pin"></i> Текущий этап</div>
-      <div class="stage-move" id="d-stages"></div>
-      <div class="sec-head"><i class="ti ti-git-branch"></i> Движение по воронке</div>
-      <div id="d-timeline"></div>
-    </div>
-    <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title" id="d-name"></span>
+    <button class="modal-close" onclick="closeDetail()"><i class="ti ti-x"></i></button>
   </div>
+  <div id="d-meta" style="font-size:12px;color:var(--text2);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+  <div id="d-timer"></div>
+  <div class="tabs">
+    <button class="tab active" id="tab-tasks"   onclick="switchTab('tasks')">📋 Задачи</button>
+    <button class="tab"        id="tab-phones"  onclick="switchTab('phones')">📱 Контакты</button>
+    <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
+    <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
+  </div>
+
+  <!-- Задачи -->
+  <div id="panel-tasks">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-head" style="margin:0;"><i class="ti ti-checklist"></i> Задачи</div>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="openTaskFromDetail()"><i class="ti ti-plus"></i> Добавить</button>
+    </div>
+    <div id="d-tasks"></div>
+  </div>
+
+  <!-- Контакты -->
+  <div id="panel-phones" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-head" style="margin:0;"><i class="ti ti-phone"></i> Телефоны</div>
+      <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="addDetailPhone()"><i class="ti ti-plus"></i> Добавить</button>
+    </div>
+    <div id="d-phones"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div class="sec-head"><i class="ti ti-mail"></i> Email</div>
+      <input id="d-email" placeholder="ivan@company.ru" onchange="saveDetailEmail(this.value)"/>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div class="sec-head"><i class="ti ti-calendar"></i> Дата первого контакта</div>
+      <input id="d-contact-date" type="date" onchange="saveDetailDate(this.value)"/>
+    </div>
+  </div>
+
+  <!-- Заметки -->
+  <div id="panel-notes" style="display:none;">
+    <div class="sec-head"><i class="ti ti-notes"></i> Заметки</div>
+    <div id="d-notes"></div>
+    <div class="note-row">
+      <input id="d-note-input" placeholder="Быстрая заметка — Enter для сохранения..." onkeydown="if(event.key==='Enter')addNote()"/>
+      <button class="btn-send" onclick="addNote()"><i class="ti ti-send"></i></button>
+    </div>
+  </div>
+
+  <!-- История -->
+  <div id="panel-history" style="display:none;">
+    <div class="sec-head"><i class="ti ti-map-pin"></i> Текущий этап</div>
+    <div class="stage-move" id="d-stages"></div>
+    <div class="sec-head"><i class="ti ti-git-branch"></i> Движение по воронке</div>
+    <div id="d-timeline"></div>
+  </div>
+
+  <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
+</div>
 </div>
 
 <script>
+// ── КОНСТАНТЫ ──────────────────────────────────────────────
 const STAGES=['Первый звонок','Переговоры','Коммерческое предложение','Согласование','Закрытие сделки'];
 const COLORS=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75'];
-let clients=JSON.parse(localStorage.getItem('crm_v3')||'[]');
-let activeId=null,dragId=null,qtCid=null;
 
-const MESSENGERS=[
-  {val:'phone',    label:'📞 Только звонки', color:'#555'},
-  {val:'whatsapp', label:'💬 WhatsApp',       color:'#25D366'},
-  {val:'telegram', label:'✈️ Telegram',        color:'#229ED9'},
-  {val:'viber',    label:'💜 Viber',           color:'#7360F2'},
-  {val:'instagram',label:'📸 Instagram',       color:'#E1306C'},
-  {val:'vk',       label:'🔵 ВКонтакте',       color:'#0077FF'},
-  {val:'other',    label:'💬 Другой',          color:'#888'},
-];
-function messengerLabel(val){return(MESSENGERS.find(m=>m.val===val)||MESSENGERS[0]).label;}
-function messengerColor(val){return(MESSENGERS.find(m=>m.val===val)||MESSENGERS[0]).color;}
-function messengerOptions(selected='phone'){return MESSENGERS.map(m=>`<option value="${m.val}"${m.val===selected?' selected':''}>${m.label}</option>`).join('');}
+const MSN={
+  phone:    {emoji:'📞', label:'Только звонки', svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 13 19.79 19.79 0 01.06 4.4 2 2 0 012.06 2.22h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>', color:'#555'},
+  whatsapp: {emoji:'', label:'WhatsApp', svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.477 2 2 6.477 2 12.004a9.965 9.965 0 001.388 5.099L2 22l5.04-1.371A9.96 9.96 0 0012.004 22C17.528 22 22 17.528 22 12.004 22 6.477 17.528 2 12.004 2z" fill-rule="evenodd" clip-rule="evenodd" opacity=".15"/><path d="M12.004 3.5C7.306 3.5 3.5 7.306 3.5 12.004c0 1.686.47 3.262 1.287 4.605l-1.09 3.975 4.09-1.063a8.468 8.468 0 004.217 1.123c4.697 0 8.503-3.806 8.503-8.504 0-4.697-3.806-8.64-8.503-8.64z" fill="#25D366"/><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#fff"/></svg>', color:'#25D366'},
+  telegram: {emoji:'', label:'Telegram', svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="#229ED9"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M17.707 7.293l-7 10a.5.5 0 01-.832-.044l-2-4a.5.5 0 01.13-.622l9-7a.5.5 0 01.702.666z" fill="#fff"/><path d="M7.5 13.5l2.5 4 1.5-2.5-4-1.5z" fill="#fff" opacity=".6"/></svg>', color:'#229ED9'},
+  viber:    {emoji:'💜', label:'Viber',    svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="#7360F2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.95 14.45c-.2.55-.98 1.01-1.6 1.14-.42.09-.97.16-2.82-.61-2.37-1-3.88-3.39-4-3.55-.12-.16-.97-1.29-.97-2.46 0-1.17.61-1.74.83-1.98.22-.24.48-.3.64-.3h.46c.15 0 .35-.06.55.42.2.48.68 1.67.74 1.79.06.12.1.26.02.42-.08.16-.12.26-.24.4-.12.14-.25.31-.36.42-.12.12-.24.25-.1.49.14.24.62 1.02 1.33 1.65.91.81 1.68 1.06 1.92 1.18.24.12.38.1.52-.06.14-.16.6-.7.76-.94.16-.24.32-.2.54-.12.22.08 1.4.66 1.64.78.24.12.4.18.46.28.06.1.06.58-.14 1.13z"/></svg>', color:'#7360F2'},
+  instagram:{emoji:'📸', label:'Instagram', svg:'<svg width="14" height="14" viewBox="0 0 24 24"><defs><linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs><rect width="24" height="24" rx="6" fill="url(#ig)"/><path d="M12 7.5A4.5 4.5 0 107.5 12 4.5 4.5 0 0012 7.5zM12 15a3 3 0 113-3 3 3 0 01-3 3zm4.5-9a1.05 1.05 0 101.05 1.05A1.05 1.05 0 0016.5 6z" fill="#fff"/></svg>', color:'#E1306C'},
+  vk:       {emoji:'🔵', label:'ВКонтакте', svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="#0077FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.98 13.5h-1.5c-.57 0-.74-.45-1.76-1.48-.88-.88-1.27-.99-1.49-.99-.3 0-.39.08-.39.5v1.35c0 .35-.11.56-1.04.56-1.53 0-3.23-.93-4.42-2.65C5.1 11.13 4.5 9.37 4.5 8.7c0-.22.08-.43.5-.43h1.5c.37 0 .51.17.65.57.72 2.08 1.93 3.9 2.43 3.9.19 0 .27-.09.27-.57V9.95c-.06-1.03-.6-1.12-.6-1.49 0-.18.15-.37.39-.37h2.36c.32 0 .43.17.43.53v2.86c0 .32.14.43.23.43.19 0 .35-.11.7-.46 1.08-1.21 1.85-3.07 1.85-3.07.1-.22.28-.43.65-.43h1.5c.45 0 .55.23.45.53-.19.88-2.04 3.5-2.04 3.5-.16.26-.22.37 0 .66.16.22.68.67 1.03 1.08.64.73 1.13 1.34 1.26 1.76.11.41-.11.62-.56.62z"/></svg>', color:'#0077FF'},
+  other:    {emoji:'💬', label:'Другой',    svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>', color:'#888'},
+};
 
-/* phone rows in ADD form */
-let phoneRowCount=0;
-function addPhoneRow(num='',msn='phone'){
-  phoneRowCount++;
-  const id='ph-'+phoneRowCount;
-  const div=document.createElement('div');
-  div.className='phone-row';div.id=id;
-  div.innerHTML=`<input placeholder="+7 900 000 00 00" value="${num}" class="ph-num"/><select class="ph-msn">${messengerOptions(msn)}</select><button class="phone-del" onclick="document.getElementById('${id}').remove()"><i class="ti ti-x"></i></button>`;
-  document.getElementById('f-phones-list').appendChild(div);
-}
-function getFormPhones(){
-  const rows=document.getElementById('f-phones-list').querySelectorAll('.phone-row');
-  const phones=[];
-  rows.forEach(r=>{
-    const num=r.querySelector('.ph-num').value.trim();
-    const msn=r.querySelector('.ph-msn').value;
-    if(num)phones.push({num,msn});
-  });
-  return phones;
-}
+function msnIcon(val){return(MSN[val]||MSN.phone).svg;}
+function msnLabel(val){return(MSN[val]||MSN.phone).label;}
+function msnOptions(sel='phone'){return Object.entries(MSN).map(([v,m])=>`<option value="${v}"${v===sel?' selected':''}>${m.emoji||'📞'} ${m.label}</option>`).join('');}
 
-function save(){localStorage.setItem('crm_v3',JSON.stringify(clients));}
+// ── DATA ───────────────────────────────────────────────────
+let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
+let activeId=null, dragId=null, qtCid=null;
+function save(){localStorage.setItem('crm_v4',JSON.stringify(clients));}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmtAmt(v){return Number(v).toLocaleString('ru-RU')+' ₽';}
 function fmtDs(iso){return new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function fmtDt(iso){const d=new Date(iso);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
-function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
+function daysBetween(a,b){return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000));}
 function fmtDays(d){if(d===0)return'сегодня';if(d===1)return'1 день';if(d<5)return d+' дня';return d+' дней';}
 function ageCls(d){return d<=7?'af':d<=21?'am':'ao';}
 function todayStr(){return new Date().toISOString().slice(0,10);}
+function isoToDateInput(iso){return new Date(iso).toISOString().slice(0,10);}
 
-/* ── SIDEBAR ── */
+// ── SIDEBAR ────────────────────────────────────────────────
 function renderSidebar(){
   const today=todayStr();
-  document.getElementById('today-date').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('today-label').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
   const all=[];
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id});}));
   all.sort((a,b)=>a.time.localeCompare(b.time));
   const now=new Date().toTimeString().slice(0,5);
-  const pending=all.filter(t=>!t.done),done=all.filter(t=>t.done);
+  const pending=all.filter(t=>!t.done), done=all.filter(t=>t.done);
   document.getElementById('s-today').textContent=pending.length;
   let h='';
   if(!all.length){h='<div class="no-tasks"><i class="ti ti-mood-smile" style="font-size:22px;display:block;margin-bottom:8px;"></i>На сегодня задач нет</div>';}
   else{
     if(pending.length){
-      h+='<div class="task-group-lbl">Предстоит</div>';
+      h+='<div class="grp-lbl">Предстоит</div>';
       pending.forEach(t=>{
         const over=t.time<now;
         h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--blue)'};" onclick="openDetail('${t.cId}')">
-          <div class="task-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
-          <div class="task-title">${t.type} ${t.text||''}</div>
-          <div class="task-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
-          <div class="task-actions">
-            <button class="t-btn t-btn-green" onclick="event.stopPropagation();toggleTask('${t.cId}','${t.id}')">✓ Выполнено</button>
+          <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
+          <div class="t-title">${t.type} ${t.text||''}</div>
+          <div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
+          <div class="t-actions">
+            <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleTask('${t.cId}','${t.id}')">✓ Выполнено</button>
             <button class="t-btn" onclick="event.stopPropagation();openDetail('${t.cId}')">Открыть</button>
           </div></div>`;
       });
     }
     if(done.length){
-      h+='<div class="task-group-lbl">Выполнено</div>';
-      done.forEach(t=>{h+=`<div class="task-item done-item"><div class="task-time">${t.time}</div><div class="task-title" style="text-decoration:line-through;">${t.type} ${t.text||''}</div><div class="task-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div></div>`;});
+      h+='<div class="grp-lbl">Выполнено</div>';
+      done.forEach(t=>{h+=`<div class="task-item done-item"><div class="t-time">${t.time}</div><div class="t-title" style="text-decoration:line-through;">${t.type} ${t.text||''}</div><div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div></div>`;});
     }
   }
-  document.getElementById('sidebar-tasks').innerHTML=h;
+  document.getElementById('sidebar-body').innerHTML=h;
 }
 
-/* ── BOARD ── */
+// ── BOARD ──────────────────────────────────────────────────
 function render(){
   const board=document.getElementById('board');
   board.innerHTML='';
@@ -358,9 +356,9 @@ function render(){
 
   STAGES.forEach((stage,si)=>{
     const col=document.createElement('div');
-    col.className='col';col.dataset.stage=si;
+    col.className='col'; col.dataset.stage=si;
     const sc=clients.filter(c=>c.stage===si);
-    col.innerHTML=`<div class="col-header"><span class="col-title">${stage}</span><span class="col-badge" style="background:${COLORS[si]}22;color:${COLORS[si]};">${sc.length}</span></div><div class="col-cards" id="cc-${si}"></div>`;
+    col.innerHTML=`<div class="col-header"><span class="col-title">${stage}</span><span class="col-badge" style="background:${COLORS[si]}22;color:${COLORS[si]};">${sc.length}</span></div>`;
     col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});
     col.addEventListener('dragleave',e=>{if(!col.contains(e.relatedTarget))col.classList.remove('drag-over');});
     col.addEventListener('drop',e=>{
@@ -373,22 +371,21 @@ function render(){
       if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
       save();render();
     });
-    board.appendChild(col);
 
-    const wrap=document.getElementById('cc-'+si);
-    if(!sc.length){wrap.innerHTML='<div class="empty-col"><i class="ti ti-inbox" style="font-size:18px;display:block;margin-bottom:5px;"></i>Нет клиентов</div>';return;}
+    if(!sc.length){col.innerHTML+=`<div class="empty-col"><i class="ti ti-inbox" style="font-size:18px;display:block;margin-bottom:5px;"></i>Нет клиентов</div>`;}
     sc.forEach(c=>{
       const card=document.createElement('div');
-      card.className='card';card.draggable=true;
+      card.className='card'; card.draggable=true;
       const days=daysBetween(c.createdAt,new Date().toISOString());
       const lastMove=c.stageHistory&&c.stageHistory.length>1?c.stageHistory[c.stageHistory.length-1]:null;
-      const today=todayStr();
-      const next=(c.tasks||[]).filter(t=>t.date===today&&!t.done).sort((a,b)=>a.time.localeCompare(b.time))[0];
+      const next=(c.tasks||[]).filter(t=>t.date===todayStr()&&!t.done).sort((a,b)=>a.time.localeCompare(b.time))[0];
+      const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
       card.innerHTML=`
         <div class="card-top"><div class="card-name">${c.name}</div><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div>
         ${c.company?`<div class="card-company"><i class="ti ti-building" style="font-size:11px;"></i>${c.company}</div>`:''}
-        ${(()=>{const ph=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);return ph.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${ph.map(p=>`<span class="phone-badge"><span>${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`).join('')}</div>`:''})()}        <div class="card-dates">
-          <span><i class="ti ti-phone-call" style="font-size:11px;"></i>Первый контакт: <b style="color:var(--text2);">${fmtDs(c.createdAt)}</b></span>
+        ${phones.length?`<div class="card-phones">${phones.map(p=>`<span class="ph-badge">${msnIcon(p.msn)} ${p.num}</span>`).join('')}</div>`:''}
+        <div class="card-dates">
+          <span><i class="ti ti-calendar" style="font-size:11px;"></i>Первый контакт: <b style="color:var(--text2);">${fmtDs(c.createdAt)}</b></span>
           ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${fmtDs(lastMove.date)}</b></span>`:''}
         </div>
         ${next?`<div class="card-next"><div class="card-next-time"><i class="ti ti-clock" style="font-size:11px;"></i> Сегодня в ${next.time}</div><div class="card-next-text">${next.type} ${next.text||''}</div></div>`:''}
@@ -405,15 +402,31 @@ function render(){
       card.addEventListener('click',()=>{if(!dm)openDetail(c.id);});
       card.addEventListener('dragstart',e=>{dragId=c.id;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
       card.addEventListener('dragend',()=>{card.classList.remove('dragging');dragId=null;});
-      wrap.appendChild(card);
+      col.appendChild(card);
     });
+    board.appendChild(col);
   });
 }
 
-/* ── ADD CLIENT ── */
+// ── ADD CLIENT ─────────────────────────────────────────────
+let phCount=0;
+function addPhoneRow(num='',msn='phone'){
+  phCount++;
+  const id='phr-'+phCount;
+  const div=document.createElement('div');
+  div.className='phone-row'; div.id=id;
+  div.innerHTML=`<input class="ph-num" placeholder="+7 900 000 00 00" value="${num}"/><select class="msn-sel ph-msn">${msnOptions(msn)}</select><button class="phone-del" onclick="document.getElementById('${id}').remove()"><i class="ti ti-x" style="font-size:12px;"></i></button>`;
+  document.getElementById('f-phones').appendChild(div);
+}
+function getFormPhones(){
+  return [...document.getElementById('f-phones').querySelectorAll('.phone-row')]
+    .map(r=>({num:r.querySelector('.ph-num').value.trim(),msn:r.querySelector('.ph-msn').value}))
+    .filter(p=>p.num);
+}
 function openAdd(){
-  document.getElementById('f-phones-list').innerHTML='';
+  document.getElementById('f-phones').innerHTML='';
   addPhoneRow();
+  document.getElementById('f-date').value=todayStr();
   document.getElementById('modal-add').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),50);
 }
@@ -423,15 +436,27 @@ function saveClient(){
   if(!name){alert('Введите имя');return;}
   const si=parseInt(document.getElementById('f-stage').value);
   const note=document.getElementById('f-note').value.trim();
-  const phones=getFormPhones();
-  const c={id:genId(),name,company:document.getElementById('f-company').value.trim(),phones,email:document.getElementById('f-email').value.trim(),amount:document.getElementById('f-amount').value,stage:si,stageHistory:[{stage:si,stageName:STAGES[si],date:new Date().toISOString()}],notes:note?[{text:note,date:new Date().toISOString(),stage:STAGES[si]}]:[],tasks:[],createdAt:new Date().toISOString()};
-  clients.push(c);save();render();closeAdd();
+  const dateVal=document.getElementById('f-date').value;
+  const createdAt=dateVal ? new Date(dateVal+'T09:00:00').toISOString() : new Date().toISOString();
+  const c={
+    id:genId(), name,
+    company:document.getElementById('f-company').value.trim(),
+    phones:getFormPhones(),
+    email:document.getElementById('f-email').value.trim(),
+    amount:document.getElementById('f-amount').value,
+    stage:si,
+    stageHistory:[{stage:si,stageName:STAGES[si],date:createdAt}],
+    notes:note?[{text:note,date:createdAt,stage:STAGES[si]}]:[],
+    tasks:[],
+    createdAt
+  };
+  clients.push(c); save(); render(); closeAdd();
   ['f-name','f-company','f-email','f-amount','f-note'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-stage').value='0';
-  document.getElementById('f-phones-list').innerHTML='';
+  document.getElementById('f-phones').innerHTML='';
 }
 
-/* ── TASK ── */
+// ── TASK ───────────────────────────────────────────────────
 function openTask(e,cid){
   if(e)e.stopPropagation();
   qtCid=cid;
@@ -446,101 +471,65 @@ function openTask(e,cid){
 function openTaskFromDetail(){const id=activeId;closeDetail();setTimeout(()=>openTask(null,id),120);}
 function closeTask(){document.getElementById('modal-task').classList.remove('open');}
 function saveTask(){
-  const date=document.getElementById('qt-date').value,time=document.getElementById('qt-time').value;
+  const date=document.getElementById('qt-date').value, time=document.getElementById('qt-time').value;
   if(!date||!time){alert('Укажите дату и время');return;}
-  const c=clients.find(x=>x.id===qtCid);
-  if(!c)return;
+  const c=clients.find(x=>x.id===qtCid); if(!c)return;
   if(!c.tasks)c.tasks=[];
   c.tasks.push({id:genId(),type:document.getElementById('qt-type').value,text:document.getElementById('qt-text').value.trim(),date,time,done:false,createdAt:new Date().toISOString()});
-  save();render();closeTask();
+  save(); render(); closeTask();
 }
 function toggleTask(cid,tid){
-  const c=clients.find(x=>x.id===cid);if(!c)return;
-  const t=(c.tasks||[]).find(x=>x.id===tid);if(t)t.done=!t.done;
-  save();render();
+  const c=clients.find(x=>x.id===cid); if(!c)return;
+  const t=(c.tasks||[]).find(x=>x.id===tid); if(t)t.done=!t.done;
+  save(); render();
   if(activeId===cid)renderTasks(c);
 }
 
-/* ── DETAIL ── */
+// ── DETAIL ─────────────────────────────────────────────────
 function openDetail(id){
   activeId=id;
-  const c=clients.find(x=>x.id===id);if(!c)return;
+  const c=clients.find(x=>x.id===id); if(!c)return;
   document.getElementById('d-name').textContent=c.name;
-  const mi=[];
-  if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
-  // phones badges
-  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
-  phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:3px;"><span style="font-size:13px;">${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`));
-  if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
-  if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
-  document.getElementById('d-meta').innerHTML=mi.join('');
+  refreshMeta(c);
   const days=daysBetween(c.createdAt,new Date().toISOString());
   const isClosed=c.stage===4;
   const closedEntry=(c.stageHistory||[]).find(h=>h.stage===4);
   const dispDays=isClosed&&closedEntry?daysBetween(c.createdAt,closedEntry.date):days;
   const col=isClosed?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
-  switchTab('tasks');
+  // reset tabs
+  ['tasks','phones','notes','history'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.remove('active');
+    document.getElementById('panel-'+t).style.display='none';
+  });
+  document.getElementById('tab-tasks').classList.add('active');
+  document.getElementById('panel-tasks').style.display='';
+  renderTasks(c);
   document.getElementById('modal-detail').classList.add('open');
 }
+
+function refreshMeta(c){
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  const mi=[];
+  if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
+  phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:4px;">${msnIcon(p.msn)} ${p.num}</span>`));
+  if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
+  if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
+  document.getElementById('d-meta').innerHTML=mi.join('');
+}
+
 function switchTab(tab){
   ['tasks','phones','notes','history'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('panel-'+t).style.display=t===tab?'':'none';
   });
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
   if(tab==='tasks')renderTasks(c);
-  if(tab==='phones')renderPhones(c);
+  if(tab==='phones')renderPhonesPanel(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
 }
-function renderPhones(c){
-  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
-  const el=document.getElementById('d-phones');
-  if(!phones.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:10px 0;">Номеров нет</div>';}
-  else{
-    el.innerHTML=phones.map((p,i)=>`
-      <div class="phone-edit-row" id="dph-${i}">
-        <input value="${p.num}" onchange="updatePhone(${i},'num',this.value)" placeholder="+7 900 000 00 00"/>
-        <select onchange="updatePhone(${i},'msn',this.value)">${messengerOptions(p.msn)}</select>
-        <button class="phone-del" onclick="deletePhone(${i})"><i class="ti ti-x"></i></button>
-      </div>`).join('');
-  }
-  const emailEl=document.getElementById('d-email-block');
-  emailEl.innerHTML=`<input value="${c.email||''}" placeholder="ivan@company.ru" style="margin-top:4px;" onchange="updateEmail(this.value)"/>`;
-}
-function updatePhone(i,field,val){
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
-  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
-  if(c.phones[i])c.phones[i][field]=val;
-  save();renderPhones(c);
-  // refresh meta
-  openDetailMeta(c);
-}
-function updateEmail(val){
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
-  c.email=val;save();openDetailMeta(c);
-}
-function openDetailMeta(c){
-  const mi=[];
-  if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
-  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
-  phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:3px;"><span style="font-size:13px;">${messengerLabel(p.msn).split(' ')[0]}</span>${p.num}</span>`));
-  if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
-  if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
-  document.getElementById('d-meta').innerHTML=mi.join('');
-}
-function deletePhone(i){
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
-  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
-  c.phones.splice(i,1);save();render();renderPhones(c);
-}
-function addDetailPhoneRow(){
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
-  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
-  c.phones.push({num:'',msn:'phone'});
-  save();renderPhones(c);
-}
+
 function renderTasks(c){
   const el=document.getElementById('d-tasks');
   const tasks=(c.tasks||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
@@ -554,6 +543,56 @@ function renderTasks(c){
       <div class="dtask-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})}</div>
     </div></div>`).join('');
 }
+
+function renderPhonesPanel(c){
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  const el=document.getElementById('d-phones');
+  if(!phones.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0 12px;">Номеров нет — добавьте первый</div>';}
+  else{
+    el.innerHTML=phones.map((p,i)=>`<div class="ph-edit-row">
+      <div style="display:flex;align-items:center;gap:6px;width:26px;flex-shrink:0;">${msnIcon(p.msn)}</div>
+      <input value="${p.num}" onchange="updatePhone(${i},'num',this.value)" placeholder="+7 900 000 00 00"/>
+      <select class="msn-sel" onchange="updatePhone(${i},'msn',this.value)">${msnOptions(p.msn)}</select>
+      <button class="phone-del" onclick="deletePhone(${i})"><i class="ti ti-x" style="font-size:12px;"></i></button>
+    </div>`).join('');
+  }
+  document.getElementById('d-email').value=c.email||'';
+  document.getElementById('d-contact-date').value=isoToDateInput(c.createdAt);
+}
+
+function updatePhone(i,field,val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  if(c.phones[i])c.phones[i][field]=val;
+  save(); render(); refreshMeta(c); renderPhonesPanel(c);
+}
+function deletePhone(i){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  c.phones.splice(i,1); save(); render(); refreshMeta(c); renderPhonesPanel(c);
+}
+function addDetailPhone(){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.phones)c.phones=c.phone?[{num:c.phone,msn:'phone'}]:[];
+  c.phones.push({num:'',msn:'phone'}); save(); renderPhonesPanel(c);
+}
+function saveDetailEmail(val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.email=val; save(); refreshMeta(c);
+}
+function saveDetailDate(val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!val)return;
+  const newIso=new Date(val+'T09:00:00').toISOString();
+  c.createdAt=newIso;
+  if(c.stageHistory&&c.stageHistory.length>0)c.stageHistory[0].date=newIso;
+  save(); render();
+  // refresh timer
+  const days=daysBetween(c.createdAt,new Date().toISOString());
+  const col=c.stage===4?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
+  document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">В работе</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(days)}</div></div>`;
+}
+
 function renderNotes(c){
   const el=document.getElementById('d-notes');
   if(!(c.notes||[]).length){el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px;">Заметок пока нет</div>';return;}
@@ -561,12 +600,13 @@ function renderNotes(c){
 }
 function addNote(){
   const input=document.getElementById('d-note-input');
-  const text=input.value.trim();if(!text)return;
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  const text=input.value.trim(); if(!text)return;
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
   if(!c.notes)c.notes=[];
   c.notes.push({text,date:new Date().toISOString(),stage:STAGES[c.stage]});
-  save();render();renderNotes(c);input.value='';input.focus();
+  save(); render(); renderNotes(c); input.value=''; input.focus();
 }
+
 function renderStages(c){
   document.getElementById('d-stages').innerHTML=STAGES.map((s,i)=>
     `<button class="stage-btn${c.stage===i?' active':''}" style="${c.stage===i?'background:'+COLORS[i]+';border-color:'+COLORS[i]+';':''}" onclick="moveStage(${i})">${s}</button>`).join('');
@@ -583,7 +623,7 @@ function renderTimeline(c){
         <div class="tl-dot" style="background:${COLORS[s.stage]||'#888'};"></div>
         ${!isLast?'<div class="tl-line"></div>':''}
       </div>
-      <div style="flex:1;padding-bottom:${isLast?0:10}px;">
+      <div style="flex:1;padding-bottom:${isLast?0:12}px;">
         <div style="font-size:12px;font-weight:600;">${s.stageName}</div>
         <div style="font-size:11px;color:var(--text3);">${fmtDt(s.date)}</div>
         <div style="font-size:11px;color:${isLast?COLORS[s.stage]:'var(--text2)'};margin-top:1px;">${isLast?'<b>сейчас · '+fmtDays(spent)+'</b>':'провёл '+fmtDays(spent)}</div>
@@ -592,32 +632,33 @@ function renderTimeline(c){
   document.getElementById('d-timeline').innerHTML=h;
 }
 function moveStage(si){
-  const c=clients.find(x=>x.id===activeId);if(!c)return;
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
   c.stage=si;
   if(!c.stageHistory)c.stageHistory=[];
   if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
-  save();render();renderStages(c);renderTimeline(c);
+  save(); render(); renderStages(c); renderTimeline(c);
 }
 function deleteClient(){
   if(!confirm('Удалить клиента?'))return;
   clients=clients.filter(x=>x.id!==activeId);
-  save();render();closeDetail();
+  save(); render(); closeDetail();
 }
 function closeDetail(){document.getElementById('modal-detail').classList.remove('open');activeId=null;}
 
+// backdrop close
 ['modal-add','modal-detail','modal-task'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
 
-/* ── DEMO ── */
+// ── DEMO ───────────────────────────────────────────────────
 if(!clients.length){
   const today=todayStr();
   clients=[
-    {id:genId(),name:'Алексей Смирнов',company:'ООО ТехПром',phones:[{num:'+7 901 234 56 78',msn:'telegram'},{num:'+7 901 234 56 79',msn:'whatsapp'}],email:'a.smirnov@techprom.ru',amount:'350000',stage:0,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Позвонил сам. Интересует CRM. Перезвонить в среду.',date:new Date(Date.now()-86400000*3).toISOString(),stage:'Первый звонок'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Уточнить требования к системе',date:today,time:'14:30',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*3).toISOString()},
-    {id:genId(),name:'Марина Козлова',company:'Агентство "Медиа+"',phones:[{num:'+7 912 345 67 89',msn:'whatsapp'}],email:'m.kozlova@mediaplus.ru',amount:'180000',stage:1,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*10).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Встреча прошла отлично. Отправить КП до пятницы.',date:new Date(Date.now()-86400000).toISOString(),stage:'Переговоры'}],tasks:[{id:genId(),type:'📄 Отправить КП',text:'Коммерческое предложение',date:today,time:'11:00',done:true,createdAt:new Date().toISOString()},{id:genId(),type:'📞 Созвон',text:'Обсудить КП',date:today,time:'16:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*10).toISOString()},
-    {id:genId(),name:'Дмитрий Волков',company:'ИП Волков Д.А.',phones:[{num:'+7 923 456 78 90',msn:'telegram'},{num:'+7 923 456 78 91',msn:'viber'}],email:'volkov@mail.ru',amount:'95000',stage:2,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*25).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*15).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*5).toISOString()}],notes:[{text:'КП отправлено. Ждём ответа.',date:new Date(Date.now()-3600000*5).toISOString(),stage:'Коммерческое предложение'}],tasks:[],createdAt:new Date(Date.now()-86400000*25).toISOString()},
-    {id:genId(),name:'Ольга Новикова',company:'Сеть магазинов "Уют"',phones:[{num:'+7 934 567 89 01',msn:'whatsapp'}],email:'o.novikova@uyut.ru',amount:'620000',stage:3,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*40).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*30).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*18).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*4).toISOString()}],notes:[{text:'Договор у юристов. Ориентир — 22 мая.',date:new Date(Date.now()-3600000*2).toISOString(),stage:'Согласование'}],tasks:[{id:genId(),type:'🤝 Встреча',text:'Подписание договора',date:today,time:'10:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*40).toISOString()},
-    {id:genId(),name:'Сергей Михайлов',company:'Строй-Инвест',phones:[{num:'+7 945 678 90 12',msn:'phone'}],email:'s.mikhailov@stroi.ru',amount:'1200000',stage:4,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*60).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*45).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*30).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*10).toISOString()},{stage:4,stageName:'Закрытие сделки',date:new Date(Date.now()-86400000*2).toISOString()}],notes:[{text:'Договор подписан! Счёт выставлен.',date:new Date().toISOString(),stage:'Закрытие сделки'}],tasks:[],createdAt:new Date(Date.now()-86400000*60).toISOString()},
+    {id:genId(),name:'Алексей Смирнов',company:'ООО ТехПром',phones:[{num:'+7 901 234 56 78',msn:'telegram'},{num:'+7 901 234 56 79',msn:'whatsapp'}],email:'a.smirnov@techprom.ru',amount:'350000',stage:0,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Позвонил сам. Интересует CRM.',date:new Date(Date.now()-86400000*3).toISOString(),stage:'Первый звонок'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Уточнить требования',date:today,time:'14:30',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*3).toISOString()},
+    {id:genId(),name:'Марина Козлова',company:'Агентство "Медиа+"',phones:[{num:'+7 912 345 67 89',msn:'whatsapp'}],email:'m.kozlova@mediaplus.ru',amount:'180000',stage:1,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*10).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Встреча прошла отлично.',date:new Date(Date.now()-86400000).toISOString(),stage:'Переговоры'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Обсудить КП',date:today,time:'16:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*10).toISOString()},
+    {id:genId(),name:'Дмитрий Волков',company:'ИП Волков Д.А.',phones:[{num:'+7 923 456 78 90',msn:'viber'}],email:'volkov@mail.ru',amount:'95000',stage:2,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*25).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*5).toISOString()}],notes:[{text:'КП отправлено.',date:new Date(Date.now()-3600000*5).toISOString(),stage:'Коммерческое предложение'}],tasks:[],createdAt:new Date(Date.now()-86400000*25).toISOString()},
+    {id:genId(),name:'Ольга Новикова',company:'Сеть магазинов "Уют"',phones:[{num:'+7 934 567 89 01',msn:'whatsapp'},{num:'@novikova_uyut',msn:'telegram'}],email:'o.novikova@uyut.ru',amount:'620000',stage:3,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*40).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*4).toISOString()}],notes:[{text:'Договор у юристов.',date:new Date(Date.now()-3600000*2).toISOString(),stage:'Согласование'}],tasks:[{id:genId(),type:'🤝 Встреча',text:'Подписание договора',date:today,time:'10:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*40).toISOString()},
+    {id:genId(),name:'Сергей Михайлов',company:'Строй-Инвест',phones:[{num:'+7 945 678 90 12',msn:'phone'}],email:'s.mikhailov@stroi.ru',amount:'1200000',stage:4,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*60).toISOString()},{stage:4,stageName:'Закрытие сделки',date:new Date(Date.now()-86400000*2).toISOString()}],notes:[{text:'Договор подписан!',date:new Date().toISOString(),stage:'Закрытие сделки'}],tasks:[],createdAt:new Date(Date.now()-86400000*60).toISOString()},
   ];
   save();
 }
