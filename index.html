@@ -133,6 +133,36 @@ textarea{resize:vertical;min-height:70px;}
 .ph-edit-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
 .ph-edit-row input{flex:1;}
 .ph-edit-row .msn-sel{width:50px;flex-shrink:0;padding:8px 4px;text-align:center;}
+
+/* CONTACT PERSONS */
+.contact-card{background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;margin-bottom:8px;position:relative;}
+.contact-del{position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0;}
+.contact-del:hover{color:var(--red);}
+.contact-field{margin-bottom:6px;}
+.contact-field:last-child{margin-bottom:0;}
+.contact-field label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px;}
+.contact-field input{font-size:12px;padding:5px 8px;}
+.contact-phones{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+.contact-phone-row{display:flex;gap:5px;align-items:center;}
+.contact-phone-row input{flex:1;font-size:12px;padding:5px 8px;}
+.contact-phone-row .msn-sel{width:46px;padding:5px 2px;font-size:12px;}
+.add-cph-btn{font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;padding:2px 0;margin-top:4px;}
+
+
+/* CHIPS / МЕТКИ */
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;cursor:default;white-space:nowrap;}
+.chip-remove{background:none;border:none;cursor:pointer;font-size:11px;opacity:.6;padding:0;line-height:1;margin-left:2px;}
+.chip-remove:hover{opacity:1;}
+.card-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px;}
+.chip-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.chip-option{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:5px 12px;border-radius:99px;cursor:pointer;border:.5px solid transparent;transition:opacity .12s;}
+.chip-option:hover{opacity:.8;}
+.chip-custom-row{display:flex;gap:7px;margin-top:6px;}
+.chip-custom-row input{flex:1;}
+.chip-color-pick{display:flex;gap:5px;margin-top:8px;}
+.color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.color-dot.selected{border-color:var(--text);}
+
 </style>
 </head>
 <body>
@@ -218,7 +248,7 @@ textarea{resize:vertical;min-height:70px;}
 <div class="modal-bg" id="modal-detail">
 <div class="modal">
   <div class="modal-header">
-    <span class="modal-title" id="d-name"></span>
+    <input id="d-name" style="font-size:17px;font-weight:600;border:none;background:transparent;outline:none;flex:1;padding:0;color:var(--text);border-bottom:1.5px solid transparent;transition:border-color .15s;" onfocus="this.style.borderColor='var(--border2)'" onblur="this.style.borderColor='transparent';saveDetailName(this.value)" onkeydown="if(event.key==='Enter')this.blur()"/>
     <button class="modal-close" onclick="closeDetail()"><i class="ti ti-x"></i></button>
   </div>
   <div id="d-meta" style="font-size:12px;color:var(--text2);margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;"></div>
@@ -226,6 +256,7 @@ textarea{resize:vertical;min-height:70px;}
   <div class="tabs">
     <button class="tab active" id="tab-tasks"   onclick="switchTab('tasks')">📋 Задачи</button>
     <button class="tab"        id="tab-phones"  onclick="switchTab('phones')">📱 Контакты</button>
+    <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
   </div>
@@ -239,6 +270,20 @@ textarea{resize:vertical;min-height:70px;}
     <div id="d-tasks"></div>
   </div>
 
+  <!-- Метки -->
+  <div id="panel-chips" style="display:none;">
+    <div class="sec-head"><i class="ti ti-tag"></i> Активные метки</div>
+    <div id="d-active-chips" style="margin-bottom:14px;min-height:28px;"></div>
+    <div class="sec-head" style="margin-top:4px;"><i class="ti ti-plus"></i> Добавить метку</div>
+    <div class="chip-list" id="d-chip-presets"></div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">Своя метка:</div>
+    <div class="chip-custom-row">
+      <input id="chip-custom-input" placeholder="Например: ждёт решения директора..."/>
+      <button class="btn btn-outline" style="padding:7px 12px;font-size:12px;" onclick="addCustomChip()">Добавить</button>
+    </div>
+    <div class="chip-color-pick" id="chip-color-pick" style="margin-top:8px;"></div>
+  </div>
+
   <!-- Контакты -->
   <div id="panel-phones" style="display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -246,6 +291,23 @@ textarea{resize:vertical;min-height:70px;}
       <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="addDetailPhone()"><i class="ti ti-plus"></i> Добавить</button>
     </div>
     <div id="d-phones"></div>
+
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="sec-head" style="margin:0;"><i class="ti ti-users"></i> Контактные лица</div>
+        <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="addContact()"><i class="ti ti-plus"></i> Добавить</button>
+      </div>
+      <div id="d-contacts"></div>
+    </div>
+
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div class="sec-head"><i class="ti ti-building"></i> Компания</div>
+      <input id="d-company" placeholder="ООО Ромашка" onchange="saveDetailCompany(this.value)"/>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div class="sec-head"><i class="ti ti-currency-rubel"></i> Сумма сделки, ₽</div>
+      <input id="d-amount" type="number" placeholder="100000" onchange="saveDetailAmount(this.value)"/>
+    </div>
     <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
       <div class="sec-head"><i class="ti ti-mail"></i> Email</div>
       <input id="d-email" placeholder="ivan@company.ru" onchange="saveDetailEmail(this.value)"/>
@@ -297,7 +359,67 @@ function msnIcon(val){return(MSN[val]||MSN.phone).svg;}
 function msnLabel(val){return(MSN[val]||MSN.phone).label;}
 function msnOptions(sel='phone'){return Object.entries(MSN).map(([v,m])=>`<option value="${v}"${v===sel?' selected':''}>${m.emoji||'📞'} ${m.label}</option>`).join('');}
 
+// ── CHIPS ──────────────────────────────────────────────────
+const PRESET_CHIPS=[
+  {label:'📞 Перезвонить',       bg:'#EBF4FF',color:'#1A6BBF'},
+  {label:'⏳ Ждём ответа',       bg:'#FEF3DC',color:'#8A5000'},
+  {label:'📄 Ждём документы',    bg:'#F3F0FF',color:'#5B3FBF'},
+  {label:'💬 На согласовании',   bg:'#FFF0F5',color:'#B03060'},
+  {label:'🔁 Повторный контакт', bg:'#E8F8F0',color:'#0F6E56'},
+  {label:'⚠️ Срочно',            bg:'#FFEDED',color:'#B02020'},
+  {label:'❄️ Холодный лид',      bg:'#EEF6FF',color:'#3070A0'},
+  {label:'🤔 Думает',            bg:'#F5F5F0',color:'#555544'},
+  {label:'💰 Высокий чек',       bg:'#EDFFF5',color:'#0A7050'},
+  {label:'🚫 Недозвон',          bg:'#FFF5EE',color:'#994400'},
+];
+const CHIP_COLORS=[
+  {bg:'#EBF4FF',color:'#1A6BBF'},{bg:'#FEF3DC',color:'#8A5000'},
+  {bg:'#F3F0FF',color:'#5B3FBF'},{bg:'#FFF0F5',color:'#B03060'},
+  {bg:'#E8F8F0',color:'#0F6E56'},{bg:'#FFEDED',color:'#B02020'},
+  {bg:'#F5F5F0',color:'#555544'},{bg:'#EDFFF5',color:'#0A7050'},
+];
+let selChipColor=CHIP_COLORS[0];
+
+function renderChipsPanel(c){
+  const chips=c.chips||[];
+  const activeEl=document.getElementById('d-active-chips');
+  activeEl.innerHTML=chips.length
+    ? chips.map((ch,i)=>`<span class="chip" style="background:${ch.bg};color:${ch.color};">${ch.label}<button class="chip-remove" onclick="removeChip(${i})">×</button></span> `).join('')
+    : '<div style="font-size:12px;color:var(--text3);">Меток нет — выберите ниже</div>';
+  document.getElementById('d-chip-presets').innerHTML=PRESET_CHIPS.map(p=>`<span class="chip-option" style="background:${p.bg};color:${p.color};" onclick='addPresetChip(${JSON.stringify(JSON.stringify(p))})'>${p.label}</span>`).join('');
+  document.getElementById('chip-color-pick').innerHTML=CHIP_COLORS.map((col,i)=>
+    `<div class="color-dot ${col.bg===selChipColor.bg?'selected':''}" style="background:${col.bg};border-color:${col.bg===selChipColor.bg?col.color:'transparent'};" onclick="selChipColor=CHIP_COLORS[${i}];renderChipsPanel(clients.find(x=>x.id===activeId));"></div>`
+  ).join('');
+}
+function addPresetChip(jsonStr){
+  const p=JSON.parse(jsonStr);
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.chips)c.chips=[];
+  if(c.chips.find(ch=>ch.label===p.label))return;
+  c.chips.push(p); save(); render(); renderChipsPanel(c);
+}
+function addCustomChip(){
+  const input=document.getElementById('chip-custom-input');
+  const label=input.value.trim(); if(!label)return;
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.chips)c.chips=[];
+  c.chips.push({label,bg:selChipColor.bg,color:selChipColor.color});
+  save(); render(); renderChipsPanel(c); input.value='';
+}
+function removeChip(i){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.chips.splice(i,1); save(); render(); renderChipsPanel(c);
+}
+
 // ── DATA ───────────────────────────────────────────────────
+// ── MIGRATE OLD DATA ───────────────────────────────────────
+(function migrate(){
+  if(!localStorage.getItem('crm_v4')){
+    const old=localStorage.getItem('crm_v3');
+    if(old){localStorage.setItem('crm_v4',old);console.log('✅ Данные перенесены из crm_v3 → crm_v4');}
+  }
+})();
+
 let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
 let activeId=null, dragId=null, qtCid=null;
 function save(){localStorage.setItem('crm_v4',JSON.stringify(clients));}
@@ -389,6 +511,7 @@ function render(){
           ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${fmtDs(lastMove.date)}</b></span>`:''}
         </div>
         ${next?`<div class="card-next"><div class="card-next-time"><i class="ti ti-clock" style="font-size:11px;"></i> Сегодня в ${next.time}</div><div class="card-next-text">${next.type} ${next.text||''}</div></div>`:''}
+        ${(c.chips||[]).length?`<div class="card-chips">${(c.chips||[]).map(ch=>`<span class="chip" style="background:${ch.bg};color:${ch.color};">${ch.label}</span>`).join('')}</div>`:''}
         <div class="card-footer">
           <span class="card-amount">${c.amount?fmtAmt(c.amount):''}</span>
           <div class="card-meta">
@@ -489,7 +612,7 @@ function toggleTask(cid,tid){
 function openDetail(id){
   activeId=id;
   const c=clients.find(x=>x.id===id); if(!c)return;
-  document.getElementById('d-name').textContent=c.name;
+  document.getElementById('d-name').value=c.name;
   refreshMeta(c);
   const days=daysBetween(c.createdAt,new Date().toISOString());
   const isClosed=c.stage===4;
@@ -498,7 +621,7 @@ function openDetail(id){
   const col=isClosed?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
-  ['tasks','phones','notes','history'].forEach(t=>{
+  ['tasks','phones','chips','notes','history'].forEach(t=>{
     document.getElementById('tab-'+t).classList.remove('active');
     document.getElementById('panel-'+t).style.display='none';
   });
@@ -519,13 +642,14 @@ function refreshMeta(c){
 }
 
 function switchTab(tab){
-  ['tasks','phones','notes','history'].forEach(t=>{
+  ['tasks','phones','chips','notes','history'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
     document.getElementById('panel-'+t).style.display=t===tab?'':'none';
   });
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   if(tab==='tasks')renderTasks(c);
   if(tab==='phones')renderPhonesPanel(c);
+  if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
 }
@@ -557,7 +681,63 @@ function renderPhonesPanel(c){
     </div>`).join('');
   }
   document.getElementById('d-email').value=c.email||'';
+  document.getElementById('d-company').value=c.company||'';
+  document.getElementById('d-amount').value=c.amount||'';
   document.getElementById('d-contact-date').value=isoToDateInput(c.createdAt);
+  renderContacts(c);
+}
+
+function renderContacts(c){
+  const contacts=c.contacts||[];
+  const el=document.getElementById('d-contacts');
+  if(!contacts.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0 8px;">Нет контактных лиц</div>';
+    return;
+  }
+  el.innerHTML=contacts.map((ct,ci)=>`
+    <div class="contact-card">
+      <button class="contact-del" onclick="deleteContact(${ci})"><i class="ti ti-x"></i></button>
+      <div class="contact-field"><label>Имя</label><input value="${ct.name||''}" placeholder="Иван Петров" onchange="updateContact(${ci},'name',this.value)"/></div>
+      <div class="contact-field"><label>Должность</label><input value="${ct.role||''}" placeholder="Помощник директора" onchange="updateContact(${ci},'role',this.value)"/></div>
+      <div class="contact-phones" id="cph-${ci}">
+        ${(ct.phones||[]).map((p,pi)=>`
+          <div class="contact-phone-row">
+            <span style="display:flex;align-items:center;width:18px;">${msnIcon(p.msn)}</span>
+            <input value="${p.num||''}" placeholder="+7 900 000 00 00" onchange="updateContactPhone(${ci},${pi},'num',this.value)"/>
+            <select class="msn-sel" onchange="updateContactPhone(${ci},${pi},'msn',this.value)">${msnOptions(p.msn)}</select>
+            <button class="phone-del" onclick="deleteContactPhone(${ci},${pi})" style="width:24px;height:24px;"><i class="ti ti-x" style="font-size:11px;"></i></button>
+          </div>`).join('')}
+      </div>
+      <button class="add-cph-btn" onclick="addContactPhone(${ci})"><i class="ti ti-plus" style="font-size:11px;"></i> Добавить номер</button>
+    </div>`).join('');
+}
+function addContact(){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.contacts)c.contacts=[];
+  c.contacts.push({name:'',role:'',phones:[{num:'',msn:'phone'}]});
+  save(); renderContacts(c);
+}
+function deleteContact(ci){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.contacts.splice(ci,1); save(); renderContacts(c);
+}
+function updateContact(ci,field,val){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.contacts[ci])return;
+  c.contacts[ci][field]=val; save();
+}
+function addContactPhone(ci){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.contacts[ci])return;
+  if(!c.contacts[ci].phones)c.contacts[ci].phones=[];
+  c.contacts[ci].phones.push({num:'',msn:'phone'}); save(); renderContacts(c);
+}
+function updateContactPhone(ci,pi,field,val){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.contacts[ci])return;
+  c.contacts[ci].phones[pi][field]=val; save();
+  if(field==='msn')renderContacts(c);
+}
+function deleteContactPhone(ci,pi){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.contacts[ci])return;
+  c.contacts[ci].phones.splice(pi,1); save(); renderContacts(c);
 }
 
 function updatePhone(i,field,val){
@@ -579,6 +759,19 @@ function addDetailPhone(){
 function saveDetailEmail(val){
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   c.email=val; save(); refreshMeta(c);
+}
+function saveDetailName(val){
+  const v=val.trim(); if(!v)return;
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.name=v; save(); render();
+}
+function saveDetailCompany(val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.company=val; save(); refreshMeta(c); render();
+}
+function saveDetailAmount(val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.amount=val; save(); refreshMeta(c); render();
 }
 function saveDetailDate(val){
   const c=clients.find(x=>x.id===activeId); if(!c)return;
