@@ -163,6 +163,26 @@ textarea{resize:vertical;min-height:70px;}
 .color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
 .color-dot.selected{border-color:var(--text);}
 
+/* BACKUPS / VERSIONS */
+.bk-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;margin-bottom:12px;}
+.bk-item{background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.bk-item:hover{background:var(--surface3);}
+.bk-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bk-info{flex:1;min-width:0;}
+.bk-date{font-size:12px;font-weight:600;}
+.bk-meta{font-size:11px;color:var(--text3);margin-top:1px;}
+.bk-label{display:inline-block;font-size:10px;padding:1px 7px;border-radius:99px;margin-left:5px;vertical-align:1px;}
+.bk-actions{display:flex;gap:5px;flex-shrink:0;}
+.bk-btn{font-size:11px;padding:3px 10px;border-radius:99px;border:.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;}
+.bk-btn:hover{background:var(--surface3);}
+.bk-btn-restore{color:var(--green);border-color:var(--green);}
+.bk-btn-del{color:var(--red);border-color:currentColor;opacity:.6;}
+.bk-btn-del:hover{opacity:1;}
+.bk-empty{text-align:center;padding:30px;color:var(--text3);font-size:12px;}
+.bk-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.bk-count{font-size:12px;color:var(--text2);}
+.bk-warn{background:#FEF3DC;border:none;border-radius:var(--r-md);padding:9px 12px;font-size:12px;color:#854F0B;margin-bottom:12px;display:none;}
+
 </style>
 </head>
 <body>
@@ -177,8 +197,11 @@ textarea{resize:vertical;min-height:70px;}
     </div>
   </div>
   <button class="btn btn-dark" onclick="openAdd()"><i class="ti ti-plus"></i> Добавить клиента</button>
-  <button class="btn btn-outline" onclick="exportData()" style="margin-left:6px;" title="Сохранить резервную копию"><i class="ti ti-download"></i> Бэкап</button>
-  <label class="btn btn-outline" style="margin-left:4px;cursor:pointer;" title="Восстановить из резервной копии"><i class="ti ti-upload"></i> Импорт<input type="file" accept=".json" onchange="importData(event)" style="display:none;"/></label>
+  <div style="display:flex;align-items:center;gap:4px;margin-left:6px;">
+    <button class="btn btn-outline" onclick="openBackups()" title="Версии и резервные копии"><i class="ti ti-history"></i> Версии <span id="bk-badge" style="display:none;font-size:10px;background:var(--green);color:#fff;border-radius:99px;padding:1px 6px;margin-left:2px;">0</span></button>
+    <button class="btn btn-outline" onclick="exportData()" title="Скачать резервную копию"><i class="ti ti-download"></i> Бэкап</button>
+    <label class="btn btn-outline" style="cursor:pointer;" title="Восстановить из файла"><i class="ti ti-upload"></i> Импорт<input type="file" accept=".json" onchange="importData(event)" style="display:none;"/></label>
+  </div>
 </div>
 
 <div class="layout">
@@ -339,6 +362,27 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 
   <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
+</div>
+</div>
+
+<!-- ══ МОДАЛ: ВЕРСИИ / БЭКАПЫ ══ -->
+<div class="modal-bg" id="modal-backups">
+<div class="modal" style="width:580px;">
+  <div class="modal-header">
+    <span class="modal-title"><i class="ti ti-history" style="margin-right:6px;font-size:16px;vertical-align:-2px;"></i>Версии и резервные копии</span>
+    <button class="modal-close" onclick="closeBackups()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="background:var(--surface2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.6;">
+    Версии создаются <b>автоматически каждые 10 мин</b> при изменениях и при закрытии вкладки. Перед каждым импортом текущее состояние тоже сохраняется. Хранится до <b>20 последних версий</b>.
+  </div>
+  <div class="bk-toolbar">
+    <span class="bk-count" id="bk-list-count"></span>
+    <button class="btn btn-outline" onclick="createSnapshot('Ручной');renderBackupsList();" style="font-size:12px;padding:5px 12px;"><i class="ti ti-device-floppy"></i> Сохранить сейчас</button>
+  </div>
+  <div class="bk-list" id="bk-list"></div>
+  <div style="font-size:11px;color:var(--text3);text-align:center;padding-top:4px;">
+    Версии хранятся в браузере. Для надёжного бэкапа — скачайте JSON кнопкой <b>Бэкап</b>.
+  </div>
 </div>
 </div>
 
@@ -936,9 +980,158 @@ function deleteClient(){
 function closeDetail(){document.getElementById('modal-detail').classList.remove('open');activeId=null;}
 
 // backdrop close
-['modal-add','modal-detail','modal-task'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
+
+// ── VERSIONING / BACKUPS ──────────────────────────────────
+const BK_KEY='crm_backups';
+const BK_MAX=20;
+let _bkLastStr='';
+let _bkLastTime=0;
+
+function _createSnapshotRaw(label,data){
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  bk.unshift({date:new Date().toISOString(),label:label||'Авто',count:data.length,data:data});
+  if(bk.length>BK_MAX)bk.splice(BK_MAX);
+  localStorage.setItem(BK_KEY,JSON.stringify(bk));
+  _updateBkBadge();
+}
+
+function createSnapshot(label){
+  _createSnapshotRaw(label||'Ручной',JSON.parse(JSON.stringify(clients)));
+  _bkLastStr=JSON.stringify(clients);
+  _bkLastTime=Date.now();
+}
+
+function _maybeAutoSnapshot(){
+  const str=JSON.stringify(clients);
+  const now=Date.now();
+  if(str!==_bkLastStr&&now-_bkLastTime>10*60*1000){
+    _createSnapshotRaw('Авто',JSON.parse(str));
+    _bkLastStr=str;
+    _bkLastTime=now;
+  }
+}
+
+function _updateBkBadge(){
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  const b=document.getElementById('bk-badge');
+  if(b){b.textContent=bk.length;b.style.display=bk.length?'':'none';}
+}
+
+// Hook into save for auto-snapshots
+const _origSave=save;
+save=function(){
+  _origSave();
+  _maybeAutoSnapshot();
+};
+
+// Snapshot on page unload
+window.addEventListener('beforeunload',()=>{
+  const str=JSON.stringify(clients);
+  if(str!==_bkLastStr&&clients.length>0){
+    _createSnapshotRaw('Сессия (закрытие)',JSON.parse(str));
+  }
+});
+
+// ── BACKUPS MODAL ─────────────────────────────────────────
+function openBackups(){
+  renderBackupsList();
+  document.getElementById('modal-backups').classList.add('open');
+}
+function closeBackups(){document.getElementById('modal-backups').classList.remove('open');}
+
+function renderBackupsList(){
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  const el=document.getElementById('bk-list');
+  const cnt=document.getElementById('bk-list-count');
+  cnt.textContent=bk.length+' версий сохранено (макс. '+BK_MAX+')';
+  if(!bk.length){
+    el.innerHTML='<div class="bk-empty"><i class="ti ti-database-off" style="font-size:22px;display:block;margin-bottom:8px;"></i>Нет сохранённых версий.<br/>Версии создаются автоматически каждые 10 минут при изменениях.</div>';
+    return;
+  }
+  el.innerHTML=bk.map((b,i)=>{
+    const dt=new Date(b.date);
+    const dateStr=dt.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const timeStr=dt.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+    const isAuto=b.label==='Авто'||b.label==='Сессия (закрытие)';
+    const dotColor=i===0?'var(--green)':'var(--border2)';
+    const labelBg=isAuto?'#E8F0FE':b.label==='Перед импортом'?'#FEF3DC':b.label==='Ручной'?'#E8F8F0':'#F3F0FF';
+    const labelColor=isAuto?'#1A6BD4':b.label==='Перед импортом'?'#854F0B':b.label==='Ручной'?'#0F6E56':'#6B2FA0';
+    const sizeKb=Math.round(JSON.stringify(b.data).length/1024);
+    return `<div class="bk-item">
+      <div class="bk-dot" style="background:${dotColor};"></div>
+      <div class="bk-info">
+        <div class="bk-date">${dateStr} в ${timeStr} <span class="bk-label" style="background:${labelBg};color:${labelColor};">${b.label}</span></div>
+        <div class="bk-meta">${b.count} клиентов · ~${sizeKb} КБ${i===0?' · <b style="color:var(--green)">последняя</b>':''}</div>
+      </div>
+      <div class="bk-actions">
+        <button class="bk-btn" onclick="downloadSnapshot(${i})" title="Скачать этот снапшот"><i class="ti ti-download"></i></button>
+        <button class="bk-btn bk-btn-restore" onclick="restoreSnapshot(${i})">↩ Вернуть</button>
+        <button class="bk-btn bk-btn-del" onclick="deleteSnapshot(${i})" title="Удалить версию"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function restoreSnapshot(idx){
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  const snap=bk[idx]; if(!snap)return;
+  const dt=new Date(snap.date).toLocaleString('ru-RU');
+  if(!confirm(`Восстановить версию от ${dt}?\n\nТекущие данные (${clients.length} клиентов) будут сохранены как версия "Перед восстановлением".`))return;
+  _createSnapshotRaw('Перед восстановлением',JSON.parse(JSON.stringify(clients)));
+  clients=JSON.parse(JSON.stringify(snap.data));
+  _origSave();
+  _bkLastStr=JSON.stringify(clients);
+  _bkLastTime=Date.now();
+  render();
+  renderBackupsList();
+  alert('✅ Данные восстановлены: '+clients.length+' клиентов из версии '+dt);
+}
+
+function downloadSnapshot(idx){
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  const snap=bk[idx]; if(!snap)return;
+  const dt=new Date(snap.date);
+  const name='crm-v'+dt.toISOString().slice(0,10)+'-'+dt.toTimeString().slice(0,5).replace(':','h')+'.json';
+  const blob=new Blob([JSON.stringify(snap.data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+}
+
+function deleteSnapshot(idx){
+  if(!confirm('Удалить эту версию?'))return;
+  const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
+  bk.splice(idx,1);
+  localStorage.setItem(BK_KEY,JSON.stringify(bk));
+  _updateBkBadge();
+  renderBackupsList();
+}
+
+// ── PATCH importData to snapshot before import ─────────────
+const _origImport=importData;
+importData=function(e){
+  const file=e.target.files[0]; if(!file){e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data))throw new Error();
+      if(!confirm(`Импортировать ${data.length} клиентов?\n\nТекущие данные (${clients.length} кл.) будут сохранены в версиях как "Перед импортом" и не пропадут.`))return;
+      _createSnapshotRaw('Перед импортом',JSON.parse(JSON.stringify(clients)));
+      clients=data; _origSave(); render();
+      _bkLastStr=JSON.stringify(clients); _bkLastTime=Date.now();
+      alert('✅ Данные загружены: '+data.length+' клиентов.\nПредыдущая версия сохранена в разделе "Версии".');
+    }catch{alert('Ошибка файла — выберите правильный JSON-бэкап');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+};
+
+// Init badge and first snapshot marker
+_bkLastStr=JSON.stringify(clients);
+_bkLastTime=Date.now();
+_updateBkBadge();
 
 render();
 </script>
