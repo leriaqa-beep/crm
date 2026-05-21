@@ -177,6 +177,8 @@ textarea{resize:vertical;min-height:70px;}
     </div>
   </div>
   <button class="btn btn-dark" onclick="openAdd()"><i class="ti ti-plus"></i> Добавить клиента</button>
+  <button class="btn btn-outline" onclick="exportData()" style="margin-left:6px;" title="Сохранить резервную копию"><i class="ti ti-download"></i> Бэкап</button>
+  <label class="btn btn-outline" style="margin-left:4px;cursor:pointer;" title="Восстановить из резервной копии"><i class="ti ti-upload"></i> Импорт<input type="file" accept=".json" onchange="importData(event)" style="display:none;"/></label>
 </div>
 
 <div class="layout">
@@ -412,15 +414,110 @@ function removeChip(i){
 }
 
 // ── DATA ───────────────────────────────────────────────────
+// ── EXPORT / IMPORT ────────────────────────────────────────
+function exportData(){
+  const data=JSON.stringify(clients, null, 2);
+  const blob=new Blob([data],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='crm-backup-'+todayStr()+'.json';
+  a.click();
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data))throw new Error();
+      if(!confirm(`Импортировать ${data.length} клиентов? Текущие данные будут заменены.`))return;
+      clients=data; save(); render();
+      alert('✅ Данные восстановлены: '+data.length+' клиентов');
+    }catch{alert('Ошибка файла — выберите правильный JSON-бэкап');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
 // ── MIGRATE OLD DATA ───────────────────────────────────────
 (function migrate(){
   if(!localStorage.getItem('crm_v4')){
     const old=localStorage.getItem('crm_v3');
-    if(old){localStorage.setItem('crm_v4',old);console.log('✅ Данные перенесены из crm_v3 → crm_v4');}
+    if(old){localStorage.setItem('crm_v4',old);}
   }
 })();
 
 let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
+
+// ── RESTORE REAL CLIENTS (runs once) ──────────────────────
+(function restoreRealClients(){
+  if(localStorage.getItem('crm_restored'))return;
+  function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+  const today='2026-05-21', tomorrow='2026-05-22', createdAt='2026-05-21T09:00:00.000Z';
+  clients=[
+    {
+      id:gid(), name:'Анарбаев Чынгыз', company:'ГАП ОсОО «Мастер план»',
+      phones:[{num:'+996 223 332 323',msn:'phone'}], email:'', amount:'', stage:0,
+      chips:[{label:'🔁 Повторный контакт',bg:'#E8F8F0',color:'#0F6E56'}],
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[{text:'Второе касание — созвон-опрос',date:createdAt,stage:'Первый звонок'}],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос (второе касание)',date:today,time:'17:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Алыбаев Нурадин', company:'Дир. ГАП ОсОО "Легион групп"',
+      phones:[{num:'+996 555 310 510',msn:'phone'}], email:'', amount:'', stage:0,
+      contacts:[{name:'Азель',role:'Контактное лицо',phones:[{num:'+996 555 337 501',msn:'phone'}]}],
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'14:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Алыкулов Талантбек Каныбекович', company:'Дир., ГАП ОсОО ТМ "АКАТА"',
+      phones:[{num:'+996 551 44 52 44',msn:'phone'}], email:'', amount:'', stage:0,
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[], contacts:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'16:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Абдрахимов Марат Рустамович', company:'ОсОО «Студия архитектуры и дизайна АРХ-ИДЕЯ»',
+      phones:[{num:'+996 556 60 38 48',msn:'phone'}], email:'', amount:'', stage:0,
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[], contacts:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'15:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Алсеитов Ахмат Чоноевич', company:'Дир. ГАП ОсОО АДС «АОиК»',
+      phones:[{num:'+996 705 462 264',msn:'phone'}], email:'', amount:'', stage:0,
+      contacts:[{name:'Алсеитов Нурмухамед',role:'Гл. архитектор ГАП ОсОО АДС «АОиК»',phones:[{num:'+996 705 462 264',msn:'phone'}]}],
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'15:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Абдыраев Алмаз Эркинович', company:'БФ ОсОО "Алим Сервис"',
+      phones:[{num:'+996 755 150 676',msn:'phone'}], email:'', amount:'', stage:0,
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[], contacts:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'14:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+    {
+      id:gid(), name:'Аманов Рахим Габдулхакович', company:'ГАП "ОсОО Умар Групп"',
+      phones:[{num:'+996 550 568 249',msn:'phone'}], email:'', amount:'', stage:0,
+      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
+      notes:[], chips:[], contacts:[],
+      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'16:00',done:false,createdAt:createdAt}],
+      createdAt
+    },
+  ];
+  localStorage.setItem('crm_v4',JSON.stringify(clients));
+  localStorage.setItem('crm_restored','1');
+})();
 let activeId=null, dragId=null, qtCid=null;
 function save(){localStorage.setItem('crm_v4',JSON.stringify(clients));}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
@@ -843,18 +940,6 @@ function closeDetail(){document.getElementById('modal-detail').classList.remove(
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
 
-// ── DEMO ───────────────────────────────────────────────────
-if(!clients.length){
-  const today=todayStr();
-  clients=[
-    {id:genId(),name:'Алексей Смирнов',company:'ООО ТехПром',phones:[{num:'+7 901 234 56 78',msn:'telegram'},{num:'+7 901 234 56 79',msn:'whatsapp'}],email:'a.smirnov@techprom.ru',amount:'350000',stage:0,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Позвонил сам. Интересует CRM.',date:new Date(Date.now()-86400000*3).toISOString(),stage:'Первый звонок'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Уточнить требования',date:today,time:'14:30',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*3).toISOString()},
-    {id:genId(),name:'Марина Козлова',company:'Агентство "Медиа+"',phones:[{num:'+7 912 345 67 89',msn:'whatsapp'}],email:'m.kozlova@mediaplus.ru',amount:'180000',stage:1,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*10).toISOString()},{stage:1,stageName:'Переговоры',date:new Date(Date.now()-86400000*3).toISOString()}],notes:[{text:'Встреча прошла отлично.',date:new Date(Date.now()-86400000).toISOString(),stage:'Переговоры'}],tasks:[{id:genId(),type:'📞 Созвон',text:'Обсудить КП',date:today,time:'16:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*10).toISOString()},
-    {id:genId(),name:'Дмитрий Волков',company:'ИП Волков Д.А.',phones:[{num:'+7 923 456 78 90',msn:'viber'}],email:'volkov@mail.ru',amount:'95000',stage:2,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*25).toISOString()},{stage:2,stageName:'Коммерческое предложение',date:new Date(Date.now()-86400000*5).toISOString()}],notes:[{text:'КП отправлено.',date:new Date(Date.now()-3600000*5).toISOString(),stage:'Коммерческое предложение'}],tasks:[],createdAt:new Date(Date.now()-86400000*25).toISOString()},
-    {id:genId(),name:'Ольга Новикова',company:'Сеть магазинов "Уют"',phones:[{num:'+7 934 567 89 01',msn:'whatsapp'},{num:'@novikova_uyut',msn:'telegram'}],email:'o.novikova@uyut.ru',amount:'620000',stage:3,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*40).toISOString()},{stage:3,stageName:'Согласование',date:new Date(Date.now()-86400000*4).toISOString()}],notes:[{text:'Договор у юристов.',date:new Date(Date.now()-3600000*2).toISOString(),stage:'Согласование'}],tasks:[{id:genId(),type:'🤝 Встреча',text:'Подписание договора',date:today,time:'10:00',done:false,createdAt:new Date().toISOString()}],createdAt:new Date(Date.now()-86400000*40).toISOString()},
-    {id:genId(),name:'Сергей Михайлов',company:'Строй-Инвест',phones:[{num:'+7 945 678 90 12',msn:'phone'}],email:'s.mikhailov@stroi.ru',amount:'1200000',stage:4,stageHistory:[{stage:0,stageName:'Первый звонок',date:new Date(Date.now()-86400000*60).toISOString()},{stage:4,stageName:'Закрытие сделки',date:new Date(Date.now()-86400000*2).toISOString()}],notes:[{text:'Договор подписан!',date:new Date().toISOString(),stage:'Закрытие сделки'}],tasks:[],createdAt:new Date(Date.now()-86400000*60).toISOString()},
-  ];
-  save();
-}
 render();
 </script>
 </body>
