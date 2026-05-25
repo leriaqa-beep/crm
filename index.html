@@ -258,9 +258,10 @@ textarea{resize:vertical;min-height:70px;}
   </div>
   <div style="font-size:13px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;"><i class="ti ti-user"></i><span id="qt-name"></span></div>
   <div class="form-row"><label class="form-label">Тип</label>
-    <select id="qt-type"><option>📞 Созвон</option><option>🤝 Встреча</option><option>📧 Письмо</option><option>📄 Отправить КП</option><option>✅ Другое</option></select>
+    <select id="qt-type" onchange="document.getElementById('qt-addr-row').style.display=this.value.includes('Встреча')?'':'none'"><option>📞 Созвон</option><option>🤝 Встреча</option><option>📧 Письмо</option><option>📄 Отправить КП</option><option>✅ Другое</option></select>
   </div>
   <div class="form-row"><label class="form-label">Описание</label><input id="qt-text" placeholder="Обсудить условия..."/></div>
+  <div class="form-row" id="qt-addr-row" style="display:none;"><label class="form-label">Адрес встречи</label><input id="qt-addr" placeholder="ул. Ленина, 10, офис 5"/></div>
   <div class="form-grid">
     <div class="form-row"><label class="form-label">Дата</label><input id="qt-date" type="date"/></div>
     <div class="form-row"><label class="form-label">Время</label><input id="qt-time" type="time"/></div>
@@ -729,6 +730,8 @@ function openTask(e,cid){
   document.getElementById('qt-date').value=todayStr();
   document.getElementById('qt-time').value=new Date().toTimeString().slice(0,5);
   document.getElementById('qt-text').value='';
+  document.getElementById('qt-addr').value='';
+  document.getElementById('qt-addr-row').style.display='none';
   document.getElementById('modal-task').classList.add('open');
   setTimeout(()=>document.getElementById('qt-text').focus(),50);
 }
@@ -739,7 +742,9 @@ function saveTask(){
   if(!date||!time){alert('Укажите дату и время');return;}
   const c=clients.find(x=>x.id===qtCid); if(!c)return;
   if(!c.tasks)c.tasks=[];
-  c.tasks.push({id:genId(),type:document.getElementById('qt-type').value,text:document.getElementById('qt-text').value.trim(),date,time,done:false,createdAt:new Date().toISOString()});
+  const taskType=document.getElementById('qt-type').value;
+  const taskAddr=taskType.includes('Встреча')?document.getElementById('qt-addr').value.trim():'';
+  c.tasks.push({id:genId(),type:taskType,text:document.getElementById('qt-text').value.trim(),address:taskAddr||undefined,date,time,done:false,createdAt:new Date().toISOString()});
   save(); render(); closeTask();
 }
 function toggleTask(cid,tid){
@@ -805,6 +810,7 @@ function renderTasks(c){
     <div style="flex:1;">
       <div class="dtask-time">${t.time} · ${t.type}</div>
       <div class="dtask-text">${t.text||''}</div>
+      ${t.address?`<div style="font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:3px;"><i class="ti ti-map-pin" style="font-size:11px;"></i>${t.address}</div>`:''}
       <div class="dtask-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})}</div>
     </div></div>`).join('');
 }
