@@ -45,7 +45,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .no-tasks{text-align:center;padding:30px 10px;color:var(--text3);font-size:12px;}
 
 /* BOARD */
-.main{flex:1;overflow:auto;padding:14px;}
+.main{flex:1;overflow:hidden;padding:14px;display:flex;flex-direction:column;}
+
+/* VIEW TOGGLE */
+.view-btn{padding:5px 12px;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;background:none;display:inline-flex;align-items:center;gap:4px;}
+.view-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+/* SCHEDULE / ПЛАНОВЩИК */
+.sch-wrap{display:flex;flex-direction:column;height:100%;min-height:0;}
+.sch-nav{display:flex;align-items:center;gap:8px;padding-bottom:12px;flex-shrink:0;}
+.sch-week-lbl{font-size:14px;font-weight:600;flex:1;text-align:center;}
+.sch-nav-btn{background:var(--surface);border:.5px solid var(--border2);border-radius:var(--r-md);width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.sch-nav-btn:hover{background:var(--surface2);}
+.sch-grid-wrap{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r-lg);border:.5px solid var(--border);overflow:hidden;}
+.sch-head{display:grid;grid-template-columns:52px repeat(7,1fr);border-bottom:.5px solid var(--border);flex-shrink:0;background:var(--surface);}
+.sch-corner{border-right:.5px solid var(--border);}
+.sch-day-head{text-align:center;padding:8px 4px;font-size:11px;color:var(--text2);border-left:.5px solid var(--border);}
+.sch-day-num{font-size:16px;font-weight:700;display:block;line-height:1.3;color:var(--text);}
+.sch-day-head.sch-today{background:rgba(46,127,212,.06);}
+.sch-day-head.sch-today .sch-day-num{color:var(--blue);}
+.sch-body{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;min-height:0;}
+.sch-times{width:52px;flex-shrink:0;position:relative;border-right:.5px solid var(--border);}
+.sch-time-lbl{position:absolute;right:6px;font-size:10px;color:var(--text3);transform:translateY(-50%);white-space:nowrap;}
+.sch-cols{flex:1;display:grid;grid-template-columns:repeat(7,1fr);}
+.sch-col{border-left:.5px solid var(--border);position:relative;}
+.sch-col.sch-today-col{background:rgba(46,127,212,.025);}
+.sch-hr{position:absolute;left:0;right:0;border-top:.5px solid var(--border);pointer-events:none;}
+.sch-hr-half{border-top-style:dashed;opacity:.4;}
+.sch-event{position:absolute;border-radius:var(--r-sm);padding:4px 6px;cursor:pointer;overflow:hidden;transition:filter .12s;}
+.sch-event:hover{filter:brightness(.93);z-index:2;}
+.sch-ev-time{font-weight:700;font-size:10px;margin-bottom:1px;}
+.sch-ev-name{font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sch-ev-co{font-size:10px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sch-ev-addr{font-size:10px;opacity:.7;display:flex;align-items:center;gap:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sch-ev-note{font-size:10px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic;}
+.sch-now{position:absolute;left:0;right:0;border-top:2px solid var(--red);pointer-events:none;z-index:3;}
+.sch-now::before{content:'';position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--red);}
+.sch-conflict{position:absolute;top:2px;right:3px;font-size:9px;background:var(--red);color:#fff;border-radius:99px;padding:1px 4px;}
 .board{display:grid;grid-template-columns:repeat(5,minmax(210px,1fr));gap:10px;min-width:900px;}
 .col{background:var(--surface2);border-radius:var(--r-lg);padding:10px;min-height:calc(100vh - 112px);}
 .col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:.5px solid var(--border);}
@@ -218,8 +254,36 @@ textarea{resize:vertical;min-height:70px;}
     <div class="sidebar-body" id="sidebar-body"></div>
   </div>
   <div class="main">
-    <div id="srch-hint" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;padding:7px 12px;background:var(--surface);border-radius:var(--r-md);border:.5px solid var(--border);align-items:center;gap:6px;"></div>
-    <div class="board" id="board"></div>
+    <!-- View toggle -->
+    <div style="display:flex;align-items:center;margin-bottom:12px;flex-shrink:0;">
+      <div style="display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;">
+        <button id="vbtn-board" class="view-btn active" onclick="switchView('board')"><i class="ti ti-layout-kanban"></i> Доска</button>
+        <button id="vbtn-schedule" class="view-btn" onclick="switchView('schedule')"><i class="ti ti-calendar-week"></i> Планировщик встреч</button>
+      </div>
+    </div>
+    <!-- Board view -->
+    <div id="view-board" style="flex:1;overflow:auto;min-height:0;">
+      <div id="srch-hint" style="display:none;font-size:12px;color:var(--text2);margin-bottom:10px;padding:7px 12px;background:var(--surface);border-radius:var(--r-md);border:.5px solid var(--border);align-items:center;gap:6px;"></div>
+      <div class="board" id="board"></div>
+    </div>
+    <!-- Schedule view -->
+    <div id="view-schedule" style="display:none;flex:1;overflow:hidden;min-height:0;">
+      <div class="sch-wrap">
+        <div class="sch-nav">
+          <button class="sch-nav-btn" onclick="schPrevWeek()" title="Предыдущая неделя"><i class="ti ti-chevron-left"></i></button>
+          <span class="sch-week-lbl" id="sch-week-lbl"></span>
+          <button class="sch-nav-btn" onclick="schNextWeek()" title="Следующая неделя"><i class="ti ti-chevron-right"></i></button>
+          <button class="btn btn-outline" style="font-size:12px;padding:4px 12px;" onclick="schGoToday()">Сегодня</button>
+        </div>
+        <div class="sch-grid-wrap">
+          <div class="sch-head" id="sch-head"><div class="sch-corner"></div></div>
+          <div class="sch-body">
+            <div class="sch-times" id="sch-times"></div>
+            <div class="sch-cols" id="sch-cols"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -502,75 +566,7 @@ function importData(e){
 
 let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
 
-// ── RESTORE REAL CLIENTS (runs once) ──────────────────────
-(function restoreRealClients(){
-  if(localStorage.getItem('crm_restored'))return;
-  function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-  const today='2026-05-21', tomorrow='2026-05-22', createdAt='2026-05-21T09:00:00.000Z';
-  clients=[
-    {
-      id:gid(), name:'Анарбаев Чынгыз', company:'ГАП ОсОО «Мастер план»',
-      phones:[{num:'+996 223 332 323',msn:'phone'}], email:'', amount:'', stage:0,
-      chips:[{label:'🔁 Повторный контакт',bg:'#E8F8F0',color:'#0F6E56'}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[{text:'Второе касание — созвон-опрос',date:createdAt,stage:'Первый звонок'}],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос (второе касание)',date:today,time:'17:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алыбаев Нурадин', company:'Дир. ГАП ОсОО "Легион групп"',
-      phones:[{num:'+996 555 310 510',msn:'phone'}], email:'', amount:'', stage:0,
-      contacts:[{name:'Азель',role:'Контактное лицо',phones:[{num:'+996 555 337 501',msn:'phone'}]}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'14:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алыкулов Талантбек Каныбекович', company:'Дир., ГАП ОсОО ТМ "АКАТА"',
-      phones:[{num:'+996 551 44 52 44',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'16:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Абдрахимов Марат Рустамович', company:'ОсОО «Студия архитектуры и дизайна АРХ-ИДЕЯ»',
-      phones:[{num:'+996 556 60 38 48',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'15:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алсеитов Ахмат Чоноевич', company:'Дир. ГАП ОсОО АДС «АОиК»',
-      phones:[{num:'+996 705 462 264',msn:'phone'}], email:'', amount:'', stage:0,
-      contacts:[{name:'Алсеитов Нурмухамед',role:'Гл. архитектор ГАП ОсОО АДС «АОиК»',phones:[{num:'+996 705 462 264',msn:'phone'}]}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'15:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Абдыраев Алмаз Эркинович', company:'БФ ОсОО "Алим Сервис"',
-      phones:[{num:'+996 755 150 676',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'14:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Аманов Рахим Габдулхакович', company:'ГАП "ОсОО Умар Групп"',
-      phones:[{num:'+996 550 568 249',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'16:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-  ];
-  localStorage.setItem('crm_v4',JSON.stringify(clients));
-  localStorage.setItem('crm_restored','1');
-})();
+
 let activeId=null, dragId=null, qtCid=null, filterStr='';
 
 function onSearch(v){
@@ -643,6 +639,144 @@ function renderSidebar(){
   document.getElementById('sidebar-body').innerHTML=h;
 }
 
+// ── SCHEDULE / ПЛАНИРОВЩИК ВСТРЕЧ ─────────────────────────
+const SCH_START=8, SCH_END=21, HOUR_H=64;
+let schWeekStart=null, currentView='board';
+
+function getMonday(d){
+  const dt=new Date(d); const day=dt.getDay();
+  dt.setDate(dt.getDate()-day+(day===0?-6:1));
+  dt.setHours(0,0,0,0); return dt;
+}
+function switchView(v){
+  currentView=v;
+  const isBoard=v==='board';
+  document.getElementById('view-board').style.display=isBoard?'':'none';
+  document.getElementById('view-schedule').style.display=isBoard?'none':'';
+  document.getElementById('vbtn-board').classList.toggle('active',isBoard);
+  document.getElementById('vbtn-schedule').classList.toggle('active',!isBoard);
+  if(!isBoard){if(!schWeekStart)schWeekStart=getMonday(new Date());renderSchedule();}
+}
+function schPrevWeek(){const d=new Date(schWeekStart);d.setDate(d.getDate()-7);schWeekStart=d;renderSchedule();}
+function schNextWeek(){const d=new Date(schWeekStart);d.setDate(d.getDate()+7);schWeekStart=d;renderSchedule();}
+function schGoToday(){schWeekStart=getMonday(new Date());renderSchedule();}
+
+function renderSchedule(){
+  if(!schWeekStart)schWeekStart=getMonday(new Date());
+  const today=todayStr();
+  const totalH=(SCH_END-SCH_START)*HOUR_H;
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(schWeekStart);d.setDate(d.getDate()+i);days.push(d);}
+
+  // Week label
+  const fmtD=d=>d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+  document.getElementById('sch-week-lbl').textContent=fmtD(days[0])+' — '+fmtD(days[6])+', '+days[0].getFullYear();
+
+  // Day headers
+  const DNAMES=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  document.getElementById('sch-head').innerHTML='<div class="sch-corner"></div>'+days.map((d,i)=>{
+    const ds=d.toISOString().slice(0,10);
+    const isT=ds===today;
+    return `<div class="sch-day-head${isT?' sch-today':''}"><span class="sch-day-num">${d.getDate()}</span>${DNAMES[i]}${isT?' · сегодня':''}</div>`;
+  }).join('');
+
+  // Time labels
+  const timesEl=document.getElementById('sch-times');
+  timesEl.style.height=totalH+'px';
+  timesEl.innerHTML=Array.from({length:SCH_END-SCH_START+1},(_,i)=>{
+    const h=SCH_START+i;
+    return `<div class="sch-time-lbl" style="top:${i*HOUR_H}px;">${String(h).padStart(2,'0')}:00</div>`;
+  }).join('');
+
+  // Collect meetings per day
+  const meetByDay=days.map(d=>{
+    const ds=d.toISOString().slice(0,10);
+    const arr=[];
+    clients.forEach(c=>{
+      (c.tasks||[]).forEach(t=>{
+        if(t.type.includes('Встреча')&&t.date===ds){
+          const notes=c.notes||[];
+          const lastNote=notes.length?notes[notes.length-1].text:'';
+          arr.push({...t,cName:c.name,cCo:c.company||'',cId:c.id,cNote:lastNote});
+        }
+      });
+    });
+    return arr.sort((a,b)=>a.time.localeCompare(b.time));
+  });
+
+  // Render day columns
+  const colsEl=document.getElementById('sch-cols');
+  colsEl.style.height=totalH+'px';
+  colsEl.innerHTML=days.map((d,di)=>{
+    const ds=d.toISOString().slice(0,10);
+    const isT=ds===today;
+    const meets=meetByDay[di];
+
+    // Hour & half-hour lines
+    let lines='';
+    for(let h=SCH_START;h<SCH_END;h++){
+      const y=(h-SCH_START)*HOUR_H;
+      lines+=`<div class="sch-hr" style="top:${y}px;"></div><div class="sch-hr sch-hr-half" style="top:${y+HOUR_H/2}px;"></div>`;
+    }
+
+    // Current time line
+    let nowLine='';
+    if(isT){
+      const now=new Date(),nh=now.getHours(),nm=now.getMinutes();
+      if(nh>=SCH_START&&nh<SCH_END){
+        nowLine=`<div class="sch-now" style="top:${(nh-SCH_START)*HOUR_H+nm*(HOUR_H/60)}px;"></div>`;
+      }
+    }
+
+    // Overlap detection: assign horizontal slots
+    const assigned={};
+    const cols=[];
+    meets.forEach(m=>{
+      const[mh,mm]=m.time.split(':').map(Number);
+      const ms=mh*60+mm, me=ms+60;
+      let placed=false;
+      for(let ci=0;ci<cols.length;ci++){
+        if(!cols[ci].some(x=>ms<x.end&&me>x.start)){
+          cols[ci].push({start:ms,end:me,id:m.id});
+          assigned[m.id]=ci; placed=true; break;
+        }
+      }
+      if(!placed){cols.push([{start:ms,end:me,id:m.id}]);assigned[m.id]=cols.length-1;}
+    });
+    const total=Math.max(cols.length,1);
+
+    // Event cards
+    const evs=meets.map(m=>{
+      const[mh,mm]=m.time.split(':').map(Number);
+      const y=(mh-SCH_START)*HOUR_H+mm*(HOUR_H/60);
+      const ht=Math.max(HOUR_H-2,36);
+      const ci=assigned[m.id]||0;
+      const pct=100/total;
+      const bg=m.done?'#F0EEE6':'#EBF4FF';
+      const border=m.done?'#A0A09A':'#2E7FD4';
+      const color=m.done?'#777':'#1A5FAD';
+      const hasConflict=total>1;
+      return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};" onclick="openDetail('${m.cId}')" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
+        <div class="sch-ev-time">${m.time}${m.done?' ✓':''}</div>
+        <div class="sch-ev-name">${m.cName}</div>
+        ${m.cCo?`<div class="sch-ev-co">${m.cCo}</div>`:''}
+        ${m.address?`<div class="sch-ev-addr"><i class="ti ti-map-pin" style="font-size:9px;"></i>${m.address}</div>`:''}
+        ${m.cNote&&ht>50?`<div class="sch-ev-note">${m.cNote}</div>`:''}
+        ${hasConflict?`<div class="sch-conflict">!</div>`:''}
+      </div>`;
+    }).join('');
+
+    return `<div class="sch-col${isT?' sch-today-col':''}" style="height:${totalH}px;">${lines}${nowLine}${evs}</div>`;
+  }).join('');
+
+  // Auto-scroll to current time
+  const nh=new Date().getHours();
+  if(nh>=SCH_START&&nh<SCH_END){
+    const body=colsEl.closest('.sch-body');
+    if(body)body.scrollTop=Math.max(0,(nh-SCH_START-1)*HOUR_H);
+  }
+}
+
 // ── BOARD ──────────────────────────────────────────────────
 function render(){
   const board=document.getElementById('board');
@@ -651,6 +785,15 @@ function render(){
   document.getElementById('s-total').textContent=filterStr?visible.length+'/'+clients.length:clients.length;
   document.getElementById('s-amount').textContent=Number(visible.reduce((s,c)=>s+(Number(c.amount)||0),0)).toLocaleString('ru-RU');
   renderSidebar();
+  if(currentView==='schedule'){
+    // Still update stats and sidebar
+    const vis=getFilteredClients();
+    document.getElementById('s-total').textContent=filterStr?vis.length+'/'+clients.length:clients.length;
+    document.getElementById('s-amount').textContent=Number(vis.reduce((s,c)=>s+(Number(c.amount)||0),0)).toLocaleString('ru-RU');
+    renderSidebar();
+    renderSchedule();
+    return;
+  }
   const hint=document.getElementById('srch-hint');
   if(hint){
     if(filterStr){
