@@ -566,75 +566,7 @@ function importData(e){
 
 let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
 
-// ── RESTORE REAL CLIENTS (runs once) ──────────────────────
-(function restoreRealClients(){
-  if(localStorage.getItem('crm_restored'))return;
-  function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-  const today='2026-05-21', tomorrow='2026-05-22', createdAt='2026-05-21T09:00:00.000Z';
-  clients=[
-    {
-      id:gid(), name:'Анарбаев Чынгыз', company:'ГАП ОсОО «Мастер план»',
-      phones:[{num:'+996 223 332 323',msn:'phone'}], email:'', amount:'', stage:0,
-      chips:[{label:'🔁 Повторный контакт',bg:'#E8F8F0',color:'#0F6E56'}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[{text:'Второе касание — созвон-опрос',date:createdAt,stage:'Первый звонок'}],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос (второе касание)',date:today,time:'17:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алыбаев Нурадин', company:'Дир. ГАП ОсОО "Легион групп"',
-      phones:[{num:'+996 555 310 510',msn:'phone'}], email:'', amount:'', stage:0,
-      contacts:[{name:'Азель',role:'Контактное лицо',phones:[{num:'+996 555 337 501',msn:'phone'}]}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'14:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алыкулов Талантбек Каныбекович', company:'Дир., ГАП ОсОО ТМ "АКАТА"',
-      phones:[{num:'+996 551 44 52 44',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'16:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Абдрахимов Марат Рустамович', company:'ОсОО «Студия архитектуры и дизайна АРХ-ИДЕЯ»',
-      phones:[{num:'+996 556 60 38 48',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'15:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Алсеитов Ахмат Чоноевич', company:'Дир. ГАП ОсОО АДС «АОиК»',
-      phones:[{num:'+996 705 462 264',msn:'phone'}], email:'', amount:'', stage:0,
-      contacts:[{name:'Алсеитов Нурмухамед',role:'Гл. архитектор ГАП ОсОО АДС «АОиК»',phones:[{num:'+996 705 462 264',msn:'phone'}]}],
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:today,time:'15:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Абдыраев Алмаз Эркинович', company:'БФ ОсОО "Алим Сервис"',
-      phones:[{num:'+996 755 150 676',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'14:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-    {
-      id:gid(), name:'Аманов Рахим Габдулхакович', company:'ГАП "ОсОО Умар Групп"',
-      phones:[{num:'+996 550 568 249',msn:'phone'}], email:'', amount:'', stage:0,
-      stageHistory:[{stage:0,stageName:'Первый звонок',date:createdAt}],
-      notes:[], chips:[], contacts:[],
-      tasks:[{id:gid(),type:'📞 Созвон',text:'Созвон-опрос',date:tomorrow,time:'16:00',done:false,createdAt:createdAt}],
-      createdAt
-    },
-  ];
-  localStorage.setItem('crm_v4',JSON.stringify(clients));
-  localStorage.setItem('crm_restored','1');
-})();
+
 let activeId=null, dragId=null, qtCid=null, filterStr='';
 
 function onSearch(v){
