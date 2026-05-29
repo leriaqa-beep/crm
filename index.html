@@ -494,8 +494,39 @@ textarea{resize:vertical;min-height:70px;}
 
 <script>
 // ── КОНСТАНТЫ ──────────────────────────────────────────────
-const STAGES=['Первый звонок','Переговоры','Коммерческое предложение','Согласование','Закрытие сделки'];
-const COLORS=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75'];
+const STAGE_COLORS_POOL=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75','#E05C2A','#2BA89E','#7C6AF7','#C44D8A','#4CAF50'];
+const STAGES_KEY='crm_stages';
+let STAGES=JSON.parse(localStorage.getItem(STAGES_KEY)||'null')||['Первый звонок','Переговоры','Коммерческое предложение','Согласование','Закрытие сделки'];
+function stageColor(i){return STAGE_COLORS_POOL[i%STAGE_COLORS_POOL.length];}
+function saveStages(){localStorage.setItem(STAGES_KEY,JSON.stringify(STAGES));}
+function startRenameStage(i){
+  const lbl=document.getElementById('slbl-'+i);if(!lbl)return;
+  lbl.setAttribute('contenteditable','true');
+  lbl.style.cssText+='text-transform:none;outline:1px solid var(--border2);border-radius:3px;padding:1px 4px;background:var(--surface);';
+  lbl.focus();
+  const range=document.createRange();range.selectNodeContents(lbl);
+  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
+  lbl.onblur=()=>finishRenameStage(i,lbl);
+  lbl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();lbl.blur();}if(e.key==='Escape'){lbl.textContent=STAGES[i];lbl.blur();}};
+}
+function finishRenameStage(i,lbl){
+  lbl.removeAttribute('contenteditable');lbl.onblur=null;lbl.onkeydown=null;
+  const val=lbl.textContent.trim();if(val)STAGES[i]=val;else lbl.textContent=STAGES[i];
+  saveStages();render();
+}
+function addStage(){
+  STAGES.push('Новый этап');saveStages();render();
+  setTimeout(()=>startRenameStage(STAGES.length-1),60);
+}
+function deleteStage(i){
+  if(STAGES.length<=1){alert('Нельзя удалить единственную колонку');return;}
+  const count=clients.filter(c=>c.stage===i).length;
+  const moveTo=i>0?i-1:1;
+  if(count>0&&!confirm(`В колонке "${STAGES[i]}" ${count} кл. → перейдут в "${STAGES[moveTo]}". Удалить?`))return;
+  clients.forEach(c=>{if(c.stage===i)c.stage=moveTo;});
+  clients.forEach(c=>{if(c.stage>i)c.stage--;});
+  STAGES.splice(i,1);saveStages();save();render();
+}
 
 const MSN={
   phone:    {emoji:'📞', label:'Только звонки', svg:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 13 19.79 19.79 0 01.06 4.4 2 2 0 012.06 2.22h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>', color:'#555'},
@@ -975,7 +1006,14 @@ function render(){
     const col=document.createElement('div');
     col.className='col'; col.dataset.stage=si;
     const sc=visible.filter(c=>c.stage===si);
-    col.innerHTML=`<div class="col-header"><span class="col-title">${stage}</span><span class="col-badge" style="background:${COLORS[si]}22;color:${COLORS[si]};">${sc.length}</span></div>`;
+    const clr=stageColor(si);
+    col.innerHTML=`<div class="col-header">
+      <span class="col-title" id="slbl-${si}" title="Нажмите для переименования" style="cursor:pointer;flex:1;" onclick="startRenameStage(${si})">${stage}</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span class="col-badge" style="background:${clr}22;color:${clr};">${sc.length}</span>
+        ${STAGES.length>1?`<button onclick="event.stopPropagation();deleteStage(${si})" title="Удалить колонку" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:2px 3px;border-radius:4px;line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'"><i class="ti ti-x"></i></button>`:''}
+      </div>
+    </div>`;
     col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over');});
     col.addEventListener('dragleave',e=>{if(!col.contains(e.relatedTarget))col.classList.remove('drag-over');});
     col.addEventListener('drop',e=>{
@@ -1024,6 +1062,12 @@ function render(){
     });
     board.appendChild(col);
   });
+
+  // Кнопка добавления колонки
+  const addCol=document.createElement('div');
+  addCol.style.cssText='display:flex;align-items:flex-start;padding-top:4px;';
+  addCol.innerHTML=`<button onclick="addStage()" style="display:flex;align-items:center;gap:6px;padding:9px 14px;border:.5px dashed var(--border2);border-radius:var(--r-lg);background:none;cursor:pointer;color:var(--text3);font-size:12px;white-space:nowrap;transition:color .15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'"><i class="ti ti-plus" style="font-size:14px;"></i> Добавить этап</button>`;
+  board.appendChild(addCol);
 }
 
 // ── ADD CLIENT ─────────────────────────────────────────────
@@ -1045,6 +1089,7 @@ function openAdd(){
   document.getElementById('f-phones').innerHTML='';
   addPhoneRow();
   document.getElementById('f-date').value=todayStr();
+  document.getElementById('f-stage').innerHTML=STAGES.map((s,i)=>`<option value="${i}">${s}</option>`).join('');
   document.getElementById('modal-add').classList.add('open');
   setTimeout(()=>document.getElementById('f-name').focus(),50);
 }
@@ -1296,16 +1341,18 @@ function addNote(){
   const text=input.value.trim(); if(!text)return;
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   if(!c.notes)c.notes=[];
-  c.notes.push({text,date:new Date().toISOString(),stage:STAGES[c.stage]});
+  c.notes.push({text,date:new Date().toISOString(),stage:STAGES[c.stage]||''});
   save(); render(); renderNotes(c); input.value=''; input.focus();
 }
 
 function renderStages(c){
-  document.getElementById('d-stages').innerHTML=STAGES.map((s,i)=>
-    `<button class="stage-btn${c.stage===i?' active':''}" style="${c.stage===i?'background:'+COLORS[i]+';border-color:'+COLORS[i]+';':''}" onclick="moveStage(${i})">${s}</button>`).join('');
+  document.getElementById('d-stages').innerHTML=STAGES.map((s,i)=>{
+    const clr=stageColor(i);
+    return `<button class="stage-btn${c.stage===i?' active':''}" style="${c.stage===i?'background:'+clr+';border-color:'+clr+';':''}" onclick="moveStage(${i})">${s}</button>`;
+  }).join('');
 }
 function renderTimeline(c){
-  const hist=c.stageHistory||[{stage:c.stage,stageName:STAGES[c.stage],date:c.createdAt}];
+  const hist=c.stageHistory||[{stage:c.stage,stageName:STAGES[c.stage]||'Этап '+c.stage,date:c.createdAt}];
   let h='';
   hist.forEach((s,i)=>{
     const isLast=i===hist.length-1;
@@ -1313,13 +1360,13 @@ function renderTimeline(c){
     const spent=daysBetween(s.date,next);
     h+=`<div class="tl-row">
       <div style="display:flex;flex-direction:column;align-items:center;">
-        <div class="tl-dot" style="background:${COLORS[s.stage]||'#888'};"></div>
+        <div class="tl-dot" style="background:${stageColor(s.stage)};"></div>
         ${!isLast?'<div class="tl-line"></div>':''}
       </div>
       <div style="flex:1;padding-bottom:${isLast?0:12}px;">
         <div style="font-size:12px;font-weight:600;">${s.stageName}</div>
         <div style="font-size:11px;color:var(--text3);">${fmtDt(s.date)}</div>
-        <div style="font-size:11px;color:${isLast?COLORS[s.stage]:'var(--text2)'};margin-top:1px;">${isLast?'<b>сейчас · '+fmtDays(spent)+'</b>':'провёл '+fmtDays(spent)}</div>
+        <div style="font-size:11px;color:${isLast?stageColor(s.stage):'var(--text2)'};margin-top:1px;">${isLast?'<b>сейчас · '+fmtDays(spent)+'</b>':'провёл '+fmtDays(spent)}</div>
       </div></div>`;
   });
   document.getElementById('d-timeline').innerHTML=h;
