@@ -544,8 +544,14 @@ textarea{resize:vertical;min-height:70px;}
     <div class="form-row" style="margin-bottom:8px;"><label class="form-label">Описание *</label>
       <input id="ft-text" placeholder="Что нужно сделать..." onkeydown="if(event.key==='Enter')saveFreeTask()"/>
     </div>
-    <div class="form-row" style="margin-bottom:8px;"><label class="form-label">Исполнитель</label>
-      <input id="ft-assignee" placeholder="Имя исполнителя..."/>
+    <div class="form-row" style="margin-bottom:8px;">
+      <label class="form-label">Исполнитель</label>
+      <div id="ft-assignee-selected" style="margin-bottom:6px;min-height:24px;"></div>
+      <div id="ft-assignee-saved" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;"></div>
+      <div style="display:flex;gap:6px;">
+        <input id="ft-assignee" placeholder="Добавить исполнителя..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addFtAssignee();}"/>
+        <button type="button" class="btn btn-outline" style="padding:6px 10px;font-size:12px;flex-shrink:0;" onclick="addFtAssignee()"><i class="ti ti-plus"></i></button>
+      </div>
     </div>
     <div class="form-grid" style="margin-bottom:8px;">
       <div class="form-row" style="margin:0;"><label class="form-label">Дата</label><input id="ft-date" type="date"/></div>
@@ -1575,6 +1581,11 @@ function getTagMap(){
       if(!map.has(key)) map.set(key,{...ch, count:0, sources:[]});
       map.get(key).count++;
     });
+    if(t.assignee){
+      const key = '👤 '+t.assignee.label;
+      if(!map.has(key)) map.set(key,{...t.assignee, label:key, count:0});
+      map.get(key).count++;
+    }
   });
   return map;
 }
@@ -1621,6 +1632,54 @@ function clearTagFilter(){
   renderTagCloud('');
 }
 
+// ── ASSIGNEES ────────────────────────────────────────────
+const ASSIGNEES_KEY = 'crm_assignees';
+// Fixed purple palette for assignees to distinguish from category chips
+const ASSIGNEE_COLORS = [
+  {bg:'#EEF2FF',color:'#4338CA'},{bg:'#F5F3FF',color:'#7C3AED'},
+  {bg:'#FDF2F8',color:'#9D174D'},{bg:'#ECFDF5',color:'#065F46'},
+  {bg:'#FFF7ED',color:'#C2410C'},{bg:'#EFF6FF',color:'#1D4ED8'},
+];
+let savedAssignees = JSON.parse(localStorage.getItem(ASSIGNEES_KEY)||'[]');
+let ftSelectedAssignee = null;
+
+function saveAssignees(){ localStorage.setItem(ASSIGNEES_KEY, JSON.stringify(savedAssignees)); }
+
+function addFtAssignee(){
+  const inp = document.getElementById('ft-assignee');
+  const label = inp.value.trim(); if(!label) return;
+  let existing = savedAssignees.find(a=>a.label.toLowerCase()===label.toLowerCase());
+  if(!existing){
+    const col = ASSIGNEE_COLORS[savedAssignees.length % ASSIGNEE_COLORS.length];
+    existing = {label, bg:col.bg, color:col.color};
+    savedAssignees.push(existing);
+    saveAssignees();
+  }
+  ftSelectedAssignee = existing;
+  inp.value = '';
+  renderFtAssigneePicker();
+}
+
+function selectFtAssignee(idx){
+  ftSelectedAssignee = ftSelectedAssignee && savedAssignees[idx] && ftSelectedAssignee.label===savedAssignees[idx].label ? null : savedAssignees[idx];
+  renderFtAssigneePicker();
+}
+
+function renderFtAssigneePicker(){
+  const sel = document.getElementById('ft-assignee-selected');
+  const saved = document.getElementById('ft-assignee-saved');
+  if(!sel||!saved) return;
+  // Show selected
+  sel.innerHTML = ftSelectedAssignee
+    ? `<span class="chip" style="background:${ftSelectedAssignee.bg};color:${ftSelectedAssignee.color};font-size:11px;"><i class="ti ti-user" style="font-size:10px;margin-right:3px;"></i>${ftSelectedAssignee.label}<button class="chip-remove" onclick="ftSelectedAssignee=null;renderFtAssigneePicker()">×</button></span>`
+    : '<span style="font-size:11px;color:var(--text3);">Не выбран</span>';
+  // Show saved as selectable
+  saved.innerHTML = savedAssignees.map((a,i)=>{
+    const isActive = ftSelectedAssignee && ftSelectedAssignee.label===a.label;
+    return `<span class="chip" style="background:${a.bg};color:${a.color};font-size:11px;cursor:pointer;outline:${isActive?'2px solid '+a.color:'none'};outline-offset:1px;" onclick="selectFtAssignee(${i})"><i class="ti ti-user" style="font-size:10px;margin-right:3px;"></i>${a.label}</span>`;
+  }).join('');
+}
+
 // ── FREE TASKS ─────────────────────────────────────────────
 const FT_KEY = 'crm_free_tasks';
 let freeTasks = JSON.parse(localStorage.getItem(FT_KEY)||'[]');
@@ -1644,7 +1703,9 @@ function openFreeTasks(){
   document.getElementById('ft-cat').value = '';
   document.getElementById('ft-assignee').value = '';
   ftNewChips = [];
+  ftSelectedAssignee = null;
   renderFtChipPicker();
+  renderFtAssigneePicker();
   document.getElementById('ft-filter').value = 'all';
   renderFreeTasksList();
   document.getElementById('modal-freetasks').classList.add('open');
@@ -1662,7 +1723,7 @@ function saveFreeTask(){
     id: genId(),
     type: document.getElementById('ft-type').value,
     chips: [...ftNewChips],
-    assignee: document.getElementById('ft-assignee').value.trim(),
+    assignee: ftSelectedAssignee||null,
     text,
     note: document.getElementById('ft-note').value.trim(),
     date, time,
@@ -1677,7 +1738,9 @@ function saveFreeTask(){
   document.getElementById('ft-cat').value='';
   document.getElementById('ft-assignee').value='';
   ftNewChips=[];
+  ftSelectedAssignee=null;
   renderFtChipPicker();
+  renderFtAssigneePicker();
 }
 
 function toggleFreeTask(id){
@@ -1710,7 +1773,7 @@ function renderFreeTasksList(){
       <div class="ft-body">
         <div class="ft-time">${t.time} · ${t.type}</div>
         <div class="ft-title">${t.text}</div>
-        ${t.assignee?`<div style="font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:4px;"><i class="ti ti-user" style="font-size:11px;"></i>${t.assignee}</div>`:''}
+        ${t.assignee?`<div style="margin-top:5px;"><span class="chip" style="background:${t.assignee.bg||'#EEF6FF'};color:${t.assignee.color||'#3070A0'};font-size:10px;padding:2px 8px;"><i class="ti ti-user" style="font-size:10px;margin-right:3px;"></i>${t.assignee.label||t.assignee}</span></div>`:''}
         ${(t.chips||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${(t.chips||[]).map(ch=>`<span class="chip" style="background:${ch.bg};color:${ch.color};font-size:10px;padding:2px 8px;">${ch.label}</span>`).join('')}</div>`:''}
         ${t.note?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;">${t.note}</div>`:''}
         <div class="ft-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'})}</div>
