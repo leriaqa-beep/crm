@@ -223,6 +223,26 @@ textarea{resize:vertical;min-height:70px;}
 .color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
 .color-dot.selected{border-color:var(--text);}
 
+/* TAG CLOUD */
+.tagcloud-wrap{display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;}
+.tagcloud-item{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:99px;cursor:pointer;border:1.5px solid transparent;transition:filter .12s,transform .1s;}
+.tagcloud-item:hover{filter:brightness(.9);transform:scale(1.04);}
+.tagcloud-item.tc-active{outline:2px solid var(--text);outline-offset:2px;}
+.tagcloud-count{font-size:10px;font-weight:700;opacity:.7;}
+.tagcloud-empty{text-align:center;padding:30px;color:var(--text3);font-size:13px;}
+
+/* FREE TASKS */
+.ft-item{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;align-items:flex-start;}
+.ft-item.ft-done{opacity:.45;}
+.ft-chk{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.ft-chk.on{background:var(--green);border-color:var(--green);color:#fff;}
+.ft-body{flex:1;min-width:0;}
+.ft-time{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:1px;}
+.ft-title{font-size:13px;color:var(--text);}
+.ft-date{font-size:10px;color:var(--text3);margin-top:2px;}
+.ft-del{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:2px;flex-shrink:0;margin-top:1px;}
+.ft-del:hover{color:var(--red);}
+
 /* BACKUPS / VERSIONS */
 .bk-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;margin-bottom:12px;}
 .bk-item{background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;display:flex;align-items:center;gap:10px;}
@@ -263,6 +283,8 @@ textarea{resize:vertical;min-height:70px;}
   </div>
   <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
     <button class="btn btn-dark" onclick="openAdd()"><i class="ti ti-plus"></i> Добавить клиента</button>
+    <button class="btn btn-outline" onclick="openTagCloud()" title="Облако тегов"><i class="ti ti-tags"></i> Теги</button>
+    <button class="btn btn-outline" onclick="openFreeTasks()" title="Задачи без клиента"><i class="ti ti-checklist"></i> Задачи <span id="ft-badge" style="display:none;font-size:10px;background:var(--amber);color:#fff;border-radius:99px;padding:1px 6px;margin-left:2px;">0</span></button>
     <button class="btn btn-outline" onclick="openBackups()" title="Версии и резервные копии"><i class="ti ti-history"></i> Версии <span id="bk-badge" style="display:none;font-size:10px;background:var(--green);color:#fff;border-radius:99px;padding:1px 6px;margin-left:2px;">0</span></button>
     <button class="btn btn-outline" onclick="exportData()" title="Скачать резервную копию"><i class="ti ti-download"></i> Бэкап</button>
     <label class="btn btn-outline" style="cursor:pointer;" title="Восстановить из файла"><i class="ti ti-upload"></i> Импорт<input type="file" accept=".json" onchange="importData(event)" style="display:none;"/></label>
@@ -470,6 +492,73 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 
   <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
+</div>
+</div>
+
+<!-- ══ МОДАЛ: ОБЛАКО ТЕГОВ ══ -->
+<div class="modal-bg" id="modal-tagcloud">
+<div class="modal" style="width:600px;">
+  <div class="modal-header">
+    <span class="modal-title"><i class="ti ti-tags" style="margin-right:6px;font-size:16px;vertical-align:-2px;"></i>Облако тегов</span>
+    <button class="modal-close" onclick="closeTagCloud()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Кликните по тегу — отфильтрует доску. Размер тега = количество клиентов.</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <input id="tc-search" placeholder="Поиск по тегам..." style="flex:1;font-size:12px;" oninput="renderTagCloud(this.value)"/>
+    <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;flex-shrink:0;" onclick="clearTagFilter()"><i class="ti ti-filter-off"></i> Сбросить фильтр</button>
+  </div>
+  <div id="tc-cloud" class="tagcloud-wrap"></div>
+  <div style="margin-top:16px;padding-top:12px;border-top:.5px solid var(--border);font-size:11px;color:var(--text3);display:flex;gap:16px;">
+    <span id="tc-stats-total"></span>
+    <span id="tc-stats-unique"></span>
+  </div>
+</div>
+</div>
+
+<!-- ══ МОДАЛ: СВОБОДНЫЕ ЗАДАЧИ ══ -->
+<div class="modal-bg" id="modal-freetasks">
+<div class="modal" style="width:560px;">
+  <div class="modal-header">
+    <span class="modal-title"><i class="ti ti-checklist" style="margin-right:6px;font-size:16px;vertical-align:-2px;"></i>Задачи без клиента</span>
+    <button class="modal-close" onclick="closeFreeTasks()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="background:var(--surface2);border-radius:var(--r-md);padding:9px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);">
+    Задачи не привязаны к клиенту: подготовка КП, документация, внутренние дела и т.д.
+  </div>
+  <!-- Форма добавления -->
+  <div style="background:var(--surface2);border-radius:var(--r-md);padding:12px;margin-bottom:14px;border:.5px solid var(--border);">
+    <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text);">+ Новая задача</div>
+    <div class="form-grid" style="margin-bottom:8px;">
+      <div class="form-row" style="margin:0;"><label class="form-label">Тип</label>
+        <select id="ft-type"><option>📋 Задача</option><option>📄 Подготовить КП</option><option>📁 Документация</option><option>📞 Звонок</option><option>✉️ Письмо</option><option>🔧 Другое</option></select>
+      </div>
+      <div class="form-row" style="margin:0;"><label class="form-label">Категория</label>
+        <input id="ft-cat" placeholder="Напр.: Маркетинг, Документы..."/>
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:8px;"><label class="form-label">Описание *</label>
+      <input id="ft-text" placeholder="Что нужно сделать..." onkeydown="if(event.key==='Enter')saveFreeTask()"/>
+    </div>
+    <div class="form-grid" style="margin-bottom:8px;">
+      <div class="form-row" style="margin:0;"><label class="form-label">Дата</label><input id="ft-date" type="date"/></div>
+      <div class="form-row" style="margin:0;"><label class="form-label">Время</label><input id="ft-time" type="time"/></div>
+    </div>
+    <div class="form-row" style="margin-bottom:0;"><label class="form-label">Заметка</label>
+      <textarea id="ft-note" placeholder="Дополнительная информация..." style="min-height:50px;"></textarea>
+    </div>
+    <button class="btn-primary" onclick="saveFreeTask()" style="margin-top:10px;">Добавить задачу</button>
+  </div>
+  <!-- Фильтр -->
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+    <select id="ft-filter" onchange="renderFreeTasksList()" style="font-size:12px;padding:6px 8px;flex:1;">
+      <option value="all">Все задачи</option>
+      <option value="pending">Только активные</option>
+      <option value="done">Только выполненные</option>
+      <option value="today">Только сегодня</option>
+    </select>
+    <span id="ft-count" style="font-size:12px;color:var(--text2);white-space:nowrap;"></span>
+  </div>
+  <div id="ft-list" style="max-height:340px;overflow-y:auto;"></div>
 </div>
 </div>
 
@@ -689,7 +778,8 @@ function renderSidebar(){
   const today=todayStr();
   document.getElementById('today-label').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
   const all=[];
-  clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id});}));
+  clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id,free:false});}));
+  freeTasks.filter(t=>t.date===today).forEach(t=>all.push({...t,cName:null,cId:null,free:true}));
   all.sort((a,b)=>a.time.localeCompare(b.time));
   const now=new Date().toTimeString().slice(0,5);
   const pending=all.filter(t=>!t.done), done=all.filter(t=>t.done);
@@ -701,14 +791,25 @@ function renderSidebar(){
       h+='<div class="grp-lbl">Предстоит</div>';
       pending.forEach(t=>{
         const over=t.time<now;
-        h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--blue)'};" onclick="openDetail('${t.cId}')">
-          <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
-          <div class="t-title">${t.type} ${t.text||''}</div>
-          <div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
-          <div class="t-actions">
-            <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleTask('${t.cId}','${t.id}')">✓ Выполнено</button>
-            <button class="t-btn" onclick="event.stopPropagation();openDetail('${t.cId}')">Открыть</button>
-          </div></div>`;
+        if(t.free){
+          h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--amber)'};" onclick="openFreeTasks()">
+            <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
+            <div class="t-title">${t.type} ${t.text||''}</div>
+            ${t.cat?`<div class="t-client"><i class="ti ti-folder" style="font-size:11px;"></i>${t.cat}</div>`:'<div class="t-client" style="color:var(--amber);"><i class="ti ti-clipboard" style="font-size:11px;"></i>Без клиента</div>'}
+            <div class="t-actions">
+              <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleFreeTask('${t.id}')">✓ Выполнено</button>
+              <button class="t-btn" onclick="event.stopPropagation();openFreeTasks()">Открыть</button>
+            </div></div>`;
+        } else {
+          h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--blue)'};" onclick="openDetail('${t.cId}')">
+            <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
+            <div class="t-title">${t.type} ${t.text||''}</div>
+            <div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
+            <div class="t-actions">
+              <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleTask('${t.cId}','${t.id}')">✓ Выполнено</button>
+              <button class="t-btn" onclick="event.stopPropagation();openDetail('${t.cId}')">Открыть</button>
+            </div></div>`;
+        }
       });
     }
     if(done.length){
@@ -911,10 +1012,11 @@ function renderSchedule(){
         if(t.date===ds){
           const notes=c.notes||[];
           const lastNote=notes.length?notes[notes.length-1].text:'';
-          arr.push({...t,cName:c.name,cCo:c.company||'',cId:c.id,cNote:lastNote});
+          arr.push({...t,cName:c.name,cCo:c.company||'',cId:c.id,cNote:lastNote,free:false});
         }
       });
     });
+    freeTasks.filter(t=>t.date===ds).forEach(t=>arr.push({...t,cName:t.cat||'Без клиента',cCo:'',cId:null,cNote:t.note||'',free:true}));
     return arr.sort((a,b)=>a.time.localeCompare(b.time));
   });
 
@@ -966,10 +1068,11 @@ function renderSchedule(){
       const ht=Math.max(HOUR_H-2,36);
       const ci=assigned[m.id]||0;
       const pct=100/total;
-      const tc=m.done?{bg:'#F0EEE6',border:'#A0A09A',col:'#888'}:taskTypeColor(m.type);
+      const tc=m.done?{bg:'#F0EEE6',border:'#A0A09A',col:'#888'}:m.free?{bg:'#FEF3DC',border:'#C07A10',col:'#8A5000'}:taskTypeColor(m.type);
       const bg=tc.bg,border=tc.border,color=tc.col;
       const hasConflict=total>1;
-      return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};" onclick="openDetail('${m.cId}')" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
+      const clickHandler=m.free?`openFreeTasks()`:`openDetail('${m.cId}')`;
+      return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};" onclick="${clickHandler}" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
         <div class="sch-ev-time">${m.time}${m.done?' ✓':''}</div>
         <div class="sch-ev-name">${m.cName}</div>
         ${m.cCo?`<div class="sch-ev-co">${m.cCo}</div>`:''}
@@ -1410,9 +1513,162 @@ function deleteClient(){
 function closeDetail(){document.getElementById('modal-detail').classList.remove('open');activeId=null;}
 
 // backdrop close
-['modal-add','modal-detail','modal-task','modal-backups'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
+
+// ── TAG CLOUD ─────────────────────────────────────────────
+let activeTagFilter = null;
+
+function openTagCloud(){
+  document.getElementById('tc-search').value='';
+  renderTagCloud('');
+  document.getElementById('modal-tagcloud').classList.add('open');
+}
+function closeTagCloud(){document.getElementById('modal-tagcloud').classList.remove('open');}
+
+function getTagMap(){
+  const map = new Map();
+  clients.forEach(c=>{
+    (c.chips||[]).forEach(ch=>{
+      const key = ch.label;
+      if(!map.has(key)) map.set(key,{...ch, count:0});
+      map.get(key).count++;
+    });
+  });
+  return map;
+}
+
+function renderTagCloud(searchVal=''){
+  const map = getTagMap();
+  const el = document.getElementById('tc-cloud');
+  const query = (searchVal||'').toLowerCase().trim();
+  let entries = [...map.entries()].filter(([k])=>!query||k.toLowerCase().includes(query));
+  entries.sort((a,b)=>b[1].count-a[1].count);
+
+  if(!entries.length){
+    el.innerHTML=`<div class="tagcloud-empty"><i class="ti ti-mood-empty" style="font-size:24px;display:block;margin-bottom:8px;"></i>${query?'Тегов по запросу не найдено':'Меток пока нет — добавьте их в карточках клиентов'}</div>`;
+  } else {
+    const maxCount = entries[0][1].count;
+    el.innerHTML = entries.map(([label,ch])=>{
+      const scale = 0.8 + 0.7*(ch.count/maxCount);
+      const isActive = activeTagFilter===label;
+      return `<span class="tagcloud-item${isActive?' tc-active':''}" style="background:${ch.bg};color:${ch.color};font-size:${(10+6*(ch.count/maxCount)).toFixed(1)}px;" onclick="applyTagFilter(${JSON.stringify(label)})">${label}<span class="tagcloud-count">${ch.count}</span></span>`;
+    }).join('');
+  }
+
+  const total = [...map.values()].reduce((s,v)=>s+v.count,0);
+  document.getElementById('tc-stats-total').textContent = `Всего меток: ${total}`;
+  document.getElementById('tc-stats-unique').textContent = `Уникальных: ${map.size}`;
+}
+
+function applyTagFilter(label){
+  if(activeTagFilter===label){
+    activeTagFilter=null;
+    clearSearch();
+  } else {
+    activeTagFilter=label;
+    const inp=document.getElementById('srch');
+    if(inp){inp.value=label;onSearch(label);}
+  }
+  renderTagCloud(document.getElementById('tc-search').value||'');
+  closeTagCloud();
+}
+
+function clearTagFilter(){
+  activeTagFilter=null;
+  clearSearch();
+  renderTagCloud('');
+}
+
+// ── FREE TASKS ─────────────────────────────────────────────
+const FT_KEY = 'crm_free_tasks';
+let freeTasks = JSON.parse(localStorage.getItem(FT_KEY)||'[]');
+
+function saveFT(){
+  localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
+  _updateFtBadge();
+}
+
+function _updateFtBadge(){
+  const pending = freeTasks.filter(t=>!t.done).length;
+  const b = document.getElementById('ft-badge');
+  if(b){b.textContent=pending;b.style.display=pending?'':'none';}
+}
+
+function openFreeTasks(){
+  document.getElementById('ft-date').value = todayStr();
+  document.getElementById('ft-time').value = new Date().toTimeString().slice(0,5);
+  document.getElementById('ft-text').value = '';
+  document.getElementById('ft-note').value = '';
+  document.getElementById('ft-cat').value = '';
+  document.getElementById('ft-filter').value = 'all';
+  renderFreeTasksList();
+  document.getElementById('modal-freetasks').classList.add('open');
+  setTimeout(()=>document.getElementById('ft-text').focus(),50);
+}
+function closeFreeTasks(){document.getElementById('modal-freetasks').classList.remove('open');}
+
+function saveFreeTask(){
+  const text = document.getElementById('ft-text').value.trim();
+  if(!text){alert('Введите описание задачи');return;}
+  const date = document.getElementById('ft-date').value;
+  const time = document.getElementById('ft-time').value;
+  if(!date||!time){alert('Укажите дату и время');return;}
+  freeTasks.push({
+    id: genId(),
+    type: document.getElementById('ft-type').value,
+    cat: document.getElementById('ft-cat').value.trim(),
+    text,
+    note: document.getElementById('ft-note').value.trim(),
+    date, time,
+    done: false,
+    createdAt: new Date().toISOString()
+  });
+  saveFT();
+  renderFreeTasksList();
+  renderSidebar();
+  document.getElementById('ft-text').value='';
+  document.getElementById('ft-note').value='';
+  document.getElementById('ft-cat').value='';
+}
+
+function toggleFreeTask(id){
+  const t = freeTasks.find(x=>x.id===id); if(!t)return;
+  t.done=!t.done; saveFT(); renderFreeTasksList(); renderSidebar();
+  if(currentView==='schedule'){if(schView==='week')renderSchedule();else renderMonthView();}
+}
+
+function deleteFreeTask(id){
+  freeTasks = freeTasks.filter(x=>x.id!==id); saveFT(); renderFreeTasksList(); renderSidebar();
+  if(currentView==='schedule'){if(schView==='week')renderSchedule();else renderMonthView();}
+}
+
+function renderFreeTasksList(){
+  const filter = document.getElementById('ft-filter').value;
+  const today = todayStr();
+  let list = [...freeTasks].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  if(filter==='pending') list=list.filter(t=>!t.done);
+  if(filter==='done') list=list.filter(t=>t.done);
+  if(filter==='today') list=list.filter(t=>t.date===today);
+  document.getElementById('ft-count').textContent=`${list.length} задач`;
+  const el = document.getElementById('ft-list');
+  if(!list.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px;"><i class="ti ti-mood-smile" style="font-size:20px;display:block;margin-bottom:6px;"></i>Нет задач</div>';
+    return;
+  }
+  el.innerHTML = list.map(t=>`
+    <div class="ft-item${t.done?' ft-done':''}">
+      <div class="ft-chk${t.done?' on':''}" onclick="toggleFreeTask('${t.id}')">${t.done?'<i class="ti ti-check" style="font-size:11px;"></i>':''}</div>
+      <div class="ft-body">
+        <div class="ft-time">${t.time} · ${t.type}${t.cat?` · <span style="color:var(--text3);">${t.cat}</span>`:''}</div>
+        <div class="ft-title">${t.text}</div>
+        ${t.note?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;">${t.note}</div>`:''}
+        <div class="ft-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'})}</div>
+      </div>
+      <button class="ft-del" onclick="deleteFreeTask('${t.id}')" title="Удалить"><i class="ti ti-trash" style="font-size:13px;"></i></button>
+    </div>`).join('');
+}
 
 // ── VERSIONING / BACKUPS ──────────────────────────────────
 const BK_KEY='crm_backups';
@@ -1590,6 +1846,7 @@ importData=function(e){
 _bkLastStr=JSON.stringify(clients);
 _bkLastTime=Date.now();
 _updateBkBadge();
+_updateFtBadge();
 
 render();
 </script>
