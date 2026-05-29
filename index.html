@@ -82,6 +82,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sch-now{position:absolute;left:0;right:0;border-top:2px solid var(--red);pointer-events:none;z-index:3;}
 .sch-now::before{content:'';position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--red);}
 .sch-conflict{position:absolute;top:2px;right:3px;font-size:9px;background:var(--red);color:#fff;border-radius:99px;padding:1px 4px;}
+/* SCHEDULE VIEW TOGGLE */
+.sch-view-toggle{display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;}
+.sch-vbtn{padding:4px 12px;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;background:none;}
+.sch-vbtn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+/* GOALS BAR */
+.sch-goals{display:flex;gap:10px;padding:8px 12px;background:var(--surface);border-radius:var(--r-md);margin-bottom:10px;flex-shrink:0;align-items:center;flex-wrap:wrap;border:.5px solid var(--border);}
+.sch-goal{display:flex;align-items:center;gap:7px;flex:1;min-width:150px;}
+.sch-goal-lbl{font-size:11px;color:var(--text2);white-space:nowrap;}
+.sch-goal-bar{flex:1;height:7px;background:var(--surface2);border-radius:99px;position:relative;min-width:60px;overflow:hidden;}
+.sch-goal-fill{height:100%;border-radius:99px;position:absolute;top:0;left:0;transition:width .3s;}
+.sch-goal-stat{font-size:11px;font-weight:600;white-space:nowrap;}
+.sch-goal-sub{font-size:10px;color:var(--text3);white-space:nowrap;}
+/* MONTH VIEW */
+.sch-month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.sch-month-hd{background:var(--surface2);text-align:center;padding:7px 4px;font-size:11px;font-weight:700;color:var(--text2);}
+.sch-month-cell{background:var(--surface);padding:6px;min-height:82px;cursor:pointer;transition:background .1s;}
+.sch-month-cell:hover{background:var(--surface2);}
+.sch-month-cell.sch-m-today{background:rgba(46,127,212,.05);}
+.sch-month-cell.sch-m-out{background:var(--surface2);opacity:.5;}
+.sch-month-dn{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1;}
+.sch-month-cell.sch-m-today .sch-month-dn{color:var(--blue);background:var(--blue);color:#fff;display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;}
+.sch-month-tag{display:flex;align-items:center;gap:3px;font-size:10px;padding:2px 5px;border-radius:var(--r-sm);margin-bottom:2px;white-space:nowrap;}
 .board{display:grid;grid-template-columns:repeat(5,minmax(210px,1fr));gap:10px;min-width:900px;}
 .col{background:var(--surface2);border-radius:var(--r-lg);padding:10px;min-height:calc(100vh - 112px);}
 .col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:.5px solid var(--border);}
@@ -270,17 +292,28 @@ textarea{resize:vertical;min-height:70px;}
     <div id="view-schedule" style="display:none;flex:1;overflow:hidden;min-height:0;">
       <div class="sch-wrap">
         <div class="sch-nav">
-          <button class="sch-nav-btn" onclick="schPrevWeek()" title="Предыдущая неделя"><i class="ti ti-chevron-left"></i></button>
+          <button class="sch-nav-btn" onclick="schPrev()"><i class="ti ti-chevron-left"></i></button>
           <span class="sch-week-lbl" id="sch-week-lbl"></span>
-          <button class="sch-nav-btn" onclick="schNextWeek()" title="Следующая неделя"><i class="ti ti-chevron-right"></i></button>
+          <button class="sch-nav-btn" onclick="schNext()"><i class="ti ti-chevron-right"></i></button>
           <button class="btn btn-outline" style="font-size:12px;padding:4px 12px;" onclick="schGoToday()">Сегодня</button>
-        </div>
-        <div class="sch-grid-wrap">
-          <div class="sch-head" id="sch-head"><div class="sch-corner"></div></div>
-          <div class="sch-body">
-            <div class="sch-times" id="sch-times"></div>
-            <div class="sch-cols" id="sch-cols"></div>
+          <div style="flex:1;"></div>
+          <div class="sch-view-toggle">
+            <button id="schvbtn-week" class="sch-vbtn active" onclick="switchSchView('week')"><i class="ti ti-layout-columns"></i> Неделя</button>
+            <button id="schvbtn-month" class="sch-vbtn" onclick="switchSchView('month')"><i class="ti ti-calendar-month"></i> Месяц</button>
           </div>
+        </div>
+        <div class="sch-goals" id="sch-goals"></div>
+        <div id="sch-week-view" style="flex:1;overflow:hidden;min-height:0;display:flex;flex-direction:column;">
+          <div class="sch-grid-wrap">
+            <div class="sch-head" id="sch-head"><div class="sch-corner"></div></div>
+            <div class="sch-body">
+              <div class="sch-times" id="sch-times"></div>
+              <div class="sch-cols" id="sch-cols"></div>
+            </div>
+          </div>
+        </div>
+        <div id="sch-month-view" style="display:none;flex:1;overflow-y:auto;min-height:0;">
+          <div id="sch-month-grid" class="sch-month-grid"></div>
         </div>
       </div>
     </div>
@@ -641,7 +674,9 @@ function renderSidebar(){
 
 // ── SCHEDULE / ПЛАНИРОВЩИК ВСТРЕЧ ─────────────────────────
 const SCH_START=8, SCH_END=21, HOUR_H=64;
-let schWeekStart=null, currentView='board';
+const SCH_GOALS_KEY='crm_goals';
+let schWeekStart=null, schMonthDate=null, schView='week', currentView='board';
+let schGoals=JSON.parse(localStorage.getItem(SCH_GOALS_KEY)||'{"calls":50,"meetings":20,"callsM":200,"meetingsM":80}');
 
 function getMonday(d){
   const dt=new Date(d); const day=dt.getDay();
@@ -655,11 +690,143 @@ function switchView(v){
   document.getElementById('view-schedule').style.display=isBoard?'none':'';
   document.getElementById('vbtn-board').classList.toggle('active',isBoard);
   document.getElementById('vbtn-schedule').classList.toggle('active',!isBoard);
-  if(!isBoard){if(!schWeekStart)schWeekStart=getMonday(new Date());renderSchedule();}
+  if(!isBoard){
+    if(!schWeekStart)schWeekStart=getMonday(new Date());
+    if(!schMonthDate)schMonthDate=new Date();
+    if(schView==='week')renderSchedule();else renderMonthView();
+    renderGoals();
+  }
 }
-function schPrevWeek(){const d=new Date(schWeekStart);d.setDate(d.getDate()-7);schWeekStart=d;renderSchedule();}
-function schNextWeek(){const d=new Date(schWeekStart);d.setDate(d.getDate()+7);schWeekStart=d;renderSchedule();}
-function schGoToday(){schWeekStart=getMonday(new Date());renderSchedule();}
+function switchSchView(v){
+  schView=v;
+  document.getElementById('sch-week-view').style.display=v==='week'?'flex':'none';
+  document.getElementById('sch-month-view').style.display=v==='month'?'':'none';
+  document.getElementById('schvbtn-week').classList.toggle('active',v==='week');
+  document.getElementById('schvbtn-month').classList.toggle('active',v==='month');
+  if(v==='week')renderSchedule();else renderMonthView();
+  renderGoals();
+}
+function schPrev(){
+  if(schView==='week'){const d=new Date(schWeekStart);d.setDate(d.getDate()-7);schWeekStart=d;renderSchedule();}
+  else{const d=new Date(schMonthDate);d.setMonth(d.getMonth()-1);schMonthDate=d;renderMonthView();}
+  renderGoals();
+}
+function schNext(){
+  if(schView==='week'){const d=new Date(schWeekStart);d.setDate(d.getDate()+7);schWeekStart=d;renderSchedule();}
+  else{const d=new Date(schMonthDate);d.setMonth(d.getMonth()+1);schMonthDate=d;renderMonthView();}
+  renderGoals();
+}
+function schGoToday(){
+  if(schView==='week'){schWeekStart=getMonday(new Date());renderSchedule();}
+  else{schMonthDate=new Date();renderMonthView();}
+  renderGoals();
+}
+function taskTypeColor(type){
+  if(type.includes('Созвон'))return{bg:'#EBF4FF',border:'#2E7FD4',col:'#1A5FAD'};
+  if(type.includes('Встреча'))return{bg:'#E8F8F0',border:'#1A9E72',col:'#0F6E56'};
+  if(type.includes('Письмо'))return{bg:'#FEF3DC',border:'#C07A10',col:'#8A5000'};
+  if(type.includes('КП'))return{bg:'#F3F0FF',border:'#8B5CF6',col:'#5B3FBF'};
+  return{bg:'#F5F5F0',border:'#888',col:'#444'};
+}
+function renderGoals(){
+  const el=document.getElementById('sch-goals');
+  if(!el)return;
+  let start,end;
+  if(schView==='week'){
+    const w=schWeekStart||getMonday(new Date());
+    start=w.toISOString().slice(0,10);
+    const e=new Date(w);e.setDate(w.getDate()+6);end=e.toISOString().slice(0,10);
+  }else{
+    const d=schMonthDate||new Date();
+    start=new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);
+    end=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().slice(0,10);
+  }
+  let calls=0,callsDone=0,meets=0,meetsDone=0;
+  clients.forEach(c=>(c.tasks||[]).forEach(t=>{
+    if(t.date>=start&&t.date<=end){
+      if(t.type.includes('Созвон')){calls++;if(t.done)callsDone++;}
+      if(t.type.includes('Встреча')){meets++;if(t.done)meetsDone++;}
+    }
+  }));
+  const isW=schView==='week';
+  const cg=schGoals[isW?'calls':'callsM']||50;
+  const mg=schGoals[isW?'meetings':'meetingsM']||20;
+  const cp=Math.min(100,Math.round(calls/cg*100));
+  const cdp=Math.min(100,Math.round(callsDone/cg*100));
+  const mp=Math.min(100,Math.round(meets/mg*100));
+  const mdp=Math.min(100,Math.round(meetsDone/mg*100));
+  el.innerHTML=`
+    <div class="sch-goal">
+      <span class="sch-goal-lbl">📞 Звонки</span>
+      <div class="sch-goal-bar"><div class="sch-goal-fill" style="width:${cp}%;background:rgba(46,127,212,.2);"></div><div class="sch-goal-fill" style="width:${cdp}%;background:var(--blue);"></div></div>
+      <span class="sch-goal-stat" style="color:var(--blue);">${callsDone}<span style="color:var(--text3);font-weight:400;">/${cg}</span></span>
+      <span class="sch-goal-sub">${calls} запл.</span>
+    </div>
+    <div class="sch-goal">
+      <span class="sch-goal-lbl">🤝 Встречи</span>
+      <div class="sch-goal-bar"><div class="sch-goal-fill" style="width:${mp}%;background:rgba(26,158,114,.2);"></div><div class="sch-goal-fill" style="width:${mdp}%;background:var(--green);"></div></div>
+      <span class="sch-goal-stat" style="color:var(--green);">${meetsDone}<span style="color:var(--text3);font-weight:400;">/${mg}</span></span>
+      <span class="sch-goal-sub">${meets} запл.</span>
+    </div>
+    <button class="btn btn-outline" onclick="editGoals()" style="font-size:11px;padding:4px 10px;flex-shrink:0;"><i class="ti ti-target"></i> Цели</button>`;
+}
+function editGoals(){
+  const isW=schView==='week';
+  const label=isW?'неделю':'месяц';
+  const gk=isW?'calls':'callsM', mk=isW?'meetings':'meetingsM';
+  const c=prompt('Цель по звонкам на '+label+':',schGoals[gk]||50);
+  if(c===null)return;
+  const m=prompt('Цель по встречам на '+label+':',schGoals[mk]||20);
+  if(m===null)return;
+  schGoals[gk]=Math.max(1,parseInt(c)||1);
+  schGoals[mk]=Math.max(1,parseInt(m)||1);
+  localStorage.setItem(SCH_GOALS_KEY,JSON.stringify(schGoals));
+  renderGoals();
+}
+function schDayClick(ds){
+  schWeekStart=getMonday(new Date(ds+'T12:00:00'));
+  switchSchView('week');
+}
+function renderMonthView(){
+  if(!schMonthDate)schMonthDate=new Date();
+  const today=todayStr();
+  const year=schMonthDate.getFullYear();
+  const month=schMonthDate.getMonth();
+  document.getElementById('sch-week-lbl').textContent=
+    new Date(year,month,1).toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+  const byDay={};
+  clients.forEach(c=>(c.tasks||[]).forEach(t=>{
+    if(!byDay[t.date])byDay[t.date]=[];
+    byDay[t.date].push(t);
+  }));
+  const DNAMES=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let html=DNAMES.map(d=>`<div class="sch-month-hd">${d}</div>`).join('');
+  const firstDay=new Date(year,month,1);
+  const dow=firstDay.getDay();
+  const cur=new Date(firstDay);
+  cur.setDate(firstDay.getDate()-(dow===0?6:dow-1));
+  for(let row=0;row<6;row++){
+    for(let col=0;col<7;col++){
+      const ds=cur.toISOString().slice(0,10);
+      const isToday=ds===today;
+      const isOut=cur.getMonth()!==month;
+      const tasks=byDay[ds]||[];
+      const calls=tasks.filter(t=>t.type.includes('Созвон'));
+      const meets=tasks.filter(t=>t.type.includes('Встреча'));
+      const other=tasks.filter(t=>!t.type.includes('Созвон')&&!t.type.includes('Встреча'));
+      const dnHtml=isToday?`<div class="sch-month-dn">${cur.getDate()}</div>`:`<div class="sch-month-dn" style="color:${isOut?'var(--text3)':'var(--text)'};">${cur.getDate()}</div>`;
+      html+=`<div class="sch-month-cell${isToday?' sch-m-today':''}${isOut?' sch-m-out':''}" onclick="schDayClick('${ds}')">
+        ${dnHtml}
+        ${calls.length?`<div class="sch-month-tag" style="background:#EBF4FF;color:#1A5FAD;">📞 ${calls.length}${calls.filter(t=>t.done).length===calls.length&&calls.length?' ✓':calls.filter(t=>t.done).length?' ('+calls.filter(t=>t.done).length+'✓)':''}</div>`:''}
+        ${meets.length?`<div class="sch-month-tag" style="background:#E8F8F0;color:#0F6E56;">🤝 ${meets.length}${meets.filter(t=>t.done).length===meets.length&&meets.length?' ✓':meets.filter(t=>t.done).length?' ('+meets.filter(t=>t.done).length+'✓)':''}</div>`:''}
+        ${other.length?`<div class="sch-month-tag" style="background:#F5F5F0;color:#555;">+${other.length} др.</div>`:''}
+      </div>`;
+      cur.setDate(cur.getDate()+1);
+    }
+    if(row>=3&&cur.getMonth()!==month)break;
+  }
+  document.getElementById('sch-month-grid').innerHTML=html;
+}
 
 function renderSchedule(){
   if(!schWeekStart)schWeekStart=getMonday(new Date());
@@ -694,7 +861,7 @@ function renderSchedule(){
     const arr=[];
     clients.forEach(c=>{
       (c.tasks||[]).forEach(t=>{
-        if(t.type.includes('Встреча')&&t.date===ds){
+        if(t.date===ds){
           const notes=c.notes||[];
           const lastNote=notes.length?notes[notes.length-1].text:'';
           arr.push({...t,cName:c.name,cCo:c.company||'',cId:c.id,cNote:lastNote});
@@ -752,9 +919,8 @@ function renderSchedule(){
       const ht=Math.max(HOUR_H-2,36);
       const ci=assigned[m.id]||0;
       const pct=100/total;
-      const bg=m.done?'#F0EEE6':'#EBF4FF';
-      const border=m.done?'#A0A09A':'#2E7FD4';
-      const color=m.done?'#777':'#1A5FAD';
+      const tc=m.done?{bg:'#F0EEE6',border:'#A0A09A',col:'#888'}:taskTypeColor(m.type);
+      const bg=tc.bg,border=tc.border,color=tc.col;
       const hasConflict=total>1;
       return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};" onclick="openDetail('${m.cId}')" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
         <div class="sch-ev-time">${m.time}${m.done?' ✓':''}</div>
@@ -791,7 +957,8 @@ function render(){
     document.getElementById('s-total').textContent=filterStr?vis.length+'/'+clients.length:clients.length;
     document.getElementById('s-amount').textContent=Number(vis.reduce((s,c)=>s+(Number(c.amount)||0),0)).toLocaleString('ru-RU');
     renderSidebar();
-    renderSchedule();
+    if(schView==='week')renderSchedule();else renderMonthView();
+    renderGoals();
     return;
   }
   const hint=document.getElementById('srch-hint');
