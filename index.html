@@ -563,6 +563,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="btn-primary" onclick="saveFreeTask()" style="margin-top:10px;">Добавить задачу</button>
   </div>
   <!-- Фильтр -->
+  <div id="ft-assignee-banner" style="display:none;background:#EEF2FF;border-radius:var(--r-md);padding:7px 12px;margin-bottom:8px;font-size:12px;color:#4338CA;align-items:center;gap:6px;"></div>
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
     <select id="ft-filter" onchange="renderFreeTasksList()" style="font-size:12px;padding:6px 8px;flex:1;">
       <option value="all">Все задачи</option>
@@ -1617,13 +1618,26 @@ function renderTagCloud(searchVal=''){
 function applyTagFilter(label){
   if(activeTagFilter===label){
     activeTagFilter=null;
-    clearTagFilter();
+    if(label.startsWith('👤 ')){
+      ftActiveAssigneeFilter=null;
+      renderFreeTasksList();
+    } else {
+      clearTagFilter();
+    }
+    closeTagCloud();
     return;
   }
   activeTagFilter=label;
-  const inp=document.getElementById('srch');
-  if(inp){inp.value=label;onSearch(label);}
   closeTagCloud();
+  if(label.startsWith('👤 ')){
+    // Filter free tasks by assignee
+    ftActiveAssigneeFilter=label.slice(3); // remove '👤 '
+    openFreeTasks();
+  } else {
+    // Filter kanban board
+    const inp=document.getElementById('srch');
+    if(inp){inp.value=label;onSearch(label);}
+  }
 }
 
 function clearTagFilter(){
@@ -1642,6 +1656,7 @@ const ASSIGNEE_COLORS = [
 ];
 let savedAssignees = JSON.parse(localStorage.getItem(ASSIGNEES_KEY)||'[]');
 let ftSelectedAssignee = null;
+let ftActiveAssigneeFilter = null; // set by tag cloud click
 
 function saveAssignees(){ localStorage.setItem(ASSIGNEES_KEY, JSON.stringify(savedAssignees)); }
 
@@ -1707,7 +1722,7 @@ function openFreeTasks(){
   renderFtChipPicker();
   renderFtAssigneePicker();
   document.getElementById('ft-filter').value = 'all';
-  renderFreeTasksList();
+  renderFreeTasksList(); // ftActiveAssigneeFilter may be set by tag cloud
   document.getElementById('modal-freetasks').classList.add('open');
   setTimeout(()=>document.getElementById('ft-text').focus(),50);
 }
@@ -1761,6 +1776,17 @@ function renderFreeTasksList(){
   if(filter==='pending') list=list.filter(t=>!t.done);
   if(filter==='done') list=list.filter(t=>t.done);
   if(filter==='today') list=list.filter(t=>t.date===today);
+  if(ftActiveAssigneeFilter) list=list.filter(t=>t.assignee&&(t.assignee.label||t.assignee)===ftActiveAssigneeFilter);
+  // Show/hide filter banner
+  const banner = document.getElementById('ft-assignee-banner');
+  if(banner){
+    if(ftActiveAssigneeFilter){
+      banner.style.display='flex';
+      banner.innerHTML=`<i class="ti ti-user" style="font-size:12px;"></i> Исполнитель: <b>${ftActiveAssigneeFilter}</b> <button onclick="ftActiveAssigneeFilter=null;activeTagFilter=null;renderFreeTasksList();" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--red);font-size:12px;padding:0;"><i class="ti ti-x"></i> Сбросить</button>`;
+    } else {
+      banner.style.display='none';
+    }
+  }
   document.getElementById('ft-count').textContent=`${list.length} задач`;
   const el = document.getElementById('ft-list');
   if(!list.length){
