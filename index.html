@@ -533,7 +533,12 @@ textarea{resize:vertical;min-height:70px;}
         <select id="ft-type"><option>📋 Задача</option><option>📄 Подготовить КП</option><option>📁 Документация</option><option>📞 Звонок</option><option>✉️ Письмо</option><option>🔧 Другое</option></select>
       </div>
       <div class="form-row" style="margin:0;"><label class="form-label">Категория</label>
-        <input id="ft-cat" placeholder="Напр.: Маркетинг, Документы..."/>
+        <div id="ft-chips-wrap" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;min-height:24px;"></div>
+        <div style="display:flex;gap:6px;">
+          <input id="ft-cat" placeholder="Напр.: Маркетинг, КП, Документы..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addFtChip();}"/>
+          <button type="button" class="btn btn-outline" style="padding:6px 10px;font-size:12px;flex-shrink:0;" onclick="addFtChip()"><i class="ti ti-plus"></i></button>
+        </div>
+        <div class="chip-color-pick" id="ft-chip-color-pick" style="margin-top:6px;"></div>
       </div>
     </div>
     <div class="form-row" style="margin-bottom:8px;"><label class="form-label">Описание *</label>
@@ -1527,12 +1532,44 @@ function openTagCloud(){
 }
 function closeTagCloud(){document.getElementById('modal-tagcloud').classList.remove('open');}
 
+// ── FREE TASK CHIPS ───────────────────────────────────────
+let ftNewChips = [];
+let ftSelChipColor = CHIP_COLORS[0];
+
+function renderFtChipPicker(){
+  const wrap = document.getElementById('ft-chips-wrap');
+  const pick = document.getElementById('ft-chip-color-pick');
+  if(!wrap) return;
+  wrap.innerHTML = ftNewChips.length
+    ? ftNewChips.map((ch,i)=>`<span class="chip" style="background:${ch.bg};color:${ch.color};font-size:11px;">${ch.label}<button class="chip-remove" onclick="ftRemoveChip(${i})">×</button></span>`).join('')
+    : '<span style="font-size:11px;color:var(--text3);">Теги не добавлены</span>';
+  if(pick) pick.innerHTML = CHIP_COLORS.map((col,i)=>
+    `<div class="color-dot ${col.bg===ftSelChipColor.bg?'selected':''}" style="background:${col.bg};border-color:${col.bg===ftSelChipColor.bg?col.color:'transparent'};" onclick="ftSelChipColor=CHIP_COLORS[${i}];renderFtChipPicker();"></div>`
+  ).join('');
+}
+function addFtChip(){
+  const inp = document.getElementById('ft-cat');
+  const label = inp.value.trim(); if(!label) return;
+  if(!ftNewChips.find(c=>c.label===label))
+    ftNewChips.push({label, bg:ftSelChipColor.bg, color:ftSelChipColor.color});
+  inp.value='';
+  renderFtChipPicker();
+}
+function ftRemoveChip(i){ ftNewChips.splice(i,1); renderFtChipPicker(); }
+
 function getTagMap(){
   const map = new Map();
   clients.forEach(c=>{
     (c.chips||[]).forEach(ch=>{
       const key = ch.label;
-      if(!map.has(key)) map.set(key,{...ch, count:0});
+      if(!map.has(key)) map.set(key,{...ch, count:0, sources:[]});
+      map.get(key).count++;
+    });
+  });
+  freeTasks.forEach(t=>{
+    (t.chips||[]).forEach(ch=>{
+      const key = ch.label;
+      if(!map.has(key)) map.set(key,{...ch, count:0, sources:[]});
       map.get(key).count++;
     });
   });
@@ -1602,6 +1639,9 @@ function openFreeTasks(){
   document.getElementById('ft-text').value = '';
   document.getElementById('ft-note').value = '';
   document.getElementById('ft-cat').value = '';
+  document.getElementById('ft-assignee').value = '';
+  ftNewChips = [];
+  renderFtChipPicker();
   document.getElementById('ft-filter').value = 'all';
   renderFreeTasksList();
   document.getElementById('modal-freetasks').classList.add('open');
@@ -1618,7 +1658,8 @@ function saveFreeTask(){
   freeTasks.push({
     id: genId(),
     type: document.getElementById('ft-type').value,
-    cat: document.getElementById('ft-cat').value.trim(),
+    chips: [...ftNewChips],
+    assignee: document.getElementById('ft-assignee').value.trim(),
     text,
     note: document.getElementById('ft-note').value.trim(),
     date, time,
@@ -1631,6 +1672,9 @@ function saveFreeTask(){
   document.getElementById('ft-text').value='';
   document.getElementById('ft-note').value='';
   document.getElementById('ft-cat').value='';
+  document.getElementById('ft-assignee').value='';
+  ftNewChips=[];
+  renderFtChipPicker();
 }
 
 function toggleFreeTask(id){
@@ -1661,8 +1705,10 @@ function renderFreeTasksList(){
     <div class="ft-item${t.done?' ft-done':''}">
       <div class="ft-chk${t.done?' on':''}" onclick="toggleFreeTask('${t.id}')">${t.done?'<i class="ti ti-check" style="font-size:11px;"></i>':''}</div>
       <div class="ft-body">
-        <div class="ft-time">${t.time} · ${t.type}${t.cat?` · <span style="color:var(--text3);">${t.cat}</span>`:''}</div>
+        <div class="ft-time">${t.time} · ${t.type}</div>
         <div class="ft-title">${t.text}</div>
+        ${t.assignee?`<div style="font-size:11px;color:var(--text2);margin-top:3px;display:flex;align-items:center;gap:4px;"><i class="ti ti-user" style="font-size:11px;"></i>${t.assignee}</div>`:''}
+        ${(t.chips||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${(t.chips||[]).map(ch=>`<span class="chip" style="background:${ch.bg};color:${ch.color};font-size:10px;padding:2px 8px;">${ch.label}</span>`).join('')}</div>`:''}
         ${t.note?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;">${t.note}</div>`:''}
         <div class="ft-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'})}</div>
       </div>
