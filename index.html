@@ -1590,7 +1590,8 @@ function renderTagCloud(searchVal=''){
     el.innerHTML = entries.map(([label,ch])=>{
       const scale = 0.8 + 0.7*(ch.count/maxCount);
       const isActive = activeTagFilter===label;
-      return `<span class="tagcloud-item${isActive?' tc-active':''}" style="background:${ch.bg};color:${ch.color};font-size:${(10+6*(ch.count/maxCount)).toFixed(1)}px;" onclick="applyTagFilter(${JSON.stringify(label)})">${label}<span class="tagcloud-count">${ch.count}</span></span>`;
+      const escapedLabel = label.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      return `<span class="tagcloud-item${isActive?' tc-active':''}" style="background:${ch.bg};color:${ch.color};font-size:${(10+6*(ch.count/maxCount)).toFixed(1)}px;" data-tag="${escapedLabel}" onclick="applyTagFilter(this.dataset.tag)">${label}<span class="tagcloud-count">${ch.count}</span></span>`;
     }).join('');
   }
 
@@ -1602,13 +1603,12 @@ function renderTagCloud(searchVal=''){
 function applyTagFilter(label){
   if(activeTagFilter===label){
     activeTagFilter=null;
-    clearSearch();
-  } else {
-    activeTagFilter=label;
-    const inp=document.getElementById('srch');
-    if(inp){inp.value=label;onSearch(label);}
+    clearTagFilter();
+    return;
   }
-  renderTagCloud(document.getElementById('tc-search').value||'');
+  activeTagFilter=label;
+  const inp=document.getElementById('srch');
+  if(inp){inp.value=label;onSearch(label);}
   closeTagCloud();
 }
 
