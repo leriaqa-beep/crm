@@ -112,6 +112,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .col.drag-over{outline:2px dashed var(--border2);outline-offset:-3px;}
 .col-arr-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 3px;border-radius:4px;line-height:1;flex-shrink:0;}
 .col-arr-btn:hover{color:var(--blue);background:var(--surface3,rgba(0,0,0,.06));}
+.col-pay-btn{background:none;border:none;cursor:pointer;font-size:13px;padding:2px 3px;border-radius:4px;line-height:1;flex-shrink:0;opacity:.4;transition:opacity .15s;}
+.col-pay-btn:hover{opacity:1;}
+.col-pay-btn.active{opacity:1;color:var(--green);}
 .card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r-md);padding:11px;margin-bottom:7px;cursor:grab;user-select:none;transition:box-shadow .15s,border-color .15s,opacity .15s;}
 .card:hover{border-color:var(--border2);box-shadow:0 2px 10px rgba(0,0,0,.07);}
 .card.dragging{opacity:.3;cursor:grabbing;}
@@ -550,6 +553,35 @@ textarea{resize:vertical;min-height:70px;}
 </div>
 </div>
 
+<!-- ══ МОДАЛ: БЫСТРАЯ НАСТРОЙКА ОПЛАТЫ ══ -->
+<div class="modal-bg" id="modal-quick-pay">
+<div class="modal modal-sm">
+  <div class="modal-header">
+    <span class="modal-title">💳 Настройка оплаты</span>
+    <button class="modal-close" onclick="closeQuickPaySetup()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;"><i class="ti ti-user"></i><span id="qp-name"></span></div>
+  <div style="background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);">
+    Клиент перенесён в платёжный этап. Настройте расписание оплат.
+  </div>
+  <div class="form-row"><label class="form-label">Периодичность</label>
+    <select id="qp-type">
+      <option value="monthly">Ежемесячно</option>
+      <option value="quarterly">Ежеквартально</option>
+    </select>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Сумма, ₽</label><input id="qp-amount" type="number" placeholder="15000"/></div>
+    <div class="form-row"><label class="form-label">Дата первого платежа</label><input id="qp-start" type="date"/></div>
+  </div>
+  <div class="form-row"><label class="form-label">Комментарий</label><input id="qp-comment" placeholder="Напр.: подписка на систему"/></div>
+  <div style="display:flex;gap:8px;margin-top:6px;">
+    <button class="btn-primary" style="flex:1;" onclick="saveQuickPaySetup()">Настроить расписание</button>
+    <button class="btn btn-outline" style="flex:0 0 auto;" onclick="closeQuickPaySetup()">Пропустить</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ МОДАЛ: ОБЛАКО ТЕГОВ ══ -->
 <div class="modal-bg" id="modal-tagcloud">
 <div class="modal" style="width:600px;">
@@ -657,6 +689,14 @@ textarea{resize:vertical;min-height:70px;}
 // ── КОНСТАНТЫ ──────────────────────────────────────────────
 const STAGE_COLORS_POOL=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75','#E05C2A','#2BA89E','#7C6AF7','#C44D8A','#4CAF50'];
 const STAGES_KEY='crm_stages';
+const PAY_STAGES_KEY='crm_pay_stages';
+let payStages=new Set(JSON.parse(localStorage.getItem(PAY_STAGES_KEY)||'[]'));
+function savePayStages(){localStorage.setItem(PAY_STAGES_KEY,JSON.stringify([...payStages]));}
+function togglePayStage(i,e){
+  e.stopPropagation();
+  if(payStages.has(i))payStages.delete(i);else payStages.add(i);
+  savePayStages();render();
+}
 let STAGES=JSON.parse(localStorage.getItem(STAGES_KEY)||'null')||['Первый звонок','Переговоры','Коммерческое предложение','Согласование','Закрытие сделки'];
 function stageColor(i){return STAGE_COLORS_POOL[i%STAGE_COLORS_POOL.length];}
 function saveStages(){localStorage.setItem(STAGES_KEY,JSON.stringify(STAGES));}
@@ -1235,6 +1275,7 @@ function render(){
       <span class="col-title" id="slbl-${si}" title="Нажмите для переименования" style="cursor:pointer;flex:1;margin:0 4px;" onclick="startRenameStage(${si})">${stage}</span>
       <div style="display:flex;align-items:center;gap:4px;">
         <span class="col-badge" style="background:${clr}22;color:${clr};">${sc.length}</span>
+        <button class="col-pay-btn${payStages.has(si)?' active':''}" onclick="togglePayStage(${si},event)" title="${payStages.has(si)?'Снять метку платёжного этапа':'Пометить как платёжный этап (при переносе — настройка оплаты)'}">💳</button>
         ${STAGES.length>1?`<button onclick="event.stopPropagation();deleteStage(${si})" title="Удалить колонку" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:2px 3px;border-radius:4px;line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'"><i class="ti ti-x"></i></button>`:''}
       </div>
     </div>`;
@@ -1253,6 +1294,9 @@ function render(){
       if(!c.stageHistory)c.stageHistory=[];
       if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
       save();render();
+      if(payStages.has(si)&&!(c.paymentSchedule&&c.paymentSchedule.active)){
+        setTimeout(()=>openQuickPaySetup(c.id),150);
+      }
     });
 
     if(!sc.length){col.innerHTML+=`<div class="empty-col"><i class="ti ti-inbox" style="font-size:18px;display:block;margin-bottom:5px;"></i>Нет клиентов</div>`;}
@@ -1609,6 +1653,9 @@ function moveStage(si){
   if(!c.stageHistory)c.stageHistory=[];
   if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
   save(); render(); renderStages(c); renderTimeline(c);
+  if(payStages.has(si)&&!(c.paymentSchedule&&c.paymentSchedule.active)){
+    setTimeout(()=>openQuickPaySetup(c.id),200);
+  }
 }
 function deleteClient(){
   if(!confirm('Удалить клиента?'))return;
@@ -1776,9 +1823,53 @@ function renderPaymentsGrid(){
 }
 
 // backdrop close
-['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
+
+// ── QUICK PAY SETUP ──────────────────────────────────────
+let qpClientId = null;
+
+function openQuickPaySetup(cid){
+  qpClientId = cid;
+  const c = clients.find(x=>x.id===cid); if(!c)return;
+  document.getElementById('qp-name').textContent = c.name + (c.company?' · '+c.company:'');
+  document.getElementById('qp-amount').value = c.amount||'';
+  document.getElementById('qp-start').value = todayStr();
+  document.getElementById('qp-type').value = 'monthly';
+  document.getElementById('qp-comment').value = '';
+  document.getElementById('modal-quick-pay').classList.add('open');
+  setTimeout(()=>document.getElementById('qp-amount').focus(),50);
+}
+
+function closeQuickPaySetup(){
+  document.getElementById('modal-quick-pay').classList.remove('open');
+  qpClientId = null;
+}
+
+function saveQuickPaySetup(){
+  const c = clients.find(x=>x.id===qpClientId); if(!c)return;
+  const amount = parseFloat(document.getElementById('qp-amount').value)||0;
+  if(!amount){alert('Введите сумму');return;}
+  const startDate = document.getElementById('qp-start').value;
+  if(!startDate){alert('Укажите дату первого платежа');return;}
+  c.paymentSchedule = {
+    type: document.getElementById('qp-type').value,
+    amount,
+    startDate,
+    comment: document.getElementById('qp-comment').value.trim(),
+    active: true
+  };
+  if(!c.payments) c.payments = [];
+  generatePayments(c);
+  save(); render(); closeQuickPaySetup();
+  // Показать подтверждение
+  const toast = document.createElement('div');
+  toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:var(--r-md);font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);';
+  toast.textContent='✓ Расписание оплат настроено для '+c.name;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),3000);
+}
 
 // ── TAG CLOUD ─────────────────────────────────────────────
 let activeTagFilter = null;
