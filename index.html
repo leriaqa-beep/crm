@@ -263,6 +263,21 @@ textarea{resize:vertical;min-height:70px;}
 .bk-count{font-size:12px;color:var(--text2);}
 .bk-warn{background:#FEF3DC;border:none;border-radius:var(--r-md);padding:9px 12px;font-size:12px;color:#854F0B;margin-bottom:12px;display:none;}
 
+/* PAYMENTS */
+.pay-grid{width:100%;border-collapse:collapse;font-size:12px;}
+.pay-grid th{background:var(--surface2);padding:8px 10px;text-align:center;border:.5px solid var(--border);font-weight:600;font-size:11px;white-space:nowrap;}
+.pay-grid td{padding:6px 8px;border:.5px solid var(--border);vertical-align:middle;}
+.pay-grid tr:hover td{background:rgba(0,0,0,.02);}
+.pay-client-cell{font-size:12px;font-weight:600;min-width:160px;max-width:200px;}
+.pay-client-co{font-size:10px;color:var(--text2);font-weight:400;}
+.pay-cell{text-align:center;cursor:pointer;}
+.pay-chip{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;}
+.pay-chip.paid{background:#E1F5EE;color:#0F6E56;}
+.pay-chip.pending{background:#FEF3DC;color:#854F0B;}
+.pay-chip.overdue{background:#FCEBEB;color:#A32D2D;}
+.pay-chip.empty{background:var(--surface2);color:var(--text3);font-weight:400;}
+.pay-reminder{background:var(--surface2);border-radius:var(--r-md);padding:8px 10px;margin-bottom:5px;border-left:3px solid transparent;cursor:pointer;}
+
 </style>
 </head>
 <body>
@@ -305,6 +320,7 @@ textarea{resize:vertical;min-height:70px;}
       <div style="display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;">
         <button id="vbtn-board" class="view-btn active" onclick="switchView('board')"><i class="ti ti-layout-kanban"></i> Доска</button>
         <button id="vbtn-schedule" class="view-btn" onclick="switchView('schedule')"><i class="ti ti-calendar-week"></i> Планировщик встреч</button>
+        <button id="vbtn-payments" class="view-btn" onclick="switchView('payments')">💳 Оплаты</button>
       </div>
     </div>
     <!-- Board view -->
@@ -340,6 +356,10 @@ textarea{resize:vertical;min-height:70px;}
           <div id="sch-month-grid" class="sch-month-grid"></div>
         </div>
       </div>
+    </div>
+    <!-- Payments view -->
+    <div id="view-payments" style="display:none;flex:1;overflow:auto;min-height:0;">
+      <div id="pay-grid-wrap" style="padding:4px 0;"></div>
     </div>
   </div>
 </div>
@@ -414,6 +434,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
+    <button class="tab"        id="tab-payments" onclick="switchTab('payments')">💳 Оплаты</button>
   </div>
 
   <!-- Задачи -->
@@ -489,6 +510,40 @@ textarea{resize:vertical;min-height:70px;}
     <div class="stage-move" id="d-stages"></div>
     <div class="sec-head"><i class="ti ti-git-branch"></i> Движение по воронке</div>
     <div id="d-timeline"></div>
+  </div>
+
+  <!-- Оплаты -->
+  <div id="panel-payments" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-head" style="margin:0;"><i class="ti ti-credit-card"></i> График оплат</div>
+    </div>
+    <div id="pay-schedule-form" style="background:var(--surface2);border-radius:var(--r-md);padding:12px;margin-bottom:14px;border:.5px solid var(--border);">
+      <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text);">Настройка графика</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+        <div><label class="form-label">Тип</label>
+          <select id="ps-type"><option value="monthly">Ежемесячно</option><option value="quarterly">Ежеквартально</option></select>
+        </div>
+        <div><label class="form-label">Сумма, ₽</label>
+          <input id="ps-amount" type="number" placeholder="10000"/>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div><label class="form-label">Дата начала</label>
+          <input id="ps-start" type="date"/>
+        </div>
+        <div style="display:flex;align-items:flex-end;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+            <input type="checkbox" id="ps-active" style="width:auto;"/> Активен
+          </label>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-dark" style="flex:1;padding:8px;" onclick="savePaymentSchedule()">💾 Сохранить график</button>
+        <button class="btn btn-outline" style="padding:8px 12px;" onclick="addManualPayment()">+ Вручную</button>
+      </div>
+    </div>
+    <div class="sec-head"><i class="ti ti-list"></i> Платежи</div>
+    <div id="pay-list"></div>
   </div>
 
   <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
@@ -832,6 +887,28 @@ function renderSidebar(){
       done.forEach(t=>{h+=`<div class="task-item done-item"><div class="t-time">${t.time}</div><div class="t-title" style="text-decoration:line-through;">${t.type} ${t.text||''}</div><div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div></div>`;});
     }
   }
+  // Payment reminders
+  const today7=new Date(); today7.setDate(today7.getDate()+7);
+  const t7=today7.toISOString().slice(0,10);
+  const payReminders=[];
+  clients.forEach(c=>{
+    (c.payments||[]).forEach(p=>{
+      if(p.status==='pending'&&p.date>=today&&p.date<=t7){
+        const diff=Math.ceil((new Date(p.date)-new Date(today+'T00:00:00'))/86400000);
+        payReminders.push({c,p,diff});
+      }
+    });
+  });
+  if(payReminders.length){
+    h+='<div class="grp-lbl">Платежи</div>';
+    payReminders.sort((a,b)=>a.diff-b.diff).forEach(({c,p,diff})=>{
+      const col=diff<=3?'var(--red)':diff<=5?'var(--amber)':'var(--blue)';
+      h+=`<div class="pay-reminder" style="border-left-color:${col};" onclick="openDetail('${c.id}')">
+        <div style="font-size:12px;font-weight:600;">${c.name}</div>
+        <div style="font-size:11px;color:var(--text2);">${fmtAmt(p.amount)} · через ${diff} дн.</div>
+      </div>`;
+    });
+  }
   document.getElementById('sidebar-body').innerHTML=h;
 }
 
@@ -849,15 +926,23 @@ function getMonday(d){
 function switchView(v){
   currentView=v;
   const isBoard=v==='board';
+  const isSchedule=v==='schedule';
+  const isPayments=v==='payments';
   document.getElementById('view-board').style.display=isBoard?'':'none';
-  document.getElementById('view-schedule').style.display=isBoard?'none':'';
+  document.getElementById('view-schedule').style.display=isSchedule?'flex':'none';
+  document.getElementById('view-payments').style.display=isPayments?'flex':'none';
   document.getElementById('vbtn-board').classList.toggle('active',isBoard);
-  document.getElementById('vbtn-schedule').classList.toggle('active',!isBoard);
-  if(!isBoard){
+  document.getElementById('vbtn-schedule').classList.toggle('active',isSchedule);
+  document.getElementById('vbtn-payments').classList.toggle('active',isPayments);
+  if(isSchedule){
     if(!schWeekStart)schWeekStart=getMonday(new Date());
     if(!schMonthDate)schMonthDate=new Date();
     if(schView==='week')renderSchedule();else renderMonthView();
     renderGoals();
+  }
+  if(isPayments){
+    updateOverduePayments();
+    renderPaymentsGrid();
   }
 }
 function switchSchView(v){
@@ -1110,6 +1195,7 @@ function renderSchedule(){
 
 // ── BOARD ──────────────────────────────────────────────────
 function render(){
+  updateOverduePayments();
   const board=document.getElementById('board');
   board.innerHTML='';
   const visible=getFilteredClients();
@@ -1190,6 +1276,7 @@ function render(){
         <div class="card-footer">
           <span class="card-amount">${c.amount?fmtAmt(c.amount):''}</span>
           <div class="card-meta">
+            ${(()=>{const np=getNextPaymentDue(c);if(!np)return '';const diff=Math.ceil((new Date(np.date)-new Date(todayStr()+'T00:00:00'))/86400000);const col=diff<=3?'var(--red)':diff<=5?'var(--amber)':'var(--blue)';return `<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:${col};color:#fff;font-weight:600;">💳 ${diff}дн.</span>`;})()}
             <span class="card-counter"><i class="ti ti-notes" style="font-size:12px;"></i>${(c.notes||[]).length}</span>
             <div class="card-add-task" title="Добавить задачу" onclick="event.stopPropagation();openTask(event,'${c.id}')"><i class="ti ti-calendar-plus"></i></div>
           </div>
@@ -1307,7 +1394,7 @@ function openDetail(id){
   const col=isClosed?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
-  ['tasks','phones','chips','notes','history'].forEach(t=>{
+  ['tasks','phones','chips','notes','history','payments'].forEach(t=>{
     document.getElementById('tab-'+t).classList.remove('active');
     document.getElementById('panel-'+t).style.display='none';
   });
@@ -1328,9 +1415,11 @@ function refreshMeta(c){
 }
 
 function switchTab(tab){
-  ['tasks','phones','chips','notes','history'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
-    document.getElementById('panel-'+t).style.display=t===tab?'':'none';
+  ['tasks','phones','chips','notes','history','payments'].forEach(t=>{
+    const tabEl=document.getElementById('tab-'+t);
+    const panelEl=document.getElementById('panel-'+t);
+    if(tabEl)tabEl.classList.toggle('active',t===tab);
+    if(panelEl)panelEl.style.display=t===tab?'':'none';
   });
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   if(tab==='tasks')renderTasks(c);
@@ -1338,6 +1427,7 @@ function switchTab(tab){
   if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
+  if(tab==='payments')renderPaymentsPanel(c);
 }
 
 function renderTasks(c){
@@ -1526,6 +1616,164 @@ function deleteClient(){
   save(); render(); closeDetail();
 }
 function closeDetail(){document.getElementById('modal-detail').classList.remove('open');activeId=null;}
+
+
+// ── PAYMENTS ───────────────────────────────────────────────
+const MONTH_NAMES_RU=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+function addMonths(dateStr, n){
+  const d=new Date(dateStr+'T12:00:00');
+  d.setMonth(d.getMonth()+n);
+  return d.toISOString().slice(0,10);
+}
+
+function generatePayments(c){
+  const ps=c.paymentSchedule;
+  if(!ps||!ps.active||!ps.startDate||!ps.amount)return;
+  if(!c.payments)c.payments=[];
+  const step=ps.type==='quarterly'?3:1;
+  let cur=ps.startDate;
+  for(let i=0;i<12;i++){
+    const exists=c.payments.find(p=>p.date===cur);
+    if(!exists){
+      c.payments.push({id:genId(),date:cur,amount:Number(ps.amount),status:'pending',paidDate:null,comment:''});
+    }
+    cur=addMonths(cur,step);
+  }
+  c.payments.sort((a,b)=>a.date.localeCompare(b.date));
+}
+
+function updateOverduePayments(){
+  const today=todayStr();
+  clients.forEach(c=>{
+    (c.payments||[]).forEach(p=>{
+      if(p.status==='pending'&&p.date<today)p.status='overdue';
+    });
+  });
+  save();
+}
+
+function getNextPaymentDue(c){
+  const today=todayStr();
+  return (c.payments||[]).filter(p=>p.status==='pending'&&p.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0]||null;
+}
+
+function savePaymentSchedule(){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  const type=document.getElementById('ps-type').value;
+  const amount=parseFloat(document.getElementById('ps-amount').value);
+  const startDate=document.getElementById('ps-start').value;
+  const active=document.getElementById('ps-active').checked;
+  if(!startDate||!amount){alert('Укажите сумму и дату начала');return;}
+  c.paymentSchedule={type,amount,startDate,active};
+  if(!c.payments)c.payments=[];
+  generatePayments(c);
+  updateOverduePayments();
+  save(); render(); renderPaymentsPanel(c);
+}
+
+function markPaymentPaid(cid,pid){
+  const c=clients.find(x=>x.id===cid); if(!c)return;
+  const p=(c.payments||[]).find(x=>x.id===pid); if(!p)return;
+  p.status='paid'; p.paidDate=todayStr();
+  save(); render();
+  if(activeId===cid)renderPaymentsPanel(c);
+  if(currentView==='payments')renderPaymentsGrid();
+}
+
+function addManualPayment(){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  const dateVal=prompt('Дата платежа (ГГГГ-ММ-ДД):',todayStr());
+  if(!dateVal)return;
+  const amtVal=prompt('Сумма, ₽:','');
+  if(!amtVal)return;
+  if(!c.payments)c.payments=[];
+  c.payments.push({id:genId(),date:dateVal,amount:Number(amtVal),status:'pending',paidDate:null,comment:''});
+  c.payments.sort((a,b)=>a.date.localeCompare(b.date));
+  updateOverduePayments();
+  save(); renderPaymentsPanel(c);
+}
+
+function renderPaymentsPanel(c){
+  // Fill schedule form
+  const ps=c.paymentSchedule||{};
+  const typeEl=document.getElementById('ps-type');
+  const amtEl=document.getElementById('ps-amount');
+  const startEl=document.getElementById('ps-start');
+  const activeEl=document.getElementById('ps-active');
+  if(typeEl)typeEl.value=ps.type||'monthly';
+  if(amtEl)amtEl.value=ps.amount||'';
+  if(startEl)startEl.value=ps.startDate||todayStr();
+  if(activeEl)activeEl.checked=ps.active!==false&&!!ps.startDate;
+  // Render payment list
+  const today=todayStr();
+  const all=(c.payments||[]).slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const nowIdx=all.findIndex(p=>p.date>=today);
+  const start=Math.max(0,(nowIdx===-1?all.length:nowIdx)-6);
+  const end=Math.min(all.length,(nowIdx===-1?all.length:nowIdx)+6);
+  const shown=all.slice(start,end);
+  const el=document.getElementById('pay-list');
+  if(!el)return;
+  if(!shown.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px;">Платежей нет — настройте график выше</div>';return;}
+  el.innerHTML=shown.map(p=>{
+    const isPast=p.date<today;
+    const chipCls=p.status==='paid'?'paid':p.status==='overdue'?'overdue':'pending';
+    const chipIcon=p.status==='paid'?'✓':p.status==='overdue'?'!':'…';
+    const fmtDate=new Date(p.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long',year:'numeric'});
+    return `<div style="background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;">${fmtDate}</div>
+        <div style="font-size:11px;color:var(--text2);">${fmtAmt(p.amount)}</div>
+        ${p.paidDate?`<div style="font-size:10px;color:var(--green);">Оплачено ${p.paidDate}</div>`:''}
+        ${p.comment?`<div style="font-size:10px;color:var(--text3);">${p.comment}</div>`:''}
+      </div>
+      <span class="pay-chip ${chipCls}">${chipIcon} ${p.status==='paid'?'Оплачен':p.status==='overdue'?'Просрочен':'Ожидает'}</span>
+      ${p.status!=='paid'?`<button class="btn btn-outline" style="font-size:11px;padding:4px 8px;" onclick="markPaymentPaid('${c.id}','${p.id}')">✓ Оплачен</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderPaymentsGrid(){
+  const el=document.getElementById('pay-grid-wrap'); if(!el)return;
+  const today=new Date();
+  const todayStr_=todayStr();
+  // Build months: 3 back + 6 forward = 9 total
+  const months=[];
+  for(let i=-3;i<=5;i++){
+    const d=new Date(today.getFullYear(),today.getMonth()+i,1);
+    months.push({year:d.getFullYear(),month:d.getMonth(),label:MONTH_NAMES_RU[d.getMonth()]+' '+d.getFullYear()});
+  }
+  // Active clients with payment schedule
+  const active=clients.filter(c=>c.paymentSchedule&&c.paymentSchedule.active);
+  if(!active.length){
+    el.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--text3);font-size:13px;"><div style="font-size:32px;margin-bottom:12px;">💳</div><div>Нет клиентов с активным графиком оплат</div><div style="font-size:11px;margin-top:6px;">Откройте карточку клиента → вкладка "💳 Оплаты"</div></div>';
+    return;
+  }
+  let html='<div style="overflow-x:auto;"><table class="pay-grid"><thead><tr><th class="pay-client-cell">Клиент</th>';
+  months.forEach(m=>{ html+=`<th>${m.label}</th>`; });
+  html+='</tr></thead><tbody>';
+  active.forEach(c=>{
+    html+=`<tr><td class="pay-client-cell"><div>${c.name}</div>${c.company?`<div class="pay-client-co">${c.company}</div>`:''}</td>`;
+    months.forEach(m=>{
+      // Find payment for this month/year
+      const monthStr=String(m.month+1).padStart(2,'0');
+      const p=(c.payments||[]).find(x=>{
+        const d=x.date.slice(0,7);
+        return d===m.year+'-'+monthStr;
+      });
+      if(!p){
+        html+=`<td class="pay-cell"><span class="pay-chip empty">—</span></td>`;
+      } else {
+        const cls=p.status==='paid'?'paid':p.status==='overdue'?'overdue':'pending';
+        const icon=p.status==='paid'?'✓':p.status==='overdue'?'!':'…';
+        html+=`<td class="pay-cell" onclick="markPaymentPaid('${c.id}','${p.id}')" title="${p.status==='paid'?'Оплачен '+p.paidDate:'Нажмите — отметить оплаченным'}"><span class="pay-chip ${cls}">${icon} ${fmtAmt(p.amount)}</span></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
 
 // backdrop close
 ['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks'].forEach(id=>{
