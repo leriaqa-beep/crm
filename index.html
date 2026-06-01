@@ -192,13 +192,25 @@ textarea{resize:vertical;min-height:70px;}
 .stage-btn{font-size:11px;padding:5px 11px;border:.5px solid var(--border2);border-radius:99px;background:var(--surface);color:var(--text2);cursor:pointer;}
 .stage-btn.active{color:#fff;border-color:transparent;}
 .sec-head{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
-.dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;}
+.dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;border-left:3px solid transparent;}
 .dtask.done{opacity:.5;}
+.dtask.st-in_progress{border-left-color:#3B82F6;}
+.dtask.st-postponed{border-left-color:#F59E0B;}
+.dtask.st-cancelled{border-left-color:#9CA3AF;opacity:.55;}
 .dtask-chk{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;}
 .dtask-chk.on{background:var(--green);border-color:var(--green);color:#fff;}
 .dtask-time{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:1px;}
 .dtask-text{font-size:13px;color:var(--text);}
 .dtask-date{font-size:10px;color:var(--text3);margin-top:2px;}
+.task-status-sel{font-size:10px;padding:2px 6px;border-radius:99px;border:.5px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;margin-top:4px;appearance:none;-webkit-appearance:none;max-width:120px;}
+.task-status-sel.st-in_progress{background:#EBF4FF;color:#1A5FAD;border-color:#93C5FD;}
+.task-status-sel.st-postponed{background:#FEF3DC;color:#8A5000;border-color:#FCD34D;}
+.task-status-sel.st-cancelled{background:#F3F4F6;color:#6B7280;border-color:#D1D5DB;}
+.task-status-sel.st-done{background:#E8F8F0;color:#0F6E56;border-color:#6EE7B7;}
+.ts-badge{display:inline-block;font-size:9px;padding:1px 5px;border-radius:99px;margin-left:4px;vertical-align:middle;}
+.ts-badge.st-in_progress{background:#EBF4FF;color:#1A5FAD;}
+.ts-badge.st-postponed{background:#FEF3DC;color:#8A5000;}
+.ts-badge.st-cancelled{background:#F3F4F6;color:#6B7280;}
 .note-item{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;}
 .note-meta{font-size:10px;color:var(--text3);margin-bottom:3px;}
 .note-text{font-size:13px;line-height:1.5;}
@@ -1089,8 +1101,11 @@ function renderSidebar(){
               <button class="t-btn" onclick="event.stopPropagation();openFreeTasks()">Открыть</button>
             </div></div>`;
         } else {
-          h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--blue)'};" onclick="openDetail('${t.cId}')">
-            <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
+          const tst=t.status||'';
+          const tstInfo=TASK_STATUSES[tst];
+          const borderCol=tst==='postponed'?'var(--amber)':tst==='cancelled'?'#9CA3AF':tst==='in_progress'?'var(--blue)':over?'var(--red)':'var(--blue)';
+          h+=`<div class="task-item" style="border-left-color:${borderCol};" onclick="openDetail('${t.cId}')">
+            <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}${tstInfo&&tst?`<span class="ts-badge st-${tst}">${tstInfo.icon} ${tstInfo.label}</span>`:''}</div>
             <div class="t-title">${t.type} ${t.text||''}</div>
             <div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
             <div class="t-actions">
@@ -1781,19 +1796,48 @@ function switchTab(tab){
   if(tab==='payments')renderPaymentsPanel(c);
 }
 
+const TASK_STATUSES={
+  '':           {label:'Новая',       icon:''},
+  'in_progress':{label:'В процессе',  icon:'🔄'},
+  'postponed':  {label:'Перенесена',  icon:'📅'},
+  'cancelled':  {label:'Отменена',    icon:'✗'},
+};
+function setTaskStatus(cid, tid, status){
+  const c=clients.find(x=>x.id===cid); if(!c)return;
+  const t=(c.tasks||[]).find(x=>x.id===tid); if(!t)return;
+  t.status=status;
+  if(status==='cancelled')t.done=false;
+  save(); renderTasks(c);
+}
 function renderTasks(c){
   const el=document.getElementById('d-tasks');
   const tasks=(c.tasks||[]).slice().sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
   if(!tasks.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:20px;">Задач нет. Добавьте первую!</div>';return;}
   const today=todayStr();
-  el.innerHTML=tasks.map(t=>`<div class="dtask ${t.done?'done':''}">
-    <div class="dtask-chk ${t.done?'on':''}" onclick="toggleTask('${c.id}','${t.id}')">${t.done?'<i class="ti ti-check" style="font-size:11px;"></i>':''}</div>
-    <div style="flex:1;">
-      <div class="dtask-time">${t.time} · ${t.type}</div>
-      <div class="dtask-text">${t.text||''}</div>
-      ${t.address?`<div style="font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:3px;"><i class="ti ti-map-pin" style="font-size:11px;"></i>${t.address}</div>`:''}
-      <div class="dtask-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})}</div>
-    </div></div>`).join('');
+  const statusOpts=Object.entries(TASK_STATUSES).map(([v,s])=>`<option value="${v}">${s.icon?s.icon+' ':''} ${s.label}</option>`).join('')+`<option value="__done__">✓ Выполнена</option>`;
+  el.innerHTML=tasks.map(t=>{
+    const st=t.done?'done':(t.status||'');
+    const stClass=t.done?'st-done':st?'st-'+st:'';
+    const selVal=t.done?'__done__':(t.status||'');
+    return `<div class="dtask ${t.done?'done':''} ${st?'st-'+st:''}">
+      <div class="dtask-chk ${t.done?'on':''}" onclick="toggleTask('${c.id}','${t.id}')">${t.done?'<i class="ti ti-check" style="font-size:11px;"></i>':''}</div>
+      <div style="flex:1;">
+        <div class="dtask-time">${t.time} · ${t.type}</div>
+        <div class="dtask-text">${t.text||''}</div>
+        ${t.address?`<div style="font-size:11px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:3px;"><i class="ti ti-map-pin" style="font-size:11px;"></i>${t.address}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <span class="dtask-date">${t.date===today?'Сегодня':new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'long'})}</span>
+          <select class="task-status-sel ${stClass}" onchange="(function(v){if(v==='__done__'){toggleTask('${c.id}','${t.id}');}else{setTaskStatus('${c.id}','${t.id}',v);}this.blur()})(this.value)" onclick="event.stopPropagation()">${statusOpts.replace(`value="${selVal}"`,`value="${selVal}" selected`)}</select>
+        </div>
+      </div>
+      <button onclick="event.stopPropagation();deleteTask('${c.id}','${t.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px;align-self:flex-start;opacity:.5;" title="Удалить задачу"><i class="ti ti-x"></i></button>
+    </div>`;
+  }).join('');
+}
+function deleteTask(cid,tid){
+  const c=clients.find(x=>x.id===cid); if(!c)return;
+  c.tasks=(c.tasks||[]).filter(x=>x.id!==tid);
+  save(); render(); renderTasks(c);
 }
 
 function renderPhonesPanel(c){
