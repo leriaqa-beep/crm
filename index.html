@@ -334,6 +334,26 @@ textarea{resize:vertical;min-height:70px;}
 .bn-item:last-child{border-bottom:none;}
 .bn-sev{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .bn-val{font-size:13px;font-weight:700;margin-left:auto;flex-shrink:0;}
+
+/* ══ DRILL-DOWN PANEL ══════════════════════════════════════ */
+.dd-clickable{cursor:pointer;transition:opacity .15s;}.dd-clickable:hover{opacity:.78;}
+.dd-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:200;backdrop-filter:blur(1px);}
+.dd-overlay.open{display:block;}
+.dd-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:96vw;background:var(--surface);box-shadow:-4px 0 32px rgba(0,0,0,.12);z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);}
+.dd-panel.open{transform:translateX(0);}
+.dd-head{padding:16px 18px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.dd-title{font-size:15px;font-weight:700;flex:1;}
+.dd-count{font-size:12px;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:99px;}
+.dd-close{background:var(--surface2);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0;}
+.dd-close:hover{background:var(--surface3);}
+.dd-body{flex:1;overflow-y:auto;padding:12px;}
+.dd-item{background:var(--surface2);border-radius:var(--r-md);padding:10px 12px;margin-bottom:7px;cursor:pointer;border:.5px solid transparent;transition:border-color .12s,background .12s;}
+.dd-item:hover{border-color:var(--border2);background:var(--surface3);}
+.dd-item-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.dd-item-sub{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.dd-item-val{font-size:12px;font-weight:700;margin-top:4px;}
+.dd-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
+.dd-section-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding:0 2px;}
 </style>
 </head>
 <body>
@@ -609,6 +629,17 @@ textarea{resize:vertical;min-height:70px;}
 
   <button class="del-btn" onclick="deleteClient()"><i class="ti ti-trash"></i> Удалить клиента</button>
 </div>
+</div>
+
+<!-- ══ DRILL-DOWN ПАНЕЛЬ ══ -->
+<div class="dd-overlay" id="dd-overlay" onclick="closeDrilldown()"></div>
+<div class="dd-panel" id="dd-panel">
+  <div class="dd-head">
+    <div class="dd-title" id="dd-title"></div>
+    <span class="dd-count" id="dd-count"></span>
+    <button class="dd-close" onclick="closeDrilldown()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="dd-body" id="dd-body"></div>
 </div>
 
 <!-- ══ МОДАЛ: БЫСТРАЯ НАСТРОЙКА ОПЛАТЫ ══ -->
@@ -1933,7 +1964,7 @@ function renderDashboard(){
     const conv = prev>0?Math.round(count/prev*100):100;
     const w = Math.round(count/maxCount*100);
     const col = STAGE_COLORS[i%STAGE_COLORS.length];
-    return `<div class="funnel-row">
+    return `<div class="funnel-row dd-clickable" onclick="ddByStage(${i})">
       <div class="funnel-label">${s}</div>
       <div class="funnel-bar-wrap">
         <div class="funnel-bar" style="width:${w}%;background:${col};"><span class="funnel-bar-val">${count}</span></div>
@@ -1962,7 +1993,7 @@ function renderDashboard(){
     const kpW = Math.min(Math.round(kp/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
     const d = new Date(ds+'T12:00:00');
     const dname = DNAMES_SHORT[d.getDay()];
-    return `<div class="act-bar-row">
+    return `<div class="act-bar-row dd-clickable" onclick="ddActivityDay('${ds}',null,'${dname} — активность')" style="cursor:pointer;">
       <div class="act-bar-day">${dname}</div>
       <div class="act-bar-track">
         <div class="act-seg" style="width:${Math.max(callW,calls>0?8:0)}%;background:#3B82F6;" title="${calls} звонков"></div>
@@ -1987,7 +2018,7 @@ function renderDashboard(){
     const h = Math.max(Math.round(m.amt/maxPay*72),m.amt>0?6:2);
     const col = m.ym===today.toISOString().slice(0,7)?'var(--green)':'var(--blue)';
     const fmtAmt2 = v=>v>=1000?Math.round(v/1000)+'к':String(v);
-    return `<div class="pay-mini-bar" style="height:${h}px;background:${col};">
+    return `<div class="pay-mini-bar dd-clickable" style="height:${h}px;background:${col};cursor:pointer;" onclick="ddPaymentMonth('${m.ym}')">
       <div class="pay-mini-tip">${m.lbl}: ${Number(m.amt).toLocaleString('ru-RU')} ₽</div>
     </div>`;
   }).join('');
@@ -1999,7 +2030,7 @@ function renderDashboard(){
     const prev = i>0?stageCounts[i-1]:null;
     const conv = prev!==null&&prev>0?Math.round(count/prev*100)+'%':'—';
     const col = STAGE_COLORS[i%STAGE_COLORS.length];
-    return `<tr>
+    return `<tr class="dd-clickable" onclick="ddByStage(${i})" style="cursor:pointer;">
       <td><span class="stage-dot" style="background:${col};"></span>${s}</td>
       <td style="font-weight:600;">${count}</td>
       <td style="color:var(--text2);">${conv}</td>
@@ -2011,13 +2042,13 @@ function renderDashboard(){
   const noTaskClients = clients.filter(c=>!(c.tasks||[]).some(t=>!t.done)).length;
   const overdueP = overdueCount;
   const bns = [
-    {sev:pendingTasks>10?'red':pendingTasks>5?'amber':'green', label:'Просроченных задач', val:pendingTasks},
-    {sev:noTaskClients>20?'red':noTaskClients>10?'amber':'green', label:'Клиентов без задач', val:noTaskClients},
-    {sev:overdueP>5?'red':overdueP>0?'amber':'green', label:'Просроченных платежей', val:overdueP},
-    {sev:newClients<5?'amber':'green', label:`Новых клиентов (${periodLabel})`, val:newClients},
+    {sev:pendingTasks>10?'red':pendingTasks>5?'amber':'green', label:'Просроченных задач', val:pendingTasks, fn:'ddOverdueTasks()'},
+    {sev:noTaskClients>20?'red':noTaskClients>10?'amber':'green', label:'Клиентов без задач', val:noTaskClients, fn:'ddNoTasks()'},
+    {sev:overdueP>5?'red':overdueP>0?'amber':'green', label:'Просроченных платежей', val:overdueP, fn:'ddOverduePayments()'},
+    {sev:newClients<5?'amber':'green', label:`Новых клиентов (${periodLabel})`, val:newClients, fn:`ddNewClients('${periodStartS}')`},
   ];
   const SEV_COLOR = {red:'var(--red)',amber:'var(--amber)',green:'var(--green)'};
-  const bnHTML = bns.map(b=>`<div class="bn-item">
+  const bnHTML = bns.map(b=>`<div class="bn-item dd-clickable" onclick="${b.fn}" style="cursor:pointer;">
     <div class="bn-sev" style="background:${SEV_COLOR[b.sev]};"></div>
     <div style="font-size:12px;color:var(--text);">${b.label}</div>
     <div class="bn-val" style="color:${SEV_COLOR[b.sev]};">${b.val}</div>
@@ -2035,11 +2066,11 @@ function renderDashboard(){
   </div>
 
   <div class="dash-metrics">
-    <div class="dash-metric"><div class="dash-metric-icon">👥</div><div class="dash-metric-val">${totalClients}</div><div class="dash-metric-lbl">Всего клиентов</div><div class="dash-metric-sub">+${newClients} ${periodLabel}</div></div>
-    <div class="dash-metric"><div class="dash-metric-icon">💰</div><div class="dash-metric-val" style="color:var(--green);font-size:${pipeline>1000000?16:22}px;">${Number(pipeline).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Сумма в работе</div><div class="dash-metric-sub">${clients.filter(c=>c.amount>0).length} клиентов с суммой</div></div>
-    <div class="dash-metric"><div class="dash-metric-icon">✅</div><div class="dash-metric-val" style="color:var(--blue);">${doneTasks}</div><div class="dash-metric-lbl">Задач выполнено</div><div class="dash-metric-sub">${periodLabel}</div></div>
-    <div class="dash-metric"><div class="dash-metric-icon">📞</div><div class="dash-metric-val">${callsDone}</div><div class="dash-metric-lbl">Звонков</div><div class="dash-metric-sub">🤝 ${meetsDone} встреч ${periodLabel}</div></div>
-    <div class="dash-metric"><div class="dash-metric-icon">💳</div><div class="dash-metric-val" style="color:${paidAmt>0?'var(--green)':'var(--text)'};">${Number(paidAmt).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Получено оплат</div><div class="dash-metric-sub">${overdueCount>0?'⚠️ '+overdueCount+' просрочено':'Просрочек нет'}</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddNewClients('${periodStartS}')"><div class="dash-metric-icon">👥</div><div class="dash-metric-val">${totalClients}</div><div class="dash-metric-lbl">Всего клиентов</div><div class="dash-metric-sub">+${newClients} ${periodLabel}</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddPipeline()"><div class="dash-metric-icon">💰</div><div class="dash-metric-val" style="color:var(--green);font-size:${pipeline>1000000?16:22}px;">${Number(pipeline).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Сумма в работе</div><div class="dash-metric-sub">${clients.filter(c=>c.amount>0).length} клиентов с суммой</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddTasksDone('${periodStartS}',null,'Задачи выполнено ${periodLabel}')"><div class="dash-metric-icon">✅</div><div class="dash-metric-val" style="color:var(--blue);">${doneTasks}</div><div class="dash-metric-lbl">Задач выполнено</div><div class="dash-metric-sub">${periodLabel}</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddTasksDone('${periodStartS}','Созвон','Звонки ${periodLabel}')"><div class="dash-metric-icon">📞</div><div class="dash-metric-val">${callsDone}</div><div class="dash-metric-lbl">Звонков</div><div class="dash-metric-sub">🤝 ${meetsDone} встреч ${periodLabel}</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddPaymentMonth('${today.toISOString().slice(0,7)}')"><div class="dash-metric-icon">💳</div><div class="dash-metric-val" style="color:${paidAmt>0?'var(--green)':'var(--text)'};">${Number(paidAmt).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Получено оплат</div><div class="dash-metric-sub">${overdueCount>0?'⚠️ '+overdueCount+' просрочено':'Просрочек нет'}</div></div>
   </div>
 
   <div class="dash-row dash-row-3">
@@ -2084,6 +2115,158 @@ function setDashPeriod(p){
   renderDashboard();
 }
 // ══ END DASHBOARD ═════════════════════════════════════════════
+
+// ══ DRILL-DOWN ═══════════════════════════════════════════════
+function openDrilldown(title, items){
+  document.getElementById('dd-title').textContent = title;
+  document.getElementById('dd-count').textContent = items.length + ' записей';
+  const body = document.getElementById('dd-body');
+
+  if(!items.length){
+    body.innerHTML = '<div class="dd-empty"><i class="ti ti-mood-smile" style="font-size:24px;display:block;margin-bottom:8px;"></i>Нет данных</div>';
+  } else {
+    body.innerHTML = items.map(item => {
+      if(item._type === 'client'){
+        const c = item;
+        const stage = STAGES[c.stage] || '—';
+        const phones = (c.phones||[]).map(p=>p.num).join(', ');
+        const nextTask = (c.tasks||[]).filter(t=>!t.done).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time))[0];
+        return `<div class="dd-item" onclick="closeDrilldown();setTimeout(()=>openDetail('${c.id}'),120)">
+          <div class="dd-item-name">${c.name}</div>
+          <div class="dd-item-sub">
+            ${c.company?`<span><i class="ti ti-building" style="font-size:10px;"></i>${c.company}</span>`:''}
+            <span style="color:var(--text3);">${stage}</span>
+          </div>
+          ${phones?`<div class="dd-item-sub" style="margin-top:3px;"><i class="ti ti-phone" style="font-size:10px;"></i>${phones}</div>`:''}
+          ${item._meta?`<div class="dd-item-val" style="color:${item._metaColor||'var(--text)'};">${item._meta}</div>`:''}
+          ${nextTask?`<div style="font-size:11px;color:var(--blue);margin-top:4px;"><i class="ti ti-clock" style="font-size:10px;"></i> ${nextTask.date} ${nextTask.time} — ${nextTask.type} ${nextTask.text||''}</div>`:''}
+        </div>`;
+      }
+      if(item._type === 'task'){
+        return `<div class="dd-item" onclick="closeDrilldown();setTimeout(()=>openDetail('${item.cId}'),120)">
+          <div class="dd-item-name">${item.cName}</div>
+          <div class="dd-item-sub"><span style="font-weight:600;color:var(--blue);">${item.time} · ${item.date}</span><span>${item.type}</span></div>
+          ${item.text?`<div style="font-size:12px;color:var(--text2);margin-top:3px;">${item.text}</div>`:''}
+          ${item.address?`<div style="font-size:11px;color:var(--text3);margin-top:2px;"><i class="ti ti-map-pin" style="font-size:10px;"></i>${item.address}</div>`:''}
+        </div>`;
+      }
+      if(item._type === 'payment'){
+        const sColor = item.status==='paid'?'var(--green)':item.status==='overdue'?'var(--red)':'var(--amber)';
+        const sLabel = item.status==='paid'?'Оплачено':item.status==='overdue'?'Просрочено':'Ожидается';
+        return `<div class="dd-item" onclick="closeDrilldown();setTimeout(()=>{openDetail('${item.cId}');setTimeout(()=>switchTab('payments'),200);},120)">
+          <div class="dd-item-name">${item.cName}</div>
+          ${item.cCompany?`<div class="dd-item-sub"><i class="ti ti-building" style="font-size:10px;"></i>${item.cCompany}</div>`:''}
+          <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+            <span style="font-size:13px;font-weight:700;color:var(--green);">${Number(item.amount).toLocaleString('ru-RU')} ₽</span>
+            <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${sColor}22;color:${sColor};font-weight:600;">${sLabel}</span>
+            <span style="font-size:11px;color:var(--text3);">${item.date}</span>
+          </div>
+          ${item.comment?`<div style="font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;">${item.comment}</div>`:''}
+        </div>`;
+      }
+      if(item._type === 'free_task'){
+        return `<div class="dd-item" onclick="closeDrilldown();setTimeout(()=>openFreeTasks(),120)">
+          <div class="dd-item-name">${item.text}</div>
+          <div class="dd-item-sub"><span style="color:var(--blue);font-weight:600;">${item.time} · ${item.date}</span><span>${item.type}</span></div>
+          ${item.assignee?`<div style="font-size:11px;color:var(--text2);margin-top:3px;"><i class="ti ti-user" style="font-size:10px;"></i>${item.assignee.label||item.assignee}</div>`:''}
+        </div>`;
+      }
+      return '';
+    }).join('');
+  }
+
+  document.getElementById('dd-overlay').classList.add('open');
+  document.getElementById('dd-panel').classList.add('open');
+}
+
+function closeDrilldown(){
+  document.getElementById('dd-overlay').classList.remove('open');
+  document.getElementById('dd-panel').classList.remove('open');
+}
+
+// Helpers — готовят items для drill-down
+function ddClients(ids, meta){
+  return ids.map(id=>{
+    const c = clients.find(x=>x.id===id); if(!c) return null;
+    return {...c, _type:'client', _meta:meta?meta(c):null, _metaColor:meta?meta._color:null};
+  }).filter(Boolean);
+}
+
+function ddByStage(si){
+  const list = clients.filter(c=>c.stage===si).map(c=>({...c,_type:'client'}));
+  openDrilldown(STAGES[si], list);
+}
+
+function ddNewClients(periodStartS){
+  const list = clients.filter(c=>c.createdAt&&c.createdAt.slice(0,10)>=periodStartS)
+    .sort((a,b)=>b.createdAt.localeCompare(a.createdAt))
+    .map(c=>({...c,_type:'client',_meta:'Добавлен '+new Date(c.createdAt).toLocaleDateString('ru-RU',{day:'2-digit',month:'short'})}));
+  openDrilldown('Новые клиенты', list);
+}
+
+function ddPipeline(){
+  const list = clients.filter(c=>c.amount>0)
+    .sort((a,b)=>Number(b.amount)-Number(a.amount))
+    .map(c=>({...c,_type:'client',_meta:Number(c.amount).toLocaleString('ru-RU')+' ₽',_metaColor:'var(--green)'}));
+  openDrilldown('Клиенты с суммой в работе', list);
+}
+
+function ddTasksDone(periodStartS, typeFilter, titleStr){
+  const items = [];
+  clients.forEach(c=>{
+    (c.tasks||[]).filter(t=>t.done&&t.date>=periodStartS&&(!typeFilter||t.type.includes(typeFilter)))
+      .forEach(t=>items.push({...t,_type:'task',cId:c.id,cName:c.name}));
+  });
+  items.sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+  openDrilldown(titleStr, items);
+}
+
+function ddActivityDay(ds, typeFilter, titleStr){
+  const items = [];
+  clients.forEach(c=>{
+    (c.tasks||[]).filter(t=>t.date===ds&&t.done&&(!typeFilter||t.type.includes(typeFilter)))
+      .forEach(t=>items.push({...t,_type:'task',cId:c.id,cName:c.name}));
+  });
+  openDrilldown(titleStr||ds, items);
+}
+
+function ddPaymentMonth(ym){
+  const items = [];
+  clients.forEach(c=>{
+    (c.payments||[]).filter(p=>p.status==='paid'&&p.paidDate&&p.paidDate.slice(0,7)===ym)
+      .forEach(p=>items.push({...p,_type:'payment',cId:c.id,cName:c.name,cCompany:c.company||''}));
+  });
+  items.sort((a,b)=>Number(b.amount)-Number(a.amount));
+  const d = new Date(ym+'-01T12:00:00');
+  openDrilldown('Оплаты: '+d.toLocaleDateString('ru-RU',{month:'long',year:'numeric'}), items);
+}
+
+function ddOverdueTasks(){
+  const todayS = todayStr();
+  const items = [];
+  clients.forEach(c=>{
+    (c.tasks||[]).filter(t=>!t.done&&t.date<todayS)
+      .forEach(t=>items.push({...t,_type:'task',cId:c.id,cName:c.name}));
+  });
+  items.sort((a,b)=>a.date.localeCompare(b.date));
+  openDrilldown('Просроченные задачи', items);
+}
+
+function ddNoTasks(){
+  const list = clients.filter(c=>!(c.tasks||[]).some(t=>!t.done)).map(c=>({...c,_type:'client'}));
+  openDrilldown('Клиенты без активных задач', list);
+}
+
+function ddOverduePayments(){
+  const items = [];
+  clients.forEach(c=>{
+    (c.payments||[]).filter(p=>p.status==='overdue')
+      .forEach(p=>items.push({...p,_type:'payment',cId:c.id,cName:c.name,cCompany:c.company||''}));
+  });
+  openDrilldown('Просроченные платежи', items);
+}
+// ══ END DRILL-DOWN ════════════════════════════════════════════
+
 
 // ── QUICK PAY SETUP ──────────────────────────────────────
 let qpClientId = null;
