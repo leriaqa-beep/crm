@@ -1190,9 +1190,11 @@ function switchView(v){
   document.getElementById('vbtn-schedule').classList.toggle('active',isSchedule);
   document.getElementById('vbtn-payments').classList.toggle('active',isPayments);
   document.getElementById('vbtn-dashboard').classList.toggle('active',isDash);
-  // Hide sidebar in planner for full-width view
+  // Hide sidebar and remove padding in planner for full-width view
   const sb=document.querySelector('.sidebar');
   if(sb)sb.style.display=isSchedule?'none':'';
+  const mn=document.querySelector('.main');
+  if(mn)mn.style.padding=isSchedule?'8px 0 0 0':'14px';
   if(isSchedule){
     if(!schWeekStart)schWeekStart=getMonday(new Date());
     if(!schMonthDate)schMonthDate=new Date();
