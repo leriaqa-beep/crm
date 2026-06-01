@@ -29,8 +29,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sidebar{width:272px;flex-shrink:0;background:var(--surface);border-right:.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .sidebar-head{padding:14px 16px 10px;border-bottom:.5px solid var(--border);}
 .sidebar-head h2{font-size:14px;font-weight:600;margin-bottom:2px;}
-.sidebar-date{font-size:11px;color:var(--text2);}
+.sidebar-date{font-size:11px;color:var(--text2);margin-bottom:6px;}
 .sidebar-body{flex:1;overflow-y:auto;padding:10px 12px;}
+.sb-day-nav{display:flex;align-items:center;gap:3px;margin-top:6px;}
+.sb-day-btn{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r-sm);width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:12px;}
+.sb-day-btn:hover{background:var(--border);color:var(--text);}
+.sb-day-btn.sb-day-today{background:var(--blue);border-color:var(--blue);color:#fff;}
 .grp-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:10px 4px 6px;}
 .task-item{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;border-left:3px solid transparent;cursor:pointer;}
 .task-item:hover{background:var(--surface3);}
@@ -377,7 +381,7 @@ textarea{resize:vertical;min-height:70px;}
     <div class="logo">CRM <span>●</span></div>
     <div class="topbar-stats">
       <div class="tstat"><div class="tstat-val" id="s-total">0</div><div class="tstat-lbl">клиентов</div></div>
-      <div class="tstat"><div class="tstat-val" id="s-amount">0</div><div class="tstat-lbl">в работе, ₽</div></div>
+      <div class="tstat"><div class="tstat-val" id="s-amount">0</div><div class="tstat-lbl">в работе, с</div></div>
       <div class="tstat"><div class="tstat-val" id="s-today">0</div><div class="tstat-lbl">задач сегодня</div></div>
     </div>
   </div>
@@ -399,8 +403,13 @@ textarea{resize:vertical;min-height:70px;}
 <div class="layout">
   <div class="sidebar">
     <div class="sidebar-head">
-      <h2><i class="ti ti-calendar-event" style="margin-right:5px;font-size:14px;vertical-align:-2px;"></i>Сегодня</h2>
+      <h2 id="sidebar-head-title"><i class="ti ti-calendar-event" style="margin-right:5px;font-size:14px;vertical-align:-2px;"></i>Сегодня</h2>
       <div class="sidebar-date" id="today-label"></div>
+      <div class="sb-day-nav">
+        <button class="sb-day-btn" onclick="shiftSidebarDay(-1)" title="Предыдущий день"><i class="ti ti-chevron-left"></i></button>
+        <button class="sb-day-btn sb-day-today" onclick="shiftSidebarDay(0)" id="sb-today-btn" title="Сегодня"><i class="ti ti-calendar-today"></i></button>
+        <button class="sb-day-btn" onclick="shiftSidebarDay(1)" title="Следующий день"><i class="ti ti-chevron-right"></i></button>
+      </div>
     </div>
     <div class="sidebar-body" id="sidebar-body"></div>
   </div>
@@ -481,7 +490,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="add-phone-btn" onclick="addPhoneRow()"><i class="ti ti-plus" style="font-size:13px;"></i> Добавить номер</button>
   </div>
   <div class="form-row"><label class="form-label">Email</label><input id="f-email" placeholder="ivan@company.ru"/></div>
-  <div class="form-row"><label class="form-label">Сумма сделки, ₽</label><input id="f-amount" type="number" placeholder="100000"/></div>
+  <div class="form-row"><label class="form-label">Сумма сделки, с</label><input id="f-amount" type="number" placeholder="100000"/></div>
   <div class="form-row"><label class="form-label">Этап</label>
     <select id="f-stage">
       <option value="0">Первый звонок</option><option value="1">Переговоры</option>
@@ -577,7 +586,7 @@ textarea{resize:vertical;min-height:70px;}
       <input id="d-company" placeholder="ООО Ромашка" onchange="saveDetailCompany(this.value)"/>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
-      <div class="sec-head"><i class="ti ti-currency-rubel"></i> Сумма сделки, ₽</div>
+      <div class="sec-head"><i class="ti ti-coin"></i> Сумма сделки, с</div>
       <input id="d-amount" type="number" placeholder="100000" onchange="saveDetailAmount(this.value)"/>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
@@ -619,7 +628,7 @@ textarea{resize:vertical;min-height:70px;}
         <div><label class="form-label">Тип</label>
           <select id="ps-type"><option value="monthly">Ежемесячно</option><option value="quarterly">Ежеквартально</option></select>
         </div>
-        <div><label class="form-label">Сумма, ₽</label>
+        <div><label class="form-label">Сумма, с</label>
           <input id="ps-amount" type="number" placeholder="10000"/>
         </div>
       </div>
@@ -675,7 +684,7 @@ textarea{resize:vertical;min-height:70px;}
     </select>
   </div>
   <div class="form-grid">
-    <div class="form-row"><label class="form-label">Сумма, ₽</label><input id="qp-amount" type="number" placeholder="15000"/></div>
+    <div class="form-row"><label class="form-label">Сумма, с</label><input id="qp-amount" type="number" placeholder="15000"/></div>
     <div class="form-row"><label class="form-label">Дата первого платежа</label><input id="qp-start" type="date"/></div>
   </div>
   <div class="form-row"><label class="form-label">Комментарий</label><input id="qp-comment" placeholder="Напр.: подписка на систему"/></div>
@@ -1028,7 +1037,7 @@ function getFilteredClients(){
 }
 function save(){localStorage.setItem('crm_v4',JSON.stringify(clients));}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function fmtAmt(v){return Number(v).toLocaleString('ru-RU')+' ₽';}
+function fmtAmt(v){return Number(v).toLocaleString('ru-RU')+' с';}
 function fmtDs(iso){return new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});}
 function fmtDt(iso){const d=new Date(iso);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
 function daysBetween(a,b){return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000));}
@@ -1038,18 +1047,33 @@ function todayStr(){return new Date().toISOString().slice(0,10);}
 function isoToDateInput(iso){return new Date(iso).toISOString().slice(0,10);}
 
 // ── SIDEBAR ────────────────────────────────────────────────
+let sidebarDayOffset=0;
+function shiftSidebarDay(delta){
+  sidebarDayOffset = delta===0 ? 0 : sidebarDayOffset+delta;
+  renderSidebar();
+}
 function renderSidebar(){
-  const today=todayStr();
-  document.getElementById('today-label').textContent=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+  const base=new Date(); base.setDate(base.getDate()+sidebarDayOffset);
+  const today=base.toISOString().slice(0,10);
+  const todayReal=todayStr();
+  // Header title
+  const titleEl=document.getElementById('sidebar-head-title');
+  const todayBtn=document.getElementById('sb-today-btn');
+  if(titleEl){
+    const label = sidebarDayOffset===0?'Сегодня':sidebarDayOffset===1?'Завтра':sidebarDayOffset===-1?'Вчера':sidebarDayOffset>0?'Через '+sidebarDayOffset+' дн.':Math.abs(sidebarDayOffset)+' дн. назад';
+    titleEl.innerHTML=`<i class="ti ti-calendar-event" style="margin-right:5px;font-size:14px;vertical-align:-2px;"></i>${label}`;
+  }
+  if(todayBtn)todayBtn.style.background=sidebarDayOffset===0?'var(--blue)':'var(--surface2)',todayBtn.style.borderColor=sidebarDayOffset===0?'var(--blue)':'var(--border)',todayBtn.style.color=sidebarDayOffset===0?'#fff':'var(--text2)';
+  document.getElementById('today-label').textContent=base.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
   const all=[];
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id,free:false});}));
   freeTasks.filter(t=>t.date===today).forEach(t=>all.push({...t,cName:null,cId:null,free:true}));
   all.sort((a,b)=>a.time.localeCompare(b.time));
-  const now=new Date().toTimeString().slice(0,5);
+  const now=sidebarDayOffset===0?new Date().toTimeString().slice(0,5):'99:99';
   const pending=all.filter(t=>!t.done), done=all.filter(t=>t.done);
-  document.getElementById('s-today').textContent=pending.length;
+  if(sidebarDayOffset===0)document.getElementById('s-today').textContent=pending.length;
   let h='';
-  if(!all.length){h='<div class="no-tasks"><i class="ti ti-mood-smile" style="font-size:22px;display:block;margin-bottom:8px;"></i>На сегодня задач нет</div>';}
+  if(!all.length){h='<div class="no-tasks"><i class="ti ti-mood-smile" style="font-size:22px;display:block;margin-bottom:8px;"></i>Задач нет</div>';}
   else{
     if(pending.length){
       h+='<div class="grp-lbl">Предстоит</div>';
@@ -1081,13 +1105,14 @@ function renderSidebar(){
       done.forEach(t=>{h+=`<div class="task-item done-item"><div class="t-time">${t.time}</div><div class="t-title" style="text-decoration:line-through;">${t.type} ${t.text||''}</div><div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div></div>`;});
     }
   }
-  // Payment reminders
-  const today7=new Date(); today7.setDate(today7.getDate()+7);
-  const t7=today7.toISOString().slice(0,10);
+  // Payment reminders — show upcoming within 7 days from viewed date
+  const payFrom=today;
+  const payTo7=new Date(base); payTo7.setDate(payTo7.getDate()+7);
+  const t7=payTo7.toISOString().slice(0,10);
   const payReminders=[];
   clients.forEach(c=>{
     (c.payments||[]).forEach(p=>{
-      if(p.status==='pending'&&p.date>=today&&p.date<=t7){
+      if(p.status==='pending'&&p.date>=payFrom&&p.date<=t7){
         const diff=Math.ceil((new Date(p.date)-new Date(today+'T00:00:00'))/86400000);
         payReminders.push({c,p,diff});
       }
@@ -1712,7 +1737,7 @@ function refreshMeta(c){
   if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
   // Amount inline edit
   mi.push(`<span style="display:flex;align-items:center;gap:3px;" title="Нажмите для изменения суммы">
-    <i class="ti ti-currency-rubel"></i>
+    <i class="ti ti-coin"></i>
     <b id="d-meta-amount-lbl" style="color:var(--green);cursor:pointer;text-decoration:underline dotted;" onclick="toggleMetaAmount()">${c.amount?fmtAmt(c.amount):'Добавить сумму'}</b>
     <input id="d-meta-amount-inp" type="number" value="${c.amount||''}" placeholder="0" style="display:none;width:90px;font-size:12px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailAmount(this.value);toggleMetaAmount(false)" onblur="toggleMetaAmount(false)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')toggleMetaAmount(false)"/>
   </span>`);
@@ -2024,7 +2049,7 @@ function addManualPayment(){
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   const dateVal=prompt('Дата платежа (ГГГГ-ММ-ДД):',todayStr());
   if(!dateVal)return;
-  const amtVal=prompt('Сумма, ₽:','');
+  const amtVal=prompt('Сумма, с:','');
   if(!amtVal)return;
   if(!c.payments)c.payments=[];
   c.payments.push({id:genId(),date:dateVal,amount:Number(amtVal),status:'pending',paidDate:null,comment:''});
@@ -2221,7 +2246,7 @@ function renderDashboard(){
     const col = m.ym===today.toISOString().slice(0,7)?'var(--green)':'var(--blue)';
     const fmtAmt2 = v=>v>=1000?Math.round(v/1000)+'к':String(v);
     return `<div class="pay-mini-bar dd-clickable" style="height:${h}px;background:${col};cursor:pointer;" onclick="ddPaymentMonth('${m.ym}')">
-      <div class="pay-mini-tip">${m.lbl}: ${Number(m.amt).toLocaleString('ru-RU')} ₽</div>
+      <div class="pay-mini-tip">${m.lbl}: ${Number(m.amt).toLocaleString('ru-RU')} с</div>
     </div>`;
   }).join('');
   const payLabels = payMonths.map(m=>`<div class="pay-mini-lbl">${m.lbl}</div>`).join('');
@@ -2269,10 +2294,10 @@ function renderDashboard(){
 
   <div class="dash-metrics">
     <div class="dash-metric dd-clickable" onclick="ddNewClients('${periodStartS}')"><div class="dash-metric-icon">👥</div><div class="dash-metric-val">${totalClients}</div><div class="dash-metric-lbl">Всего клиентов</div><div class="dash-metric-sub">+${newClients} ${periodLabel}</div></div>
-    <div class="dash-metric dd-clickable" onclick="ddPipeline()"><div class="dash-metric-icon">💰</div><div class="dash-metric-val" style="color:var(--green);font-size:${pipeline>1000000?16:22}px;">${Number(pipeline).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Сумма в работе</div><div class="dash-metric-sub">${clients.filter(c=>c.amount>0).length} клиентов с суммой</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddPipeline()"><div class="dash-metric-icon">💰</div><div class="dash-metric-val" style="color:var(--green);font-size:${pipeline>1000000?16:22}px;">${Number(pipeline).toLocaleString('ru-RU')} с</div><div class="dash-metric-lbl">Сумма в работе</div><div class="dash-metric-sub">${clients.filter(c=>c.amount>0).length} клиентов с суммой</div></div>
     <div class="dash-metric dd-clickable" onclick="ddTasksDone('${periodStartS}',null,'Задачи выполнено ${periodLabel}')"><div class="dash-metric-icon">✅</div><div class="dash-metric-val" style="color:var(--blue);">${doneTasks}</div><div class="dash-metric-lbl">Задач выполнено</div><div class="dash-metric-sub">${periodLabel}</div></div>
     <div class="dash-metric dd-clickable" onclick="ddTasksDone('${periodStartS}','Созвон','Звонки ${periodLabel}')"><div class="dash-metric-icon">📞</div><div class="dash-metric-val">${callsDone}</div><div class="dash-metric-lbl">Звонков</div><div class="dash-metric-sub">🤝 ${meetsDone} встреч ${periodLabel}</div></div>
-    <div class="dash-metric dd-clickable" onclick="ddPaymentMonth('${today.toISOString().slice(0,7)}')"><div class="dash-metric-icon">💳</div><div class="dash-metric-val" style="color:${paidAmt>0?'var(--green)':'var(--text)'};">${Number(paidAmt).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Получено оплат</div><div class="dash-metric-sub">${overdueCount>0?'⚠️ '+overdueCount+' просрочено':'Просрочек нет'}</div></div>
+    <div class="dash-metric dd-clickable" onclick="ddPaymentMonth('${today.toISOString().slice(0,7)}')"><div class="dash-metric-icon">💳</div><div class="dash-metric-val" style="color:${paidAmt>0?'var(--green)':'var(--text)'};">${Number(paidAmt).toLocaleString('ru-RU')} с</div><div class="dash-metric-lbl">Получено оплат</div><div class="dash-metric-sub">${overdueCount>0?'⚠️ '+overdueCount+' просрочено':'Просрочек нет'}</div></div>
   </div>
 
   <div class="dash-row dash-row-3">
@@ -2359,7 +2384,7 @@ function openDrilldown(title, items){
           <div class="dd-item-name">${item.cName}</div>
           ${item.cCompany?`<div class="dd-item-sub"><i class="ti ti-building" style="font-size:10px;"></i>${item.cCompany}</div>`:''}
           <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
-            <span style="font-size:13px;font-weight:700;color:var(--green);">${Number(item.amount).toLocaleString('ru-RU')} ₽</span>
+            <span style="font-size:13px;font-weight:700;color:var(--green);">${Number(item.amount).toLocaleString('ru-RU')} с</span>
             <span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${sColor}22;color:${sColor};font-weight:600;">${sLabel}</span>
             <span style="font-size:11px;color:var(--text3);">${item.date}</span>
           </div>
@@ -2409,7 +2434,7 @@ function ddNewClients(periodStartS){
 function ddPipeline(){
   const list = clients.filter(c=>c.amount>0)
     .sort((a,b)=>Number(b.amount)-Number(a.amount))
-    .map(c=>({...c,_type:'client',_meta:Number(c.amount).toLocaleString('ru-RU')+' ₽',_metaColor:'var(--green)'}));
+    .map(c=>({...c,_type:'client',_meta:Number(c.amount).toLocaleString('ru-RU')+' с',_metaColor:'var(--green)'}));
   openDrilldown('Клиенты с суммой в работе', list);
 }
 
