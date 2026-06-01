@@ -768,6 +768,37 @@ textarea{resize:vertical;min-height:70px;}
 </div>
 </div>
 
+<!-- ══ МОДАЛ: БЫСТРОЕ ДОБАВЛЕНИЕ В ПЛАНИРОВЩИК ══ -->
+<div class="modal-bg" id="modal-sch-add">
+<div class="modal modal-sm">
+  <div class="modal-header">
+    <span class="modal-title"><i class="ti ti-calendar-plus" style="margin-right:6px;"></i>Добавить в планировщик</span>
+    <button class="modal-close" onclick="closeSchAdd()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="form-row"><label class="form-label">Тип</label>
+    <select id="sa-type">
+      <option>📞 Созвон</option>
+      <option>🤝 Встреча</option>
+      <option>📧 Письмо</option>
+      <option>📄 Отправить КП</option>
+      <option>🎯 Личная задача</option>
+      <option>📝 Заметка</option>
+      <option>✅ Другое</option>
+    </select>
+  </div>
+  <div class="form-row"><label class="form-label">Описание</label><input id="sa-text" placeholder="Что нужно сделать..."/></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">Дата</label><input id="sa-date" type="date"/></div>
+    <div class="form-row"><label class="form-label">Время</label><input id="sa-time" type="time"/></div>
+  </div>
+  <div class="form-row"><label class="form-label">Категория / тег</label><input id="sa-cat" placeholder="Личное, Обучение, Административное..."/></div>
+  <div class="form-row"><label class="form-label">Клиент (необязательно)</label>
+    <select id="sa-client"><option value="">— Без клиента —</option></select>
+  </div>
+  <button class="btn-primary" onclick="saveSchAdd()">Добавить</button>
+</div>
+</div>
+
 <!-- ══ МОДАЛ: ШАБЛОН ПЛАНА ДНЯ ══ -->
 <div class="modal-bg" id="modal-dayplan">
 <div class="modal dp-modal">
@@ -1100,6 +1131,45 @@ function saveDayPlanModal(){
   closeDayPlan();
   if(schView==='week')renderSchedule();
 }
+function openSchAdd(ds, timeStr){
+  // populate client dropdown
+  const sel=document.getElementById('sa-client');
+  sel.innerHTML='<option value="">— Без клиента —</option>'+
+    [...clients].sort((a,b)=>a.name.localeCompare(b.name,'ru')).map(c=>`<option value="${c.id}">${c.name}${c.company?' · '+c.company:''}</option>`).join('');
+  document.getElementById('sa-date').value=ds||todayStr();
+  document.getElementById('sa-time').value=timeStr||'09:00';
+  document.getElementById('sa-text').value='';
+  document.getElementById('sa-cat').value='';
+  document.getElementById('sa-type').value='🎯 Личная задача';
+  document.getElementById('modal-sch-add').classList.add('open');
+  setTimeout(()=>document.getElementById('sa-text').focus(),80);
+}
+function closeSchAdd(){document.getElementById('modal-sch-add').classList.remove('open');}
+function saveSchAdd(){
+  const type=document.getElementById('sa-type').value;
+  const text=document.getElementById('sa-text').value.trim();
+  const date=document.getElementById('sa-date').value;
+  const time=document.getElementById('sa-time').value||'09:00';
+  const cat=document.getElementById('sa-cat').value.trim();
+  const clientId=document.getElementById('sa-client').value;
+  if(!text){document.getElementById('sa-text').focus();return;}
+  if(clientId){
+    const c=clients.find(x=>x.id===clientId);
+    if(c){
+      if(!c.tasks)c.tasks=[];
+      c.tasks.push({id:Date.now().toString(),type,text,date,time,done:false,createdAt:new Date().toISOString()});
+      save();
+    }
+  } else {
+    const ft={id:'ft'+Date.now(),type,text,date,time,done:false,cat:cat||type,note:'',assignee:'',createdAt:new Date().toISOString()};
+    freeTasks.push(ft);
+    localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
+  }
+  closeSchAdd();
+  renderSchedule();
+  renderSidebar();
+  updateFtBadge();
+}
 
 function getMonday(d){
   const dt=new Date(d); const day=dt.getDay();
@@ -1120,6 +1190,9 @@ function switchView(v){
   document.getElementById('vbtn-schedule').classList.toggle('active',isSchedule);
   document.getElementById('vbtn-payments').classList.toggle('active',isPayments);
   document.getElementById('vbtn-dashboard').classList.toggle('active',isDash);
+  // Hide sidebar in planner for full-width view
+  const sb=document.querySelector('.sidebar');
+  if(sb)sb.style.display=isSchedule?'none':'';
   if(isSchedule){
     if(!schWeekStart)schWeekStart=getMonday(new Date());
     if(!schMonthDate)schMonthDate=new Date();
@@ -1401,7 +1474,8 @@ function renderSchedule(){
       </div>`;
     }).join('');
 
-    return `<div class="sch-col${isT?' sch-today-col':''}" style="height:${totalH}px;">${lines}${nowLine}${evs}</div>`;
+    const colClick=`(function(e){if(e.target.closest('.sch-event'))return;const rect=e.currentTarget.getBoundingClientRect();const y=e.clientY-rect.top;const totalMin=(y/${HOUR_H})*60;const h=Math.floor(totalMin/60)+${SCH_START};const m=Math.round((totalMin%60)/30)*30;const hh=Math.min(h,${SCH_END-1});const mm=m>=60?0:m;openSchAdd('${ds}',String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));})`;
+    return `<div class="sch-col${isT?' sch-today-col':''}" style="height:${totalH}px;cursor:crosshair;" onclick="${colClick}(event)">${lines}${nowLine}${evs}</div>`;
   }).join('');
 
   // Auto-scroll to current time
@@ -2002,7 +2076,7 @@ function renderPaymentsGrid(){
 }
 
 // backdrop close
-['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay','modal-dayplan'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay','modal-dayplan','modal-sch-add'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
 
