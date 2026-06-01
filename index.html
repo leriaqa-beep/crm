@@ -1689,7 +1689,8 @@ function openDetail(id){
   const closedEntry=(c.stageHistory||[]).find(h=>h.stage===4);
   const dispDays=isClosed&&closedEntry?daysBetween(c.createdAt,closedEntry.date):days;
   const col=isClosed?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
-  document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
+  const dateVal=c.createdAt?c.createdAt.slice(0,10):'';
+  document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;">Первый контакт: <span id="d-timer-date-lbl" style="cursor:pointer;text-decoration:underline dotted;color:var(--blue);" title="Нажмите чтобы изменить дату" onclick="toggleContactDateEdit()">${fmtDt(c.createdAt)}</span><input id="d-timer-date-input" type="date" value="${dateVal}" style="display:none;font-size:10px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailDate(this.value);toggleContactDateEdit(false)" onblur="toggleContactDateEdit(false)" onkeydown="if(event.key==='Escape')toggleContactDateEdit(false)"/></div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
   ['tasks','phones','chips','notes','history','payments'].forEach(t=>{
     document.getElementById('tab-'+t).classList.remove('active');
@@ -1707,8 +1708,34 @@ function refreshMeta(c){
   if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
   phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:4px;">${msnIcon(p.msn)} ${p.num}</span>`));
   if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
-  if(c.amount)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-currency-rubel"></i><b style="color:var(--green)">${fmtAmt(c.amount)}</b></span>`);
+  // Amount inline edit
+  mi.push(`<span style="display:flex;align-items:center;gap:3px;" title="Нажмите для изменения суммы">
+    <i class="ti ti-currency-rubel"></i>
+    <b id="d-meta-amount-lbl" style="color:var(--green);cursor:pointer;text-decoration:underline dotted;" onclick="toggleMetaAmount()">${c.amount?fmtAmt(c.amount):'Добавить сумму'}</b>
+    <input id="d-meta-amount-inp" type="number" value="${c.amount||''}" placeholder="0" style="display:none;width:90px;font-size:12px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailAmount(this.value);toggleMetaAmount(false)" onblur="toggleMetaAmount(false)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')toggleMetaAmount(false)"/>
+  </span>`);
+  // Stage inline edit
+  const stageOpts=STAGES.map((s,i)=>`<option value="${i}"${c.stage===i?' selected':''}>${s}</option>`).join('');
+  mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-flag"></i>
+    <select style="font-size:11px;padding:1px 4px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);cursor:pointer;" onchange="saveDetailStage(parseInt(this.value))">${stageOpts}</select>
+  </span>`);
   document.getElementById('d-meta').innerHTML=mi.join('');
+}
+function toggleMetaAmount(forceHide){
+  const lbl=document.getElementById('d-meta-amount-lbl');
+  const inp=document.getElementById('d-meta-amount-inp');
+  if(!lbl||!inp)return;
+  const show=forceHide===false?false:lbl.style.display!=='none';
+  lbl.style.display=show?'none':'';
+  inp.style.display=show?'':'none';
+  if(!show)setTimeout(()=>{inp.select();},30);
+}
+function saveDetailStage(si){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.stage=si;
+  if(!c.stageHistory)c.stageHistory=[];
+  c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
+  save(); render();
 }
 
 function switchTab(tab){
@@ -1854,10 +1881,20 @@ function saveDetailDate(val){
   c.createdAt=newIso;
   if(c.stageHistory&&c.stageHistory.length>0)c.stageHistory[0].date=newIso;
   save(); render();
-  // refresh timer
-  const days=daysBetween(c.createdAt,new Date().toISOString());
-  const col=c.stage===4?'var(--green)':days>21?'var(--red)':days>7?'var(--amber)':'var(--text)';
-  document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">В работе</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">Первый контакт: ${fmtDt(c.createdAt)}</div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(days)}</div></div>`;
+  // refresh timer label inline
+  const lbl=document.getElementById('d-timer-date-lbl');
+  if(lbl)lbl.textContent=fmtDt(c.createdAt);
+  const inp=document.getElementById('d-timer-date-input');
+  if(inp)inp.value=c.createdAt.slice(0,10);
+}
+function toggleContactDateEdit(forceHide){
+  const lbl=document.getElementById('d-timer-date-lbl');
+  const inp=document.getElementById('d-timer-date-input');
+  if(!lbl||!inp)return;
+  const show=forceHide===false?false:lbl.style.display!=='none';
+  lbl.style.display=show?'none':'';
+  inp.style.display=show?'':'none';
+  if(!show)setTimeout(()=>inp.focus(),30);
 }
 
 function renderNotes(c){
