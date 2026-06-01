@@ -281,6 +281,59 @@ textarea{resize:vertical;min-height:70px;}
 .pay-chip.empty{background:var(--surface2);color:var(--text3);font-weight:400;}
 .pay-reminder{background:var(--surface2);border-radius:var(--r-md);padding:8px 10px;margin-bottom:5px;border-left:3px solid transparent;cursor:pointer;}
 
+
+/* ══ DASHBOARD ══════════════════════════════════════════════ */
+.dash-wrap{padding:16px;max-width:1400px;display:flex;flex-direction:column;gap:16px;}
+.dash-period{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.dash-period-title{font-size:16px;font-weight:700;}
+.dash-period-btns{display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;}
+.dash-pbtn{padding:5px 14px;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;background:none;}
+.dash-pbtn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.dash-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.dash-metric{background:var(--surface);border-radius:var(--r-lg);padding:14px 16px;border:.5px solid var(--border);}
+.dash-metric-icon{font-size:18px;margin-bottom:6px;}
+.dash-metric-val{font-size:22px;font-weight:700;line-height:1.1;margin-bottom:2px;}
+.dash-metric-lbl{font-size:11px;color:var(--text2);}
+.dash-metric-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+.dash-row{display:grid;gap:12px;}
+.dash-row-2{grid-template-columns:1fr 1fr;}
+.dash-row-3{grid-template-columns:2fr 1fr;}
+.dash-card{background:var(--surface);border-radius:var(--r-lg);padding:16px;border:.5px solid var(--border);}
+.dash-card-title{font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+/* Funnel */
+.funnel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.funnel-label{width:160px;font-size:12px;font-weight:500;flex-shrink:0;text-align:right;color:var(--text2);}
+.funnel-bar-wrap{flex:1;background:var(--surface2);border-radius:99px;height:28px;position:relative;overflow:hidden;}
+.funnel-bar{height:100%;border-radius:99px;display:flex;align-items:center;padding:0 12px;transition:width .6s ease;}
+.funnel-bar-val{font-size:12px;font-weight:700;color:#fff;white-space:nowrap;}
+.funnel-conv{width:60px;font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;}
+/* Activity bars */
+.act-bar-wrap{display:flex;flex-direction:column;gap:6px;}
+.act-bar-row{display:flex;align-items:center;gap:8px;}
+.act-bar-day{width:24px;font-size:10px;color:var(--text3);flex-shrink:0;text-align:right;}
+.act-bar-track{flex:1;height:20px;background:var(--surface2);border-radius:4px;display:flex;gap:2px;padding:2px;overflow:hidden;}
+.act-seg{border-radius:3px;height:100%;transition:width .4s;}
+.act-legend{display:flex;gap:12px;margin-top:8px;}
+.act-legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);}
+.act-legend-dot{width:10px;height:10px;border-radius:2px;}
+/* Payment mini chart */
+.pay-mini-bar-wrap{display:flex;align-items:flex-end;gap:5px;height:80px;margin-bottom:6px;}
+.pay-mini-bar{flex:1;border-radius:4px 4px 0 0;transition:height .4s;cursor:default;position:relative;}
+.pay-mini-bar:hover .pay-mini-tip{display:block;}
+.pay-mini-tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:3px 7px;border-radius:5px;font-size:10px;white-space:nowrap;margin-bottom:3px;z-index:5;}
+.pay-mini-labels{display:flex;gap:5px;}
+.pay-mini-lbl{flex:1;font-size:9px;color:var(--text3);text-align:center;}
+/* Stage table */
+.stage-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.stage-tbl th{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;padding:4px 8px;text-align:left;border-bottom:.5px solid var(--border);}
+.stage-tbl td{padding:7px 8px;border-bottom:.5px solid var(--border);}
+.stage-tbl tr:last-child td{border-bottom:none;}
+.stage-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+/* Bottleneck mini */
+.bn-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border);}
+.bn-item:last-child{border-bottom:none;}
+.bn-sev{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bn-val{font-size:13px;font-weight:700;margin-left:auto;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -324,6 +377,7 @@ textarea{resize:vertical;min-height:70px;}
         <button id="vbtn-board" class="view-btn active" onclick="switchView('board')"><i class="ti ti-layout-kanban"></i> Доска</button>
         <button id="vbtn-schedule" class="view-btn" onclick="switchView('schedule')"><i class="ti ti-calendar-week"></i> Планировщик встреч</button>
         <button id="vbtn-payments" class="view-btn" onclick="switchView('payments')">💳 Оплаты</button>
+        <button id="vbtn-dashboard" class="view-btn" onclick="switchView('dashboard')"><i class="ti ti-chart-bar"></i> Дашборд</button>
       </div>
     </div>
     <!-- Board view -->
@@ -359,6 +413,10 @@ textarea{resize:vertical;min-height:70px;}
           <div id="sch-month-grid" class="sch-month-grid"></div>
         </div>
       </div>
+    </div>
+    <!-- Dashboard view -->
+    <div id="view-dashboard" style="display:none;flex:1;overflow-y:auto;min-height:0;">
+      <div class="dash-wrap" id="dash-wrap"></div>
     </div>
     <!-- Payments view -->
     <div id="view-payments" style="display:none;flex:1;overflow:auto;min-height:0;">
@@ -968,22 +1026,23 @@ function switchView(v){
   const isBoard=v==='board';
   const isSchedule=v==='schedule';
   const isPayments=v==='payments';
+  const isDash=v==='dashboard';
   document.getElementById('view-board').style.display=isBoard?'':'none';
   document.getElementById('view-schedule').style.display=isSchedule?'flex':'none';
   document.getElementById('view-payments').style.display=isPayments?'flex':'none';
+  document.getElementById('view-dashboard').style.display=isDash?'':'none';
   document.getElementById('vbtn-board').classList.toggle('active',isBoard);
   document.getElementById('vbtn-schedule').classList.toggle('active',isSchedule);
   document.getElementById('vbtn-payments').classList.toggle('active',isPayments);
+  document.getElementById('vbtn-dashboard').classList.toggle('active',isDash);
   if(isSchedule){
     if(!schWeekStart)schWeekStart=getMonday(new Date());
     if(!schMonthDate)schMonthDate=new Date();
     if(schView==='week')renderSchedule();else renderMonthView();
     renderGoals();
   }
-  if(isPayments){
-    updateOverduePayments();
-    renderPaymentsGrid();
-  }
+  if(isPayments){updateOverduePayments();renderPaymentsGrid();}
+  if(isDash){renderDashboard();}
 }
 function switchSchView(v){
   schView=v;
@@ -1826,6 +1885,205 @@ function renderPaymentsGrid(){
 ['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
+
+
+// ══ DASHBOARD ════════════════════════════════════════════════
+let dashPeriod = 'month'; // 'week' | 'month' | 'quarter'
+
+function renderDashboard(){
+  updateOverduePayments();
+  const wrap = document.getElementById('dash-wrap');
+  if(!wrap) return;
+
+  const today = new Date();
+  const todayS = todayStr();
+
+  // Period window
+  let periodStart;
+  if(dashPeriod==='week'){ periodStart=new Date(today); periodStart.setDate(today.getDate()-7); }
+  else if(dashPeriod==='quarter'){ periodStart=new Date(today); periodStart.setDate(today.getDate()-90); }
+  else{ periodStart=new Date(today.getFullYear(),today.getMonth(),1); }
+  const periodStartS = periodStart.toISOString().slice(0,10);
+
+  // ── Метрики ──
+  const totalClients = clients.length;
+  const newClients = clients.filter(c=>c.createdAt&&c.createdAt.slice(0,10)>=periodStartS).length;
+  const pipeline = clients.reduce((s,c)=>s+(Number(c.amount)||0),0);
+  const todayTasks = clients.reduce((s,c)=>s+(c.tasks||[]).filter(t=>t.date===todayS&&!t.done).length,0)
+                   + freeTasks.filter(t=>t.date===todayS&&!t.done).length;
+  const allTasks = clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date>=periodStartS));
+  const doneTasks = allTasks.filter(t=>t.done).length;
+  const callsDone = allTasks.filter(t=>t.done&&t.type.includes('Созвон')).length;
+  const meetsDone = allTasks.filter(t=>t.done&&t.type.includes('Встреча')).length;
+  const paidAmt = clients.reduce((s,c)=>{
+    return s+(c.payments||[]).filter(p=>p.status==='paid'&&p.paidDate&&p.paidDate>=periodStartS).reduce((a,p)=>a+(Number(p.amount)||0),0);
+  },0);
+  const overdueCount = clients.reduce((s,c)=>s+(c.payments||[]).filter(p=>p.status==='overdue').length,0);
+
+  const periodLabel = dashPeriod==='week'?'за 7 дней':dashPeriod==='quarter'?'за квартал':'за месяц';
+
+  // ── Воронка ──
+  const stageCounts = STAGES.map((_,i)=>clients.filter(c=>c.stage===i).length);
+  const maxCount = Math.max(...stageCounts,1);
+  const STAGE_COLORS = ['#3B82F6','#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#EF4444','#06B6D4','#84CC16','#F97316'];
+
+  const funnelRows = STAGES.map((s,i)=>{
+    const count = stageCounts[i];
+    const prev = i>0?stageCounts[i-1]:count;
+    const conv = prev>0?Math.round(count/prev*100):100;
+    const w = Math.round(count/maxCount*100);
+    const col = STAGE_COLORS[i%STAGE_COLORS.length];
+    return `<div class="funnel-row">
+      <div class="funnel-label">${s}</div>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${w}%;background:${col};"><span class="funnel-bar-val">${count}</span></div>
+      </div>
+      <div class="funnel-conv">${i>0?conv+'%':''}</div>
+    </div>`;
+  }).join('');
+
+  const firstStage = stageCounts[0]||1;
+  const lastStage = stageCounts[stageCounts.length-1]||0;
+  const totalConv = Math.round(lastStage/firstStage*100);
+
+  // ── Активность по дням (последние 7 дней) ──
+  const days7 = [];
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days7.push(d.toISOString().slice(0,10));}
+  const DNAMES_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const actRows = days7.map(ds=>{
+    const dayTasks = clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date===ds&&t.done));
+    const calls = dayTasks.filter(t=>t.type.includes('Созвон')).length;
+    const meets = dayTasks.filter(t=>t.type.includes('Встреча')).length;
+    const kp = dayTasks.filter(t=>t.type.includes('КП')||t.type.includes('Письмо')).length;
+    const total = Math.max(calls+meets+kp,1);
+    const maxBar = 100;
+    const callW = Math.min(Math.round(calls/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
+    const meetW = Math.min(Math.round(meets/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
+    const kpW = Math.min(Math.round(kp/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
+    const d = new Date(ds+'T12:00:00');
+    const dname = DNAMES_SHORT[d.getDay()];
+    return `<div class="act-bar-row">
+      <div class="act-bar-day">${dname}</div>
+      <div class="act-bar-track">
+        <div class="act-seg" style="width:${Math.max(callW,calls>0?8:0)}%;background:#3B82F6;" title="${calls} звонков"></div>
+        <div class="act-seg" style="width:${Math.max(meetW,meets>0?8:0)}%;background:#10B981;" title="${meets} встреч"></div>
+        <div class="act-seg" style="width:${Math.max(kpW,kp>0?8:0)}%;background:#F59E0B;" title="${kp} КП/писем"></div>
+      </div>
+      <div style="font-size:10px;color:var(--text3);width:28px;text-align:right;">${calls+meets+kp||''}</div>
+    </div>`;
+  }).join('');
+
+  // ── Мини-график оплат (последние 6 месяцев) ──
+  const payMonths = [];
+  for(let i=5;i>=0;i--){
+    const d=new Date(today.getFullYear(),today.getMonth()-i,1);
+    const ym=d.toISOString().slice(0,7);
+    const amt=clients.reduce((s,c)=>s+(c.payments||[]).filter(p=>p.status==='paid'&&p.paidDate&&p.paidDate.slice(0,7)===ym).reduce((a,p)=>a+(Number(p.amount)||0),0),0);
+    const lbl=d.toLocaleDateString('ru-RU',{month:'short'});
+    payMonths.push({ym,amt,lbl});
+  }
+  const maxPay = Math.max(...payMonths.map(m=>m.amt),1);
+  const payBars = payMonths.map(m=>{
+    const h = Math.max(Math.round(m.amt/maxPay*72),m.amt>0?6:2);
+    const col = m.ym===today.toISOString().slice(0,7)?'var(--green)':'var(--blue)';
+    const fmtAmt2 = v=>v>=1000?Math.round(v/1000)+'к':String(v);
+    return `<div class="pay-mini-bar" style="height:${h}px;background:${col};">
+      <div class="pay-mini-tip">${m.lbl}: ${Number(m.amt).toLocaleString('ru-RU')} ₽</div>
+    </div>`;
+  }).join('');
+  const payLabels = payMonths.map(m=>`<div class="pay-mini-lbl">${m.lbl}</div>`).join('');
+
+  // ── Таблица по этапам ──
+  const stageRows = STAGES.map((s,i)=>{
+    const count = stageCounts[i];
+    const prev = i>0?stageCounts[i-1]:null;
+    const conv = prev!==null&&prev>0?Math.round(count/prev*100)+'%':'—';
+    const col = STAGE_COLORS[i%STAGE_COLORS.length];
+    return `<tr>
+      <td><span class="stage-dot" style="background:${col};"></span>${s}</td>
+      <td style="font-weight:600;">${count}</td>
+      <td style="color:var(--text2);">${conv}</td>
+    </tr>`;
+  }).join('');
+
+  // ── Узкие места ──
+  const pendingTasks = clients.reduce((s,c)=>s+(c.tasks||[]).filter(t=>!t.done&&t.date<todayS).length,0);
+  const noTaskClients = clients.filter(c=>!(c.tasks||[]).some(t=>!t.done)).length;
+  const overdueP = overdueCount;
+  const bns = [
+    {sev:pendingTasks>10?'red':pendingTasks>5?'amber':'green', label:'Просроченных задач', val:pendingTasks},
+    {sev:noTaskClients>20?'red':noTaskClients>10?'amber':'green', label:'Клиентов без задач', val:noTaskClients},
+    {sev:overdueP>5?'red':overdueP>0?'amber':'green', label:'Просроченных платежей', val:overdueP},
+    {sev:newClients<5?'amber':'green', label:`Новых клиентов (${periodLabel})`, val:newClients},
+  ];
+  const SEV_COLOR = {red:'var(--red)',amber:'var(--amber)',green:'var(--green)'};
+  const bnHTML = bns.map(b=>`<div class="bn-item">
+    <div class="bn-sev" style="background:${SEV_COLOR[b.sev]};"></div>
+    <div style="font-size:12px;color:var(--text);">${b.label}</div>
+    <div class="bn-val" style="color:${SEV_COLOR[b.sev]};">${b.val}</div>
+  </div>`).join('');
+
+  // ── Рендер ──
+  wrap.innerHTML = `
+  <div class="dash-period">
+    <div class="dash-period-title"><i class="ti ti-chart-bar" style="margin-right:6px;color:var(--blue);"></i>Дашборд</div>
+    <div class="dash-period-btns">
+      <button class="dash-pbtn${dashPeriod==='week'?' active':''}" onclick="setDashPeriod('week')">Неделя</button>
+      <button class="dash-pbtn${dashPeriod==='month'?' active':''}" onclick="setDashPeriod('month')">Месяц</button>
+      <button class="dash-pbtn${dashPeriod==='quarter'?' active':''}" onclick="setDashPeriod('quarter')">Квартал</button>
+    </div>
+  </div>
+
+  <div class="dash-metrics">
+    <div class="dash-metric"><div class="dash-metric-icon">👥</div><div class="dash-metric-val">${totalClients}</div><div class="dash-metric-lbl">Всего клиентов</div><div class="dash-metric-sub">+${newClients} ${periodLabel}</div></div>
+    <div class="dash-metric"><div class="dash-metric-icon">💰</div><div class="dash-metric-val" style="color:var(--green);font-size:${pipeline>1000000?16:22}px;">${Number(pipeline).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Сумма в работе</div><div class="dash-metric-sub">${clients.filter(c=>c.amount>0).length} клиентов с суммой</div></div>
+    <div class="dash-metric"><div class="dash-metric-icon">✅</div><div class="dash-metric-val" style="color:var(--blue);">${doneTasks}</div><div class="dash-metric-lbl">Задач выполнено</div><div class="dash-metric-sub">${periodLabel}</div></div>
+    <div class="dash-metric"><div class="dash-metric-icon">📞</div><div class="dash-metric-val">${callsDone}</div><div class="dash-metric-lbl">Звонков</div><div class="dash-metric-sub">🤝 ${meetsDone} встреч ${periodLabel}</div></div>
+    <div class="dash-metric"><div class="dash-metric-icon">💳</div><div class="dash-metric-val" style="color:${paidAmt>0?'var(--green)':'var(--text)'};">${Number(paidAmt).toLocaleString('ru-RU')} ₽</div><div class="dash-metric-lbl">Получено оплат</div><div class="dash-metric-sub">${overdueCount>0?'⚠️ '+overdueCount+' просрочено':'Просрочек нет'}</div></div>
+  </div>
+
+  <div class="dash-row dash-row-3">
+    <div class="dash-card">
+      <div class="dash-card-title">🔽 Воронка продаж <span style="margin-left:auto;font-size:11px;color:var(--text3);font-weight:400;">Итоговая конверсия: <b style="color:var(--green)">${totalConv}%</b></span></div>
+      ${funnelRows}
+      <div style="font-size:10px;color:var(--text3);margin-top:6px;text-align:right;">% — конверсия от предыдущего этапа</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">📊 По этапам</div>
+      <table class="stage-tbl">
+        <thead><tr><th>Этап</th><th>Клиентов</th><th>Конверсия</th></tr></thead>
+        <tbody>${stageRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="dash-row dash-row-2">
+    <div class="dash-card">
+      <div class="dash-card-title">⚡ Активность команды <span style="margin-left:auto;font-size:11px;color:var(--text3);font-weight:400;">последние 7 дней</span></div>
+      <div class="act-bar-wrap">${actRows}</div>
+      <div class="act-legend">
+        <div class="act-legend-item"><div class="act-legend-dot" style="background:#3B82F6;"></div>Звонки</div>
+        <div class="act-legend-item"><div class="act-legend-dot" style="background:#10B981;"></div>Встречи</div>
+        <div class="act-legend-item"><div class="act-legend-dot" style="background:#F59E0B;"></div>КП/Письма</div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">💳 Оплаты по месяцам</div>
+      <div class="pay-mini-bar-wrap">${payBars}</div>
+      <div class="pay-mini-labels">${payLabels}</div>
+      <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+        <div class="dash-card-title" style="margin-bottom:10px;">⚠️ Контроль</div>
+        ${bnHTML}
+      </div>
+    </div>
+  </div>`;
+}
+
+function setDashPeriod(p){
+  dashPeriod=p;
+  renderDashboard();
+}
+// ══ END DASHBOARD ═════════════════════════════════════════════
 
 // ── QUICK PAY SETUP ──────────────────────────────────────
 let qpClientId = null;
