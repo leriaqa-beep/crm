@@ -1391,8 +1391,10 @@ function renderSchedule(){
     const ts=[];
     clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===ds)ts.push(t);}));
     freeTasks.filter(t=>t.date===ds).forEach(t=>ts.push(t));
-    const callsDone=ts.filter(t=>t.done&&t.type.includes('Созвон')).length;
-    const callsTot=ts.filter(t=>t.type.includes('Созвон')).length;
+    const stAct=stageActivityByDay(ds);
+    // calls = done call tasks + stage moves to "звонок" stages
+    const callsDone=ts.filter(t=>t.done&&t.type.includes('Созвон')).length + stAct.calls;
+    const callsTot=ts.filter(t=>t.type.includes('Созвон')).length + stAct.calls;
     const meetsDone=ts.filter(t=>t.done&&t.type.includes('Встреча')).length;
     const meetsTot=ts.filter(t=>t.type.includes('Встреча')).length;
     const letDone=ts.filter(t=>t.done&&(t.type.includes('КП')||t.type.includes('Письмо'))).length;
@@ -2192,6 +2194,33 @@ function renderPaymentsGrid(){
 // ══ DASHBOARD ════════════════════════════════════════════════
 let dashPeriod = 'month'; // 'week' | 'month' | 'quarter'
 
+// Count stage changes per day as call/contact activity
+// Any stage move = client interaction; stage name with "звон" = phone call
+function stageActivityByDay(ds){
+  let calls=0, contacts=0;
+  clients.forEach(c=>{
+    (c.stageHistory||[]).forEach(h=>{
+      if(!h.date)return;
+      if(h.date.slice(0,10)!==ds)return;
+      contacts++;
+      if((h.stageName||STAGES[h.stage]||'').toLowerCase().includes('звон'))calls++;
+    });
+  });
+  return{calls,contacts};
+}
+function stageActivityInPeriod(fromS){
+  let calls=0, contacts=0;
+  clients.forEach(c=>{
+    (c.stageHistory||[]).forEach(h=>{
+      if(!h.date)return;
+      if(h.date.slice(0,10)<fromS)return;
+      contacts++;
+      if((h.stageName||STAGES[h.stage]||'').toLowerCase().includes('звон'))calls++;
+    });
+  });
+  return{calls,contacts};
+}
+
 function renderDashboard(){
   updateOverduePayments();
   const wrap = document.getElementById('dash-wrap');
@@ -2214,9 +2243,13 @@ function renderDashboard(){
   const todayTasks = clients.reduce((s,c)=>s+(c.tasks||[]).filter(t=>t.date===todayS&&!t.done).length,0)
                    + freeTasks.filter(t=>t.date===todayS&&!t.done).length;
   const allTasks = clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date>=periodStartS));
-  const doneTasks = allTasks.filter(t=>t.done).length;
-  const callsDone = allTasks.filter(t=>t.done&&t.type.includes('Созвон')).length;
+  const tasksDone = allTasks.filter(t=>t.done).length;
+  const taskCallsDone = allTasks.filter(t=>t.done&&t.type.includes('Созвон')).length;
   const meetsDone = allTasks.filter(t=>t.done&&t.type.includes('Встреча')).length;
+  const stagePeriod = stageActivityInPeriod(periodStartS);
+  // Combined: task-based calls + stage-move-based calls
+  const callsDone = taskCallsDone + stagePeriod.calls;
+  const doneTasks = tasksDone + stagePeriod.contacts;
   const paidAmt = clients.reduce((s,c)=>{
     return s+(c.payments||[]).filter(p=>p.status==='paid'&&p.paidDate&&p.paidDate>=periodStartS).reduce((a,p)=>a+(Number(p.amount)||0),0);
   },0);
@@ -2254,22 +2287,26 @@ function renderDashboard(){
   const DNAMES_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
   const actRows = days7.map(ds=>{
     const dayTasks = clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date===ds&&t.done));
-    const calls = dayTasks.filter(t=>t.type.includes('Созвон')).length;
+    const stAct = stageActivityByDay(ds);
+    const calls = dayTasks.filter(t=>t.type.includes('Созвон')).length + stAct.calls;
     const meets = dayTasks.filter(t=>t.type.includes('Встреча')).length;
     const kp = dayTasks.filter(t=>t.type.includes('КП')||t.type.includes('Письмо')).length;
-    const total = Math.max(calls+meets+kp,1);
+    const stageOnly = Math.max(0, stAct.contacts - stAct.calls); // non-call stage moves
+    const total = Math.max(calls+meets+kp+stageOnly,1);
     const maxBar = 100;
-    const callW = Math.min(Math.round(calls/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
-    const meetW = Math.min(Math.round(meets/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
-    const kpW = Math.min(Math.round(kp/Math.max(total,1)*100*(calls+meets+kp)/Math.max(maxBar,1)*400),100);
+    const callW = Math.min(Math.round(calls/Math.max(total,1)*100*(calls+meets+kp+stageOnly)/Math.max(maxBar,1)*400),100);
+    const meetW = Math.min(Math.round(meets/Math.max(total,1)*100*(calls+meets+kp+stageOnly)/Math.max(maxBar,1)*400),100);
+    const kpW = Math.min(Math.round(kp/Math.max(total,1)*100*(calls+meets+kp+stageOnly)/Math.max(maxBar,1)*400),100);
+    const stW = Math.min(Math.round(stageOnly/Math.max(total,1)*100*(calls+meets+kp+stageOnly)/Math.max(maxBar,1)*400),100);
     const d = new Date(ds+'T12:00:00');
     const dname = DNAMES_SHORT[d.getDay()];
     return `<div class="act-bar-row dd-clickable" onclick="ddActivityDay('${ds}',null,'${dname} — активность')" style="cursor:pointer;">
       <div class="act-bar-day">${dname}</div>
       <div class="act-bar-track">
-        <div class="act-seg" style="width:${Math.max(callW,calls>0?8:0)}%;background:#3B82F6;" title="${calls} звонков"></div>
+        <div class="act-seg" style="width:${Math.max(callW,calls>0?8:0)}%;background:#3B82F6;" title="${calls} звонков (вкл. смены этапа)"></div>
         <div class="act-seg" style="width:${Math.max(meetW,meets>0?8:0)}%;background:#10B981;" title="${meets} встреч"></div>
         <div class="act-seg" style="width:${Math.max(kpW,kp>0?8:0)}%;background:#F59E0B;" title="${kp} КП/писем"></div>
+        <div class="act-seg" style="width:${Math.max(stW,stageOnly>0?8:0)}%;background:#A78BFA;" title="${stageOnly} смен этапа"></div>
       </div>
       <div style="font-size:10px;color:var(--text3);width:28px;text-align:right;">${calls+meets+kp||''}</div>
     </div>`;
@@ -2367,6 +2404,7 @@ function renderDashboard(){
         <div class="act-legend-item"><div class="act-legend-dot" style="background:#3B82F6;"></div>Звонки</div>
         <div class="act-legend-item"><div class="act-legend-dot" style="background:#10B981;"></div>Встречи</div>
         <div class="act-legend-item"><div class="act-legend-dot" style="background:#F59E0B;"></div>КП/Письма</div>
+        <div class="act-legend-item"><div class="act-legend-dot" style="background:#A78BFA;"></div>Смены этапа</div>
       </div>
     </div>
     <div class="dash-card">
