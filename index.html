@@ -104,6 +104,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sch-month-dn{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1;}
 .sch-month-cell.sch-m-today .sch-month-dn{color:var(--blue);background:var(--blue);color:#fff;display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;}
 .sch-month-tag{display:flex;align-items:center;gap:3px;font-size:10px;padding:2px 5px;border-radius:var(--r-sm);margin-bottom:2px;white-space:nowrap;}
+/* DAILY PLAN PROGRESS */
+.sch-day-plan{padding:4px 4px 3px;display:flex;flex-direction:column;gap:2px;border-top:.5px solid var(--border);margin-top:3px;}
+.sch-day-plan-row{display:flex;align-items:center;gap:3px;}
+.sch-day-plan-ico{font-size:9px;width:13px;text-align:center;flex-shrink:0;line-height:1;}
+.sch-day-plan-bar{flex:1;height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.sch-day-plan-fill{height:100%;border-radius:99px;transition:width .3s;}
+.sch-day-plan-num{font-size:8px;color:var(--text3);min-width:24px;text-align:right;white-space:nowrap;}
+.sch-day-plan-num.done{color:var(--green);font-weight:700;}
+/* DAY PLAN MODAL */
+.dp-modal{max-width:340px;}
+.dp-row{display:grid;grid-template-columns:1fr 80px;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid var(--border);}
+.dp-row:last-of-type{border-bottom:none;}
+.dp-lbl{font-size:13px;color:var(--text);display:flex;align-items:center;gap:6px;}
+.dp-input{width:100%;border:.5px solid var(--border2);border-radius:var(--r-sm);padding:5px 8px;font-size:14px;font-weight:600;text-align:center;background:var(--surface2);color:var(--text);}
 .board{display:flex;flex-wrap:nowrap;gap:10px;min-width:max-content;align-items:flex-start;}
 .col{background:var(--surface2);border-radius:var(--r-lg);padding:10px;min-height:calc(100vh - 160px);width:230px;flex-shrink:0;}
 .col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:.5px solid var(--border);}
@@ -395,7 +409,7 @@ textarea{resize:vertical;min-height:70px;}
     <div style="display:flex;align-items:center;margin-bottom:12px;flex-shrink:0;">
       <div style="display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;">
         <button id="vbtn-board" class="view-btn active" onclick="switchView('board')"><i class="ti ti-layout-kanban"></i> Доска</button>
-        <button id="vbtn-schedule" class="view-btn" onclick="switchView('schedule')"><i class="ti ti-calendar-week"></i> Планировщик встреч</button>
+        <button id="vbtn-schedule" class="view-btn" onclick="switchView('schedule')"><i class="ti ti-calendar-week"></i> Планировщик</button>
         <button id="vbtn-payments" class="view-btn" onclick="switchView('payments')">💳 Оплаты</button>
         <button id="vbtn-dashboard" class="view-btn" onclick="switchView('dashboard')"><i class="ti ti-chart-bar"></i> Дашборд</button>
       </div>
@@ -413,6 +427,7 @@ textarea{resize:vertical;min-height:70px;}
           <span class="sch-week-lbl" id="sch-week-lbl"></span>
           <button class="sch-nav-btn" onclick="schNext()"><i class="ti ti-chevron-right"></i></button>
           <button class="btn btn-outline" style="font-size:12px;padding:4px 12px;" onclick="schGoToday()">Сегодня</button>
+          <button class="btn btn-outline" style="font-size:12px;padding:4px 12px;" onclick="openDayPlan()"><i class="ti ti-target"></i> Шаблон плана</button>
           <div style="flex:1;"></div>
           <div class="sch-view-toggle">
             <button id="schvbtn-week" class="sch-vbtn active" onclick="switchSchView('week')"><i class="ti ti-layout-columns"></i> Неделя</button>
@@ -753,6 +768,25 @@ textarea{resize:vertical;min-height:70px;}
 </div>
 </div>
 
+<!-- ══ МОДАЛ: ШАБЛОН ПЛАНА ДНЯ ══ -->
+<div class="modal-bg" id="modal-dayplan">
+<div class="modal dp-modal">
+  <div class="modal-header">
+    <span class="modal-title"><i class="ti ti-target" style="margin-right:6px;"></i>Шаблон плана дня</span>
+    <button class="modal-close" onclick="closeDayPlan()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Укажи сколько задач каждого типа нужно выполнять <b>каждый день</b>. Прогресс будет отображаться в заголовке каждой колонки планировщика.</div>
+  <div class="dp-row"><div class="dp-lbl">📞 Звонков в день</div><input class="dp-input" id="dp-calls" type="number" min="0" max="99" placeholder="14"/></div>
+  <div class="dp-row"><div class="dp-lbl">🤝 Встреч в день</div><input class="dp-input" id="dp-meets" type="number" min="0" max="99" placeholder="2"/></div>
+  <div class="dp-row"><div class="dp-lbl">📄 КП/Писем в день</div><input class="dp-input" id="dp-letters" type="number" min="0" max="99" placeholder="1"/></div>
+  <div class="dp-row"><div class="dp-lbl">✅ Других задач</div><input class="dp-input" id="dp-other" type="number" min="0" max="99" placeholder="0"/></div>
+  <div style="margin-top:16px;display:flex;gap:8px;">
+    <button class="btn-primary" onclick="saveDayPlanModal()">Сохранить шаблон</button>
+    <button class="btn btn-outline" onclick="closeDayPlan()">Отмена</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ МОДАЛ: ВЕРСИИ / БЭКАПЫ ══ -->
 <div class="modal-bg" id="modal-backups">
 <div class="modal" style="width:580px;">
@@ -1044,8 +1078,28 @@ function renderSidebar(){
 // ── SCHEDULE / ПЛАНИРОВЩИК ВСТРЕЧ ─────────────────────────
 const SCH_START=8, SCH_END=21, HOUR_H=64;
 const SCH_GOALS_KEY='crm_goals';
+const DAY_PLAN_KEY='crm_day_plan';
 let schWeekStart=null, schMonthDate=null, schView='week', currentView='board';
 let schGoals=JSON.parse(localStorage.getItem(SCH_GOALS_KEY)||'{"calls":50,"meetings":20,"callsM":200,"meetingsM":80}');
+let dayPlan=JSON.parse(localStorage.getItem(DAY_PLAN_KEY)||'{"calls":14,"meets":2,"letters":1,"other":0}');
+function saveDayPlan(){localStorage.setItem(DAY_PLAN_KEY,JSON.stringify(dayPlan));}
+function openDayPlan(){
+  document.getElementById('dp-calls').value=dayPlan.calls||14;
+  document.getElementById('dp-meets').value=dayPlan.meets||2;
+  document.getElementById('dp-letters').value=dayPlan.letters||1;
+  document.getElementById('dp-other').value=dayPlan.other||0;
+  document.getElementById('modal-dayplan').classList.add('open');
+}
+function closeDayPlan(){document.getElementById('modal-dayplan').classList.remove('open');}
+function saveDayPlanModal(){
+  dayPlan.calls=Math.max(0,parseInt(document.getElementById('dp-calls').value)||0);
+  dayPlan.meets=Math.max(0,parseInt(document.getElementById('dp-meets').value)||0);
+  dayPlan.letters=Math.max(0,parseInt(document.getElementById('dp-letters').value)||0);
+  dayPlan.other=Math.max(0,parseInt(document.getElementById('dp-other').value)||0);
+  saveDayPlan();
+  closeDayPlan();
+  if(schView==='week')renderSchedule();
+}
 
 function getMonday(d){
   const dt=new Date(d); const day=dt.getDay();
@@ -1217,12 +1271,47 @@ function renderSchedule(){
   const fmtD=d=>d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
   document.getElementById('sch-week-lbl').textContent=fmtD(days[0])+' — '+fmtD(days[6])+', '+days[0].getFullYear();
 
+  // Precompute per-day stats for plan progress
+  function dayStats(ds){
+    const ts=[];
+    clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===ds)ts.push(t);}));
+    freeTasks.filter(t=>t.date===ds).forEach(t=>ts.push(t));
+    const callsDone=ts.filter(t=>t.done&&t.type.includes('Созвон')).length;
+    const callsTot=ts.filter(t=>t.type.includes('Созвон')).length;
+    const meetsDone=ts.filter(t=>t.done&&t.type.includes('Встреча')).length;
+    const meetsTot=ts.filter(t=>t.type.includes('Встреча')).length;
+    const letDone=ts.filter(t=>t.done&&(t.type.includes('КП')||t.type.includes('Письмо'))).length;
+    const letTot=ts.filter(t=>t.type.includes('КП')||t.type.includes('Письмо')).length;
+    const otDone=ts.filter(t=>t.done&&!t.type.includes('Созвон')&&!t.type.includes('Встреча')&&!t.type.includes('КП')&&!t.type.includes('Письмо')).length;
+    const otTot=ts.filter(t=>!t.type.includes('Созвон')&&!t.type.includes('Встреча')&&!t.type.includes('КП')&&!t.type.includes('Письмо')).length;
+    return{callsDone,callsTot,meetsDone,meetsTot,letDone,letTot,otDone,otTot};
+  }
+  function planBar(done,plan,color){
+    if(!plan)return'';
+    const pct=Math.min(100,Math.round(done/plan*100));
+    const isDone=done>=plan;
+    const col=isDone?'var(--green)':done>0?color:'var(--border2)';
+    return `<div class="sch-day-plan-row">
+      <div class="sch-day-plan-ico">${done>=plan?'✓':''}</div>
+      <div class="sch-day-plan-bar"><div class="sch-day-plan-fill" style="width:${pct}%;background:${col};"></div></div>
+      <div class="sch-day-plan-num${isDone?' done':''}">${done}/${plan}</div>
+    </div>`;
+  }
+
   // Day headers
   const DNAMES=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const hasPlan=dayPlan.calls||dayPlan.meets||dayPlan.letters||dayPlan.other;
   document.getElementById('sch-head').innerHTML='<div class="sch-corner"></div>'+days.map((d,i)=>{
     const ds=d.toISOString().slice(0,10);
     const isT=ds===today;
-    return `<div class="sch-day-head${isT?' sch-today':''}"><span class="sch-day-num">${d.getDate()}</span>${DNAMES[i]}${isT?' · сегодня':''}</div>`;
+    const st=hasPlan?dayStats(ds):null;
+    const planHTML=hasPlan?`<div class="sch-day-plan">
+      ${dayPlan.calls?planBar(st.callsDone,dayPlan.calls,'#3B82F6'):''}
+      ${dayPlan.meets?planBar(st.meetsDone,dayPlan.meets,'#10B981'):''}
+      ${dayPlan.letters?planBar(st.letDone,dayPlan.letters,'#F59E0B'):''}
+      ${dayPlan.other?planBar(st.otDone,dayPlan.other,'#8B5CF6'):''}
+    </div>`:'';
+    return `<div class="sch-day-head${isT?' sch-today':''}"><span class="sch-day-num">${d.getDate()}</span>${DNAMES[i]}${isT?' · сег.':''}${planHTML}</div>`;
   }).join('');
 
   // Time labels
@@ -1913,7 +2002,7 @@ function renderPaymentsGrid(){
 }
 
 // backdrop close
-['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay','modal-dayplan'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
 
