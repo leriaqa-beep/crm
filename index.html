@@ -1084,7 +1084,7 @@ function renderSidebar(){
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id,free:false});}));
   freeTasks.filter(t=>t.date===today).forEach(t=>all.push({...t,cName:null,cId:null,free:true}));
   all.sort((a,b)=>a.time.localeCompare(b.time));
-  const now=sidebarDayOffset===0?new Date().toTimeString().slice(0,5):'99:99';
+  const now=sidebarDayOffset===0?new Date().toTimeString().slice(0,5):sidebarDayOffset>0?'25:00':new Date().toTimeString().slice(0,5);
   const pending=all.filter(t=>!t.done), done=all.filter(t=>t.done);
   if(sidebarDayOffset===0)document.getElementById('s-today').textContent=pending.length;
   let h='';
