@@ -86,6 +86,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sch-now{position:absolute;left:0;right:0;border-top:2px solid var(--red);pointer-events:none;z-index:3;}
 .sch-now::before{content:'';position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--red);}
 .sch-conflict{position:absolute;top:2px;right:3px;font-size:9px;background:var(--red);color:#fff;border-radius:99px;padding:1px 4px;}
+.sch-allday-strip{display:flex;flex-direction:column;gap:2px;padding:2px 3px;background:rgba(99,102,241,.06);border-bottom:.5px solid var(--border);}
+.sch-allday-ev{font-size:10px;padding:2px 5px;border-radius:var(--r-sm);border-left:3px solid;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sch-allday-ev:hover{filter:brightness(.93);}
 /* SCHEDULE VIEW TOGGLE */
 .sch-view-toggle{display:flex;background:var(--surface2);border-radius:var(--r-md);padding:3px;gap:1px;}
 .sch-vbtn{padding:4px 12px;border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;background:none;}
@@ -1498,9 +1501,26 @@ function renderSchedule(){
     const total=Math.max(cols.length,1);
 
     // Event cards
-    const evs=meets.map(m=>{
-      const[mh,mm]=m.time.split(':').map(Number);
-      const y=(mh-SCH_START)*HOUR_H+mm*(HOUR_H/60);
+    const inRange=[], allDay=[];
+    meets.forEach(m=>{
+      const parts=(m.time||'').split(':').map(Number);
+      const mh=parts[0]||0, mm=parts[1]||0;
+      if(m.time && mh>=SCH_START && mh<SCH_END) inRange.push({...m,_mh:mh,_mm:mm});
+      else allDay.push(m);
+    });
+
+    // All-day / out-of-range strip
+    let allDayHTML='';
+    if(allDay.length){
+      allDayHTML=`<div class="sch-allday-strip">${allDay.map(m=>{
+        const tc=m.done?{bg:'#F0EEE6',border:'#A0A09A',col:'#888'}:m.free?{bg:'#FEF3DC',border:'#C07A10',col:'#8A5000'}:taskTypeColor(m.type);
+        const clickHandler=m.free?`openFreeTasks()`:`openDetail('${m.cId}')`;
+        return `<div class="sch-allday-ev" style="background:${tc.bg};border-left:3px solid ${tc.border};color:${tc.col};" onclick="event.stopPropagation();${clickHandler}">${m.time||'—'} ${m.cName}</div>`;
+      }).join('')}</div>`;
+    }
+
+    const evs=inRange.map(m=>{
+      const y=(m._mh-SCH_START)*HOUR_H+m._mm*(HOUR_H/60);
       const ht=Math.max(HOUR_H-2,36);
       const ci=assigned[m.id]||0;
       const pct=100/total;
@@ -1518,8 +1538,8 @@ function renderSchedule(){
       </div>`;
     }).join('');
 
-    const colClick=`(function(e){if(e.target.closest('.sch-event'))return;const rect=e.currentTarget.getBoundingClientRect();const y=e.clientY-rect.top;const totalMin=(y/${HOUR_H})*60;const h=Math.floor(totalMin/60)+${SCH_START};const m=Math.round((totalMin%60)/30)*30;const hh=Math.min(h,${SCH_END-1});const mm=m>=60?0:m;openSchAdd('${ds}',String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));})`;
-    return `<div class="sch-col${isT?' sch-today-col':''}" style="height:${totalH}px;cursor:crosshair;" onclick="${colClick}(event)">${lines}${nowLine}${evs}</div>`;
+    const colClick=`(function(e){if(e.target.closest('.sch-event,.sch-allday-ev,.sch-allday-strip'))return;const rect=e.currentTarget.getBoundingClientRect();const y=e.clientY-rect.top;const totalMin=(y/${HOUR_H})*60;const h=Math.floor(totalMin/60)+${SCH_START};const m=Math.round((totalMin%60)/30)*30;const hh=Math.min(h,${SCH_END-1});const mm=m>=60?0:m;openSchAdd('${ds}',String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0'));})`;
+    return `<div class="sch-col${isT?' sch-today-col':''}" style="height:${totalH}px;cursor:crosshair;" onclick="${colClick}(event)">${allDayHTML}${lines}${nowLine}${evs}</div>`;
   }).join('');
 
   // Auto-scroll to current time
