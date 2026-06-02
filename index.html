@@ -146,9 +146,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ph-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:99px;background:var(--surface2);border:.5px solid var(--border);}
 .card-dates{font-size:10px;color:var(--text3);margin-bottom:7px;display:flex;flex-direction:column;gap:2px;}
 .card-dates span{display:flex;align-items:center;gap:4px;}
-.card-next{background:rgba(46,127,212,.09);border-left:2px solid var(--blue);border-radius:var(--r-sm);padding:5px 8px;margin-bottom:7px;}
-.card-next-time{font-size:11px;font-weight:700;color:var(--blue);margin-bottom:1px;}
-.card-next-text{font-size:11px;color:var(--text2);}
+.card-next{border-radius:var(--r-sm);padding:5px 8px;margin-bottom:7px;display:flex;align-items:flex-start;gap:6px;}
+.card-next.next-future{background:rgba(46,127,212,.08);border-left:2px solid var(--blue);}
+.card-next.next-today{background:rgba(16,185,129,.08);border-left:2px solid var(--green);}
+.card-next.next-overdue{background:rgba(239,68,68,.08);border-left:2px solid var(--red);}
+.card-next-ico{font-size:13px;line-height:1.4;flex-shrink:0;}
+.card-next-body{flex:1;min-width:0;}
+.card-next-time{font-size:11px;font-weight:700;margin-bottom:1px;}
+.card-next-text{font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-footer{display:flex;align-items:center;justify-content:space-between;}
 .card-amount{font-size:12px;font-weight:700;color:var(--green);}
 .card-meta{display:flex;align-items:center;gap:6px;}
@@ -1633,16 +1638,13 @@ function render(){
       const card=document.createElement('div');
       card.className='card'; card.draggable=true;
       const days=daysBetween(c.createdAt,new Date().toISOString());
-      const lastMove=c.stageHistory&&c.stageHistory.length>1?c.stageHistory[c.stageHistory.length-1]:null;
-      // Next upcoming task (any future or today)
-      const allUpcoming=(c.tasks||[]).filter(t=>!t.done&&t.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
-      const next=allUpcoming[0];
-      // Nearest task matching the current stage name (for "→ stage: date" display)
-      const stageTaskDate=(()=>{
-        if(!lastMove||lastMove.stage===0)return null;
-        const stageTasks=(c.tasks||[]).filter(t=>!t.done&&t.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date));
-        return stageTasks.length?stageTasks[0].date:null;
-      })();
+      // Next task: upcoming first, then most recent overdue
+      const todayS=todayStr();
+      const upcoming=(c.tasks||[]).filter(t=>!t.done&&t.date>=todayS).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+      const overdueTasks=(c.tasks||[]).filter(t=>!t.done&&t.date<todayS).sort((a,b)=>b.date.localeCompare(a.date)||b.time.localeCompare(a.time));
+      const next=upcoming[0]||overdueTasks[0]||null;
+      const nextIsOverdue=next&&next.date<todayS;
+      const nextIsToday=next&&next.date===todayS;
       const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
       card.innerHTML=`
         <div class="card-top"><div class="card-name">${c.name}</div><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div>
@@ -1650,9 +1652,22 @@ function render(){
         ${phones.length?`<div class="card-phones">${phones.map(p=>`<span class="ph-badge">${msnIcon(p.msn)} ${p.num}</span>`).join('')}</div>`:''}
         <div class="card-dates">
           <span><i class="ti ti-calendar" style="font-size:11px;"></i>Первый контакт: <b style="color:var(--text2);">${fmtDs(c.createdAt)}</b></span>
-          ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${stageTaskDate?new Date(stageTaskDate+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}):fmtDs(lastMove.date)}</b></span>`:''}
         </div>
-        ${next?`<div class="card-next"><div class="card-next-time"><i class="ti ti-clock" style="font-size:11px;"></i> ${next.date===todayStr()?'Сегодня':new Date(next.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})} в ${next.time}</div><div class="card-next-text">${next.type} ${next.text||''}</div></div>`:''}
+        ${(()=>{
+          if(!next)return'';
+          const dateStr=nextIsOverdue?'Просрочено · '+new Date(next.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'}):nextIsToday?'Сегодня':new Date(next.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+          const timeStr=next.time?' в '+next.time:'';
+          const cls=nextIsOverdue?'next-overdue':nextIsToday?'next-today':'next-future';
+          const col=nextIsOverdue?'var(--red)':nextIsToday?'var(--green)':'var(--blue)';
+          const ico=next.type.includes('Созвон')?'📞':next.type.includes('Встреча')?'🤝':next.type.includes('КП')||next.type.includes('Письмо')?'📄':'✅';
+          return `<div class="card-next ${cls}">
+            <div class="card-next-ico">${ico}</div>
+            <div class="card-next-body">
+              <div class="card-next-time" style="color:${col};">${dateStr}${timeStr}</div>
+              <div class="card-next-text">${next.text||next.type}</div>
+            </div>
+          </div>`;
+        })()}
         ${(c.chips||[]).length?`<div class="card-chips">${(c.chips||[]).map(ch=>`<span class="chip" style="background:${ch.bg};color:${ch.color};">${ch.label}</span>`).join('')}</div>`:''}
         <div class="card-footer">
           <span class="card-amount">${c.amount?fmtAmt(c.amount):''}</span>
