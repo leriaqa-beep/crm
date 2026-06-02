@@ -115,7 +115,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sch-day-plan{padding:4px 4px 3px;display:flex;flex-direction:column;gap:2px;border-top:.5px solid var(--border);margin-top:3px;}
 .sch-day-plan-row{display:flex;align-items:center;gap:3px;}
 .sch-day-plan-ico{font-size:9px;width:13px;text-align:center;flex-shrink:0;line-height:1;}
-.sch-day-plan-bar{flex:1;height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;}
+.sch-day-plan-bar{flex:1;height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;position:relative;}
 .sch-day-plan-fill{height:100%;border-radius:99px;transition:width .3s;}
 .sch-day-plan-num{font-size:8px;color:var(--text3);min-width:24px;text-align:right;white-space:nowrap;}
 .sch-day-plan-num.done{color:var(--green);font-weight:700;}
@@ -1406,15 +1406,22 @@ function renderSchedule(){
     const otTot=ts.filter(t=>!t.type.includes('Созвон')&&!t.type.includes('Встреча')&&!t.type.includes('КП')&&!t.type.includes('Письмо')).length;
     return{callsDone,callsTot,meetsDone,meetsTot,letDone,letTot,otDone,otTot};
   }
-  function planBar(done,plan,color){
+  function planBar(done, tot, plan, color){
     if(!plan)return'';
-    const pct=Math.min(100,Math.round(done/plan*100));
+    const pctTot=Math.min(100,Math.round(tot/plan*100));
+    const pctDone=Math.min(100,Math.round(done/plan*100));
     const isDone=done>=plan;
-    const col=isDone?'var(--green)':done>0?color:'var(--border2)';
+    const hasSched=tot>0&&!isDone;
+    const col=isDone?'var(--green)':color;
+    const icon=isDone?'✓':tot>=plan?'📅':'';
+    const label=isDone?`${done}/${plan}`:tot>done?`${done}(${tot})/${plan}`:`${done}/${plan}`;
     return `<div class="sch-day-plan-row">
-      <div class="sch-day-plan-ico">${done>=plan?'✓':''}</div>
-      <div class="sch-day-plan-bar"><div class="sch-day-plan-fill" style="width:${pct}%;background:${col};"></div></div>
-      <div class="sch-day-plan-num${isDone?' done':''}">${done}/${plan}</div>
+      <div class="sch-day-plan-ico">${icon}</div>
+      <div class="sch-day-plan-bar">
+        <div class="sch-day-plan-fill" style="width:${pctTot}%;background:${color};opacity:.3;position:absolute;top:0;left:0;height:100%;border-radius:99px;"></div>
+        <div class="sch-day-plan-fill" style="width:${pctDone}%;background:${col};"></div>
+      </div>
+      <div class="sch-day-plan-num${isDone?' done':''}">${label}</div>
     </div>`;
   }
 
@@ -1426,10 +1433,10 @@ function renderSchedule(){
     const isT=ds===today;
     const st=hasPlan?dayStats(ds):null;
     const planHTML=hasPlan?`<div class="sch-day-plan">
-      ${dayPlan.calls?planBar(st.callsDone,dayPlan.calls,'#3B82F6'):''}
-      ${dayPlan.meets?planBar(st.meetsDone,dayPlan.meets,'#10B981'):''}
-      ${dayPlan.letters?planBar(st.letDone,dayPlan.letters,'#F59E0B'):''}
-      ${dayPlan.other?planBar(st.otDone,dayPlan.other,'#8B5CF6'):''}
+      ${dayPlan.calls?planBar(st.callsDone,st.callsTot,dayPlan.calls,'#3B82F6'):''}
+      ${dayPlan.meets?planBar(st.meetsDone,st.meetsTot,dayPlan.meets,'#10B981'):''}
+      ${dayPlan.letters?planBar(st.letDone,st.letTot,dayPlan.letters,'#F59E0B'):''}
+      ${dayPlan.other?planBar(st.otDone,st.otTot,dayPlan.other,'#8B5CF6'):''}
     </div>`:'';
     return `<div class="sch-day-head${isT?' sch-today':''}"><span class="sch-day-num">${d.getDate()}</span>${DNAMES[i]}${isT?' · сег.':''}${planHTML}</div>`;
   }).join('');
