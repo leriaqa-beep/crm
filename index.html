@@ -1634,7 +1634,15 @@ function render(){
       card.className='card'; card.draggable=true;
       const days=daysBetween(c.createdAt,new Date().toISOString());
       const lastMove=c.stageHistory&&c.stageHistory.length>1?c.stageHistory[c.stageHistory.length-1]:null;
-      const next=(c.tasks||[]).filter(t=>t.date===todayStr()&&!t.done).sort((a,b)=>a.time.localeCompare(b.time))[0];
+      // Next upcoming task (any future or today)
+      const allUpcoming=(c.tasks||[]).filter(t=>!t.done&&t.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+      const next=allUpcoming[0];
+      // Nearest task matching the current stage name (for "→ stage: date" display)
+      const stageTaskDate=(()=>{
+        if(!lastMove||lastMove.stage===0)return null;
+        const stageTasks=(c.tasks||[]).filter(t=>!t.done&&t.date>=todayStr()).sort((a,b)=>a.date.localeCompare(b.date));
+        return stageTasks.length?stageTasks[0].date:null;
+      })();
       const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
       card.innerHTML=`
         <div class="card-top"><div class="card-name">${c.name}</div><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div>
@@ -1642,9 +1650,9 @@ function render(){
         ${phones.length?`<div class="card-phones">${phones.map(p=>`<span class="ph-badge">${msnIcon(p.msn)} ${p.num}</span>`).join('')}</div>`:''}
         <div class="card-dates">
           <span><i class="ti ti-calendar" style="font-size:11px;"></i>Первый контакт: <b style="color:var(--text2);">${fmtDs(c.createdAt)}</b></span>
-          ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${fmtDs(lastMove.date)}</b></span>`:''}
+          ${lastMove&&lastMove.stage!==0?`<span><i class="ti ti-arrow-right" style="font-size:11px;"></i>${lastMove.stageName}: <b style="color:var(--text2);">${stageTaskDate?new Date(stageTaskDate+'T12:00:00').toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}):fmtDs(lastMove.date)}</b></span>`:''}
         </div>
-        ${next?`<div class="card-next"><div class="card-next-time"><i class="ti ti-clock" style="font-size:11px;"></i> Сегодня в ${next.time}</div><div class="card-next-text">${next.type} ${next.text||''}</div></div>`:''}
+        ${next?`<div class="card-next"><div class="card-next-time"><i class="ti ti-clock" style="font-size:11px;"></i> ${next.date===todayStr()?'Сегодня':new Date(next.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})} в ${next.time}</div><div class="card-next-text">${next.type} ${next.text||''}</div></div>`:''}
         ${(c.chips||[]).length?`<div class="card-chips">${(c.chips||[]).map(ch=>`<span class="chip" style="background:${ch.bg};color:${ch.color};">${ch.label}</span>`).join('')}</div>`:''}
         <div class="card-footer">
           <span class="card-amount">${c.amount?fmtAmt(c.amount):''}</span>
