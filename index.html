@@ -1084,7 +1084,12 @@ function renderSidebar(){
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{if(t.date===today)all.push({...t,cName:c.name,cId:c.id,free:false});}));
   freeTasks.filter(t=>t.date===today).forEach(t=>all.push({...t,cName:null,cId:null,free:true}));
   all.sort((a,b)=>a.time.localeCompare(b.time));
-  const now=sidebarDayOffset===0?new Date().toTimeString().slice(0,5):sidebarDayOffset>0?'25:00':new Date().toTimeString().slice(0,5);
+  const nowTime=new Date().toTimeString().slice(0,5);
+  const isOverdue=(time)=>{
+    if(sidebarDayOffset>0)return false;
+    if(sidebarDayOffset<0)return true;
+    return time<nowTime;
+  };
   const pending=all.filter(t=>!t.done), done=all.filter(t=>t.done);
   if(sidebarDayOffset===0)document.getElementById('s-today').textContent=pending.length;
   let h='';
@@ -1093,7 +1098,7 @@ function renderSidebar(){
     if(pending.length){
       h+='<div class="grp-lbl">Предстоит</div>';
       pending.forEach(t=>{
-        const over=t.time<now;
+        const over=isOverdue(t.time);
         if(t.free){
           h+=`<div class="task-item" style="border-left-color:${over?'var(--red)':'var(--amber)'};" onclick="openFreeTasks()">
             <div class="t-time ${over?'over':''}">${t.time}${over?' <span style="font-size:10px;font-weight:400;">· просрочено</span>':''}</div>
