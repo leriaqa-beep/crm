@@ -2362,6 +2362,57 @@ function renderDashboard(){
     <div class="bn-val" style="color:${SEV_COLOR[b.sev]};">${b.val}</div>
   </div>`).join('');
 
+  // ── Аналитика конверсии воронки ──
+  // Per-stage: how many clients passed through, avg days spent, conversion to next
+  const convAnalytics = STAGES.map((sName, si) => {
+    const entered = clients.filter(c => (c.stageHistory||[]).some(h=>h.stage===si));
+    const movedNext = si < STAGES.length-1
+      ? clients.filter(c => (c.stageHistory||[]).some(h=>h.stage===si) && (c.stageHistory||[]).some(h=>h.stage===si+1))
+      : [];
+    // avg days spent on this stage
+    let totalDays=0, daysCount=0;
+    entered.forEach(c=>{
+      const hist=c.stageHistory||[];
+      const entry=hist.find(h=>h.stage===si);
+      if(!entry)return;
+      const nextEntry=hist.find(h=>h.stage===si+1);
+      const exitDate=nextEntry?nextEntry.date:new Date().toISOString();
+      const d=daysBetween(entry.date, exitDate);
+      if(d>=0){totalDays+=d;daysCount++;}
+    });
+    const avgDays=daysCount>0?Math.round(totalDays/daysCount):null;
+    const convRate=entered.length>0&&si<STAGES.length-1?Math.round(movedNext.length/entered.length*100):null;
+    return{sName,si,entered:entered.length,movedNext:movedNext.length,avgDays,convRate};
+  });
+
+  // Overall: first stage → last stage
+  const closedSi = STAGES.length-1;
+  const closedClients = clients.filter(c=>(c.stageHistory||[]).some(h=>h.stage===closedSi));
+  const overallConv = clients.length>0?Math.round(closedClients.length/clients.length*100):0;
+  let avgCycleDays=null;
+  if(closedClients.length>0){
+    const cycleDays=closedClients.map(c=>{
+      const hist=c.stageHistory||[];
+      const first=hist[0];
+      const close=hist.find(h=>h.stage===closedSi);
+      return first&&close?daysBetween(first.date,close.date):null;
+    }).filter(d=>d!==null&&d>=0);
+    if(cycleDays.length>0)avgCycleDays=Math.round(cycleDays.reduce((a,b)=>a+b,0)/cycleDays.length);
+  }
+
+  const STAGE_COLORS2=['#3B82F6','#6366F1','#8B5CF6','#EC4899','#F59E0B','#10B981','#EF4444','#06B6D4','#84CC16','#F97316'];
+  const convRows=convAnalytics.map((a,i)=>{
+    const col=STAGE_COLORS2[i%STAGE_COLORS2.length];
+    const convBadge=a.convRate!==null?`<span style="font-size:11px;padding:2px 7px;border-radius:99px;background:${a.convRate>=50?'rgba(16,185,129,.12)':'rgba(239,68,68,.1)'};color:${a.convRate>=50?'var(--green)':'var(--red)'};">${a.convRate}%</span>`:'<span style="color:var(--text3);font-size:11px;">финал</span>';
+    const daysStr=a.avgDays!==null?fmtDays(a.avgDays):'<span style="color:var(--text3);">—</span>';
+    return`<tr>
+      <td><span class="stage-dot" style="background:${col};"></span>${a.sName}</td>
+      <td style="font-weight:600;text-align:center;">${a.entered}</td>
+      <td style="text-align:center;">${daysStr}</td>
+      <td style="text-align:center;">${convBadge}</td>
+    </tr>`;
+  }).join('');
+
   // ── Рендер ──
   wrap.innerHTML = `
   <div class="dash-period">
@@ -2415,6 +2466,23 @@ function renderDashboard(){
         <div class="dash-card-title" style="margin-bottom:10px;">⚠️ Контроль</div>
         ${bnHTML}
       </div>
+    </div>
+  </div>
+
+  <div class="dash-card" style="margin-top:0;">
+    <div class="dash-card-title">🔬 Аналитика конверсии воронки
+      <span style="margin-left:auto;display:flex;gap:16px;font-size:11px;font-weight:400;color:var(--text2);">
+        <span>Общая конверсия: <b style="color:${overallConv>=20?'var(--green)':'var(--amber)'};">${overallConv}%</b></span>
+        ${avgCycleDays!==null?`<span>Средний цикл сделки: <b style="color:var(--blue);">${fmtDays(avgCycleDays)}</b></span>`:''}
+        <span style="color:var(--text3);">Закрыто: ${closedClients.length} из ${clients.length}</span>
+      </span>
+    </div>
+    <table class="stage-tbl">
+      <thead><tr><th>Этап</th><th style="text-align:center;">Прошло</th><th style="text-align:center;">Ср. время</th><th style="text-align:center;">→ след. этап</th></tr></thead>
+      <tbody>${convRows}</tbody>
+    </table>
+    <div style="margin-top:10px;font-size:10px;color:var(--text3);">
+      «Прошло» — кол-во клиентов, достигших этапа · «Ср. время» — сколько дней в среднем проводят на этапе · «→ след.» — конверсия в следующий этап
     </div>
   </div>`;
 }
