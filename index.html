@@ -797,6 +797,22 @@ textarea{resize:vertical;min-height:70px;}
 </div>
 </div>
 
+<!-- ══ МОДАЛ: КОНФЛИКТ ВРЕМЕНИ ══ -->
+<div class="modal-bg" id="modal-conflict">
+<div class="modal modal-sm">
+  <div class="modal-header">
+    <span class="modal-title" style="color:var(--amber);"><i class="ti ti-alert-triangle" style="margin-right:6px;"></i>Конфликт расписания</span>
+    <button class="modal-close" onclick="closeConflict()"><i class="ti ti-x"></i></button>
+  </div>
+  <div style="font-size:13px;color:var(--text2);margin-bottom:14px;">На это время уже запланировано:</div>
+  <div id="conflict-list" style="margin-bottom:16px;display:flex;flex-direction:column;gap:6px;"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-outline" style="flex:1;" onclick="conflictAdjust()"><i class="ti ti-clock-edit"></i> Изменить время</button>
+    <button class="btn-primary" style="flex:1;background:var(--amber);border-color:var(--amber);" onclick="conflictConfirm()"><i class="ti ti-check"></i> Сохранить всё равно</button>
+  </div>
+</div>
+</div>
+
 <!-- ══ МОДАЛ: БЫСТРОЕ ДОБАВЛЕНИЕ В ПЛАНИРОВЩИК ══ -->
 <div class="modal-bg" id="modal-sch-add">
 <div class="modal modal-sm">
@@ -1206,22 +1222,28 @@ function saveSchAdd(){
   const cat=document.getElementById('sa-cat').value.trim();
   const clientId=document.getElementById('sa-client').value;
   if(!text){document.getElementById('sa-text').focus();return;}
-  if(clientId){
-    const c=clients.find(x=>x.id===clientId);
-    if(c){
-      if(!c.tasks)c.tasks=[];
-      c.tasks.push({id:Date.now().toString(),type,text,date,time,done:false,createdAt:new Date().toISOString()});
-      save();
+  const doSave=()=>{
+    if(clientId){
+      const c=clients.find(x=>x.id===clientId);
+      if(c){
+        if(!c.tasks)c.tasks=[];
+        c.tasks.push({id:Date.now().toString(),type,text,date,time,done:false,createdAt:new Date().toISOString()});
+        save();
+      }
+    } else {
+      const ft={id:'ft'+Date.now(),type,text,date,time,done:false,cat:cat||type,note:'',assignee:'',createdAt:new Date().toISOString()};
+      freeTasks.push(ft);
+      localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
     }
-  } else {
-    const ft={id:'ft'+Date.now(),type,text,date,time,done:false,cat:cat||type,note:'',assignee:'',createdAt:new Date().toISOString()};
-    freeTasks.push(ft);
-    localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
-  }
-  closeSchAdd();
-  renderSchedule();
-  renderSidebar();
-  updateFtBadge();
+    closeSchAdd();
+    renderSchedule();
+    renderSidebar();
+    updateFtBadge();
+  };
+  const conflicts=getConflicts(date,time,null);
+  if(conflicts.length){
+    openConflict(conflicts, doSave, ()=>setTimeout(()=>document.getElementById('sa-time').focus(),100));
+  } else doSave();
 }
 
 function getMonday(d){
@@ -1760,15 +1782,52 @@ function openTask(e,cid){
 }
 function openTaskFromDetail(){const id=activeId;closeDetail();setTimeout(()=>openTask(null,id),120);}
 function closeTask(){document.getElementById('modal-task').classList.remove('open');}
+// ── CONFLICT DETECTION ────────────────────────────────────
+let _conflictPendingFn = null;
+function timeToMin(t){const[h,m]=(t||'00:00').split(':').map(Number);return h*60+(m||0);}
+function getConflicts(date, time, excludeId){
+  const newMin=timeToMin(time);
+  const hits=[];
+  clients.forEach(c=>(c.tasks||[]).forEach(t=>{
+    if(t.id===excludeId||t.done||t.date!==date)return;
+    const diff=Math.abs(timeToMin(t.time)-newMin);
+    if(diff<30)hits.push({label:t.time+' · '+t.type+(t.text?' – '+t.text:''),sub:c.name,type:'client',cId:c.id});
+  }));
+  freeTasks.forEach(t=>{
+    if(t.id===excludeId||t.done||t.date!==date)return;
+    const diff=Math.abs(timeToMin(t.time)-newMin);
+    if(diff<30)hits.push({label:t.time+' · '+t.type+(t.text?' – '+t.text:''),sub:t.cat||'Без клиента',type:'free'});
+  });
+  return hits;
+}
+function openConflict(conflicts, onConfirm, onAdjust){
+  _conflictPendingFn={confirm:onConfirm,adjust:onAdjust};
+  document.getElementById('conflict-list').innerHTML=conflicts.map(c=>`
+    <div style="background:rgba(245,158,11,.1);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:7px 10px;">
+      <div style="font-size:12px;font-weight:600;color:var(--text);">${c.label}</div>
+      <div style="font-size:11px;color:var(--text2);">${c.sub}</div>
+    </div>`).join('');
+  document.getElementById('modal-conflict').classList.add('open');
+}
+function closeConflict(){document.getElementById('modal-conflict').classList.remove('open');_conflictPendingFn=null;}
+function conflictConfirm(){closeConflict();_conflictPendingFn&&_conflictPendingFn.confirm&&_conflictPendingFn.confirm();}
+function conflictAdjust(){closeConflict();_conflictPendingFn&&_conflictPendingFn.adjust&&_conflictPendingFn.adjust();}
+
 function saveTask(){
   const date=document.getElementById('qt-date').value, time=document.getElementById('qt-time').value;
   if(!date||!time){alert('Укажите дату и время');return;}
   const c=clients.find(x=>x.id===qtCid); if(!c)return;
-  if(!c.tasks)c.tasks=[];
   const taskType=document.getElementById('qt-type').value;
-  const taskAddr=taskType.includes('Встреча')?document.getElementById('qt-addr').value.trim():'';
-  c.tasks.push({id:genId(),type:taskType,text:document.getElementById('qt-text').value.trim(),address:taskAddr||undefined,date,time,done:false,createdAt:new Date().toISOString()});
-  save(); render(); closeTask();
+  const doSave=()=>{
+    if(!c.tasks)c.tasks=[];
+    const taskAddr=taskType.includes('Встреча')?document.getElementById('qt-addr').value.trim():'';
+    c.tasks.push({id:genId(),type:taskType,text:document.getElementById('qt-text').value.trim(),address:taskAddr||undefined,date,time,done:false,createdAt:new Date().toISOString()});
+    save(); render(); closeTask();
+  };
+  const conflicts=getConflicts(date,time,null);
+  if(conflicts.length){
+    openConflict(conflicts, doSave, ()=>document.getElementById('qt-time').focus());
+  } else doSave();
 }
 function toggleTask(cid,tid){
   const c=clients.find(x=>x.id===cid); if(!c)return;
@@ -2241,7 +2300,7 @@ function renderPaymentsGrid(){
 }
 
 // backdrop close
-['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay','modal-dayplan','modal-sch-add'].forEach(id=>{
+['modal-add','modal-detail','modal-task','modal-backups','modal-tagcloud','modal-freetasks','modal-quick-pay','modal-dayplan','modal-sch-add','modal-conflict'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
 });
 
