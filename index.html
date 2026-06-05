@@ -1094,7 +1094,8 @@ function fmtDt(iso){const d=new Date(iso);return d.toLocaleDateString('ru-RU',{d
 function daysBetween(a,b){return Math.max(0,Math.round((new Date(b)-new Date(a))/86400000));}
 function fmtDays(d){if(d===0)return'сегодня';if(d===1)return'1 день';if(d<5)return d+' дня';return d+' дней';}
 function ageCls(d){return d<=7?'af':d<=21?'am':'ao';}
-function todayStr(){return new Date().toISOString().slice(0,10);}
+function dateToStr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){return dateToStr(new Date());}
 function isoToDateInput(iso){return new Date(iso).toISOString().slice(0,10);}
 
 // ── SIDEBAR ────────────────────────────────────────────────
@@ -1105,7 +1106,7 @@ function shiftSidebarDay(delta){
 }
 function renderSidebar(){
   const base=new Date(); base.setDate(base.getDate()+sidebarDayOffset);
-  const today=base.toISOString().slice(0,10);
+  const today=dateToStr(base);
   const todayReal=todayStr();
   // Header title
   const titleEl=document.getElementById('sidebar-head-title');
@@ -1206,7 +1207,7 @@ function renderSidebar(){
   // Payment reminders — show upcoming within 7 days from viewed date
   const payFrom=today;
   const payTo7=new Date(base); payTo7.setDate(payTo7.getDate()+7);
-  const t7=payTo7.toISOString().slice(0,10);
+  const t7=dateToStr(payTo7);
   const payReminders=[];
   clients.forEach(c=>{
     (c.payments||[]).forEach(p=>{
@@ -1370,12 +1371,12 @@ function renderGoals(){
   let start,end;
   if(schView==='week'){
     const w=schWeekStart||getMonday(new Date());
-    start=w.toISOString().slice(0,10);
-    const e=new Date(w);e.setDate(w.getDate()+6);end=e.toISOString().slice(0,10);
+    start=dateToStr(w);
+    const e=new Date(w);e.setDate(w.getDate()+6);end=dateToStr(e);
   }else{
     const d=schMonthDate||new Date();
-    start=new Date(d.getFullYear(),d.getMonth(),1).toISOString().slice(0,10);
-    end=new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().slice(0,10);
+    start=dateToStr(new Date(d.getFullYear(),d.getMonth(),1));
+    end=dateToStr(new Date(d.getFullYear(),d.getMonth()+1,0));
   }
   let calls=0,callsDone=0,meets=0,meetsDone=0;
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{
@@ -1515,7 +1516,7 @@ function renderSchedule(){
   const DNAMES=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const hasPlan=dayPlan.calls||dayPlan.meets||dayPlan.letters||dayPlan.other;
   document.getElementById('sch-head').innerHTML='<div class="sch-corner"></div>'+days.map((d,i)=>{
-    const ds=d.toISOString().slice(0,10);
+    const ds=dateToStr(d);
     const isT=ds===today;
     const st=hasPlan?dayStats(ds):null;
     const planHTML=hasPlan?`<div class="sch-day-plan">
@@ -1537,7 +1538,7 @@ function renderSchedule(){
 
   // Collect meetings per day
   const meetByDay=days.map(d=>{
-    const ds=d.toISOString().slice(0,10);
+    const ds=dateToStr(d);
     const arr=[];
     clients.forEach(c=>{
       (c.tasks||[]).forEach(t=>{
@@ -1556,7 +1557,7 @@ function renderSchedule(){
   const colsEl=document.getElementById('sch-cols');
   colsEl.style.height=totalH+'px';
   colsEl.innerHTML=days.map((d,di)=>{
-    const ds=d.toISOString().slice(0,10);
+    const ds=dateToStr(d);
     const isT=ds===today;
     const meets=meetByDay[di];
 
@@ -2209,7 +2210,7 @@ const MONTH_NAMES_RU=['Янв','Фев','Мар','Апр','Май','Июн','И�
 function addMonths(dateStr, n){
   const d=new Date(dateStr+'T12:00:00');
   d.setMonth(d.getMonth()+n);
-  return d.toISOString().slice(0,10);
+  return dateToStr(d);
 }
 
 function generatePayments(c){
@@ -2409,7 +2410,7 @@ function renderDashboard(){
   if(dashPeriod==='week'){ periodStart=new Date(today); periodStart.setDate(today.getDate()-7); }
   else if(dashPeriod==='quarter'){ periodStart=new Date(today); periodStart.setDate(today.getDate()-90); }
   else{ periodStart=new Date(today.getFullYear(),today.getMonth(),1); }
-  const periodStartS = periodStart.toISOString().slice(0,10);
+  const periodStartS = dateToStr(periodStart);
 
   // ── Метрики ──
   const totalClients = clients.length;
@@ -2458,7 +2459,7 @@ function renderDashboard(){
 
   // ── Активность по дням (последние 7 дней) ──
   const days7 = [];
-  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days7.push(d.toISOString().slice(0,10));}
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(today.getDate()-i);days7.push(dateToStr(d));}
   const DNAMES_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
   const actRows = days7.map(ds=>{
     const dayTasks = clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date===ds&&t.done));
