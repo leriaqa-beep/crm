@@ -1149,6 +1149,45 @@ function renderSidebar(){
       done.forEach(t=>{h+=`<div class="task-item done-item"><div class="t-time">${t.time}</div><div class="t-title" style="text-decoration:line-through;">${t.type} ${t.text||''}</div><div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div></div>`;});
     }
   }
+  // ── Просроченные задачи из прошлых дней (показываем при offset >= 0) ──
+  if(sidebarDayOffset>=0){
+    const pastOverdue=[];
+    clients.forEach(c=>(c.tasks||[]).forEach(t=>{
+      if(!t.done&&t.date<todayReal&&(t.status!=='cancelled'))
+        pastOverdue.push({...t,cName:c.name,cId:c.id,free:false});
+    }));
+    freeTasks.forEach(t=>{
+      if(!t.done&&t.date<todayReal&&(t.status!=='cancelled'))
+        pastOverdue.push({...t,cName:null,cId:null,free:true});
+    });
+    pastOverdue.sort((a,b)=>b.date.localeCompare(a.date)||a.time.localeCompare(b.time));
+    if(pastOverdue.length){
+      h+=`<div class="grp-lbl" style="color:var(--red);">⚠ Просрочено с прошлых дней <span style="font-size:10px;background:var(--red);color:#fff;border-radius:99px;padding:1px 6px;margin-left:4px;">${pastOverdue.length}</span></div>`;
+      pastOverdue.forEach(t=>{
+        const dateStr=new Date(t.date+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+        if(t.free){
+          h+=`<div class="task-item" style="border-left-color:var(--red);opacity:.9;" onclick="openFreeTasks()">
+            <div class="t-time over">${dateStr} · ${t.time} <span style="font-size:10px;font-weight:400;">· просрочено</span></div>
+            <div class="t-title">${t.type} ${t.text||''}</div>
+            ${t.cat?`<div class="t-client"><i class="ti ti-folder" style="font-size:11px;"></i>${t.cat}</div>`:''}
+            <div class="t-actions">
+              <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleFreeTask('${t.id}')">✓ Выполнено</button>
+              <button class="t-btn" onclick="event.stopPropagation();openFreeTasks()">Открыть</button>
+            </div></div>`;
+        } else {
+          h+=`<div class="task-item" style="border-left-color:var(--red);opacity:.9;" onclick="openDetail('${t.cId}')">
+            <div class="t-time over">${dateStr} · ${t.time} <span style="font-size:10px;font-weight:400;">· просрочено</span></div>
+            <div class="t-title">${t.type} ${t.text||''}</div>
+            <div class="t-client"><i class="ti ti-user" style="font-size:11px;"></i>${t.cName}</div>
+            <div class="t-actions">
+              <button class="t-btn t-btn-g" onclick="event.stopPropagation();toggleTask('${t.cId}','${t.id}')">✓ Выполнено</button>
+              <button class="t-btn" onclick="event.stopPropagation();openDetail('${t.cId}')">Открыть</button>
+            </div></div>`;
+        }
+      });
+    }
+  }
+
   // Payment reminders — show upcoming within 7 days from viewed date
   const payFrom=today;
   const payTo7=new Date(base); payTo7.setDate(payTo7.getDate()+7);
