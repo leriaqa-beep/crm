@@ -896,8 +896,11 @@ textarea{resize:vertical;min-height:70px;}
     <span class="modal-title"><i class="ti ti-git-merge" style="margin-right:6px;font-size:16px;vertical-align:-2px;"></i>Объединить дубликаты</span>
     <button class="modal-close" onclick="closeMerge()"><i class="ti ti-x"></i></button>
   </div>
-  <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.5;">
-    Клиенты с одинаковым названием компании. Выберите группу и нажмите <b>Объединить</b> — телефоны, контакты, задачи, заметки и оплаты будут собраны в одну карточку.
+  <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5;">
+    Найдите нужных клиентов, отметьте галочками и нажмите <b>Объединить выбранные</b>.
+  </div>
+  <div style="margin-bottom:10px;">
+    <input id="merge-search" placeholder="Поиск по имени или компании..." style="width:100%;box-sizing:border-box;padding:7px 10px;border:.5px solid var(--border2);border-radius:var(--r-md);font-size:13px;background:var(--surface2);color:var(--text);" oninput="renderMergeList(this.value)"/>
   </div>
   <div id="merge-list" style="flex:1;overflow-y:auto;"></div>
 </div>
@@ -3221,100 +3224,97 @@ function openMerge(){
 }
 function closeMerge(){document.getElementById('modal-merge').classList.remove('open');}
 
-function getMergeGroups(){
-  const byCompany={};
-  clients.forEach(c=>{
-    const key=(c.company||'').trim().toLowerCase();
-    if(!key)return;
-    if(!byCompany[key])byCompany[key]=[];
-    byCompany[key].push(c);
-  });
-  return Object.values(byCompany).filter(g=>g.length>1);
-}
-
-function renderMergeList(){
-  const groups=getMergeGroups();
+function renderMergeList(query){
   const el=document.getElementById('merge-list');
-  if(!groups.length){
-    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Дубликатов по компании не найдено</div>';
+  const q=(query||'').trim().toLowerCase();
+
+  // Build sorted client list filtered by query
+  const filtered=clients.filter(c=>{
+    if(!q)return true;
+    return (c.name||'').toLowerCase().includes(q)||(c.company||'').toLowerCase().includes(q);
+  }).sort((a,b)=>{
+    const ca=(a.company||'').toLowerCase(), cb=(b.company||'').toLowerCase();
+    if(ca<cb)return -1; if(ca>cb)return 1;
+    return (a.name||'').localeCompare(b.name||'','ru');
+  });
+
+  if(!filtered.length){
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-size:13px;">Ничего не найдено</div>';
     return;
   }
-  el.innerHTML=groups.map((g,gi)=>{
-    const rows=g.map((c,ci)=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-sm);background:var(--surface2);margin-bottom:4px;">
-        <input type="checkbox" id="mg-${gi}-${ci}" checked style="width:14px;height:14px;cursor:pointer;"/>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${c.name}</div>
-          <div style="font-size:11px;color:var(--text2);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;">
-            ${(c.phones||[]).map(p=>p.num).join(', ')||'нет тел.'}
-            ${c.email?'· '+c.email:''}
-            · ${(c.tasks||[]).length} задач
-            · ${STAGES[c.stage]||'—'}
-          </div>
+
+  const rows=filtered.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--r-sm);background:var(--surface2);margin-bottom:4px;">
+      <input type="checkbox" id="msel-${c.id}" data-cid="${c.id}" style="width:15px;height:15px;cursor:pointer;" onchange="updateMergeBtn()"/>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${c.name}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:1px;display:flex;gap:6px;flex-wrap:wrap;">
+          ${c.company?`<span style="color:var(--blue);font-weight:500;">${c.company}</span>`:'<span style="color:var(--text3);">без компании</span>'}
+          · ${(c.phones||[]).map(p=>p.num).join(', ')||'нет тел.'}
+          · ${(c.tasks||[]).length} задач · ${STAGES[c.stage]||'—'}
         </div>
-        <button onclick="closeMerge();setTimeout(()=>openDetail('${c.id}'),120);" style="font-size:11px;padding:3px 8px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text2);cursor:pointer;">Открыть</button>
-      </div>`).join('');
-    return `<div style="margin-bottom:16px;border:.5px solid var(--border2);border-radius:var(--r-md);padding:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);"><i class="ti ti-building" style="font-size:12px;margin-right:4px;"></i>${g[0].company} <span style="font-size:11px;font-weight:400;color:var(--text3);">${g.length} карточки</span></div>
-        <button class="btn-primary" style="padding:5px 14px;font-size:12px;" onclick="doMerge(${gi})"><i class="ti ti-git-merge" style="font-size:12px;margin-right:4px;"></i>Объединить</button>
       </div>
-      ${rows}
-    </div>`;
-  }).join('');
-  // store groups ref for doMerge
-  window._mergeGroups=groups;
+      <button onclick="closeMerge();setTimeout(()=>openDetail('${c.id}'),120);" style="font-size:11px;padding:3px 8px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text2);cursor:pointer;flex-shrink:0;">Открыть</button>
+    </div>`).join('');
+
+  el.innerHTML=`
+    <div id="merge-action-bar" style="display:none;position:sticky;top:0;z-index:2;background:var(--surface);padding:8px 0 10px;border-bottom:.5px solid var(--border);margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span id="merge-sel-count" style="font-size:12px;color:var(--text2);"></span>
+        <button class="btn-primary" style="padding:6px 16px;font-size:12px;" onclick="doMergeSelected()"><i class="ti ti-git-merge" style="font-size:12px;margin-right:4px;"></i>Объединить выбранные</button>
+      </div>
+    </div>
+    ${rows}`;
 }
 
-function doMerge(gi){
-  const g=window._mergeGroups[gi];
-  // collect checked clients
-  const selected=g.filter((_,ci)=>document.getElementById(`mg-${gi}-${ci}`)?.checked);
-  if(selected.length<2){alert('Выберите минимум 2 карточки для объединения');return;}
-  if(!confirm(`Объединить ${selected.length} карточки компании "${selected[0].company}" в одну?\n\nВсе данные будут собраны в первую карточку. Остальные — удалены.`))return;
+function updateMergeBtn(){
+  const checked=[...document.querySelectorAll('#merge-list input[type=checkbox]:checked')];
+  const bar=document.getElementById('merge-action-bar');
+  const lbl=document.getElementById('merge-sel-count');
+  if(bar){bar.style.display=checked.length>=2?'block':'none';}
+  if(lbl){lbl.textContent=`Выбрано: ${checked.length} карточки`;}
+}
+
+function doMergeSelected(){
+  const checked=[...document.querySelectorAll('#merge-list input[type=checkbox]:checked')];
+  const ids=checked.map(el=>el.dataset.cid);
+  const selected=ids.map(id=>clients.find(c=>c.id===id)).filter(Boolean);
+  if(selected.length<2){alert('Выберите минимум 2 карточки');return;}
+  if(!confirm(`Объединить ${selected.length} карточки в одну?\n\nБудет оставлена карточка "${selected[0].name}". Остальные — удалены.`))return;
   createSnapshot('Перед объединением дубликатов');
 
-  const base=selected[0]; // keep this card, merge others into it
+  const base=selected[0];
   const rest=selected.slice(1);
-
   rest.forEach(src=>{
-    // phones
     if(!base.phones)base.phones=base.phone?[{num:base.phone,msn:'phone'}]:[];
     (src.phones||(src.phone?[{num:src.phone,msn:'phone'}]:[])).forEach(p=>{
       if(!base.phones.find(bp=>bp.num===p.num))base.phones.push(p);
     });
-    // contacts
     if(!base.contacts)base.contacts=[];
     (src.contacts||[]).forEach(ct=>{
       if(!base.contacts.find(bc=>bc.name===ct.name))base.contacts.push(ct);
     });
-    // tasks
     if(!base.tasks)base.tasks=[];
     (src.tasks||[]).forEach(t=>{
       if(!base.tasks.find(bt=>bt.id===t.id))base.tasks.push(t);
     });
-    // notes
     if(!base.notes)base.notes=[];
     (src.notes||[]).forEach(n=>base.notes.push({...n,_from:src.name}));
-    // payments
     if(!base.payments)base.payments=[];
     (src.payments||[]).forEach(p=>{
       if(!base.payments.find(bp=>bp.id===p.id))base.payments.push(p);
     });
-    // chips/tags
     if(!base.chips)base.chips=[];
     (src.chips||[]).forEach(ch=>{
       if(!base.chips.find(bc=>bc.label===ch.label))base.chips.push(ch);
     });
-    // address
     if(!base.address&&src.address)base.address=src.address;
-    // email
     if(!base.email&&src.email)base.email=src.email;
-    // remove from clients
+    if(!base.company&&src.company)base.company=src.company;
     const idx=clients.findIndex(c=>c.id===src.id);
     if(idx!==-1)clients.splice(idx,1);
   });
-  save(); render(); renderMergeList();
+  save(); render(); renderMergeList(document.getElementById('merge-search')?.value);
   alert(`Готово! Карточки объединены в "${base.name}"`);
 }
 // ────────────────────────────────────────────────────────────
