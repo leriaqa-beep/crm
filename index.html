@@ -3284,26 +3284,38 @@ function doMergeSelected(){
   createSnapshot('Перед объединением дубликатов');
 
   const base=selected[0];
+  if(!base.contacts)base.contacts=[];
+  // convert base card itself into a contact if not already there
+  const basePhones0=base.phones||(base.phone?[{num:base.phone,msn:'phone'}]:[]);
+  if(base.name&&!base.contacts.find(ct=>ct.name===base.name)){
+    base.contacts.unshift({name:base.name,role:'',phones:basePhones0.map(p=>({...p}))});
+  }
+
   const rest=selected.slice(1);
   rest.forEach(src=>{
-    if(!base.phones)base.phones=base.phone?[{num:base.phone,msn:'phone'}]:[];
-    (src.phones||(src.phone?[{num:src.phone,msn:'phone'}]:[])).forEach(p=>{
-      if(!base.phones.find(bp=>bp.num===p.num))base.phones.push(p);
-    });
-    if(!base.contacts)base.contacts=[];
+    // each merged card becomes a contact person with their phones
+    const srcPhones=src.phones||(src.phone?[{num:src.phone,msn:'phone'}]:[]);
+    if(src.name&&!base.contacts.find(ct=>ct.name===src.name)){
+      base.contacts.push({name:src.name,role:'',phones:srcPhones.map(p=>({...p}))});
+    }
+    // also carry over any sub-contacts from src
     (src.contacts||[]).forEach(ct=>{
       if(!base.contacts.find(bc=>bc.name===ct.name))base.contacts.push(ct);
     });
+    // tasks
     if(!base.tasks)base.tasks=[];
     (src.tasks||[]).forEach(t=>{
       if(!base.tasks.find(bt=>bt.id===t.id))base.tasks.push(t);
     });
+    // notes
     if(!base.notes)base.notes=[];
     (src.notes||[]).forEach(n=>base.notes.push({...n,_from:src.name}));
+    // payments
     if(!base.payments)base.payments=[];
     (src.payments||[]).forEach(p=>{
       if(!base.payments.find(bp=>bp.id===p.id))base.payments.push(p);
     });
+    // chips/tags
     if(!base.chips)base.chips=[];
     (src.chips||[]).forEach(ch=>{
       if(!base.chips.find(bc=>bc.label===ch.label))base.chips.push(ch);
