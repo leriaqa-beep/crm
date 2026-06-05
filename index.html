@@ -617,6 +617,10 @@ textarea{resize:vertical;min-height:70px;}
       <div class="sec-head"><i class="ti ti-calendar"></i> Дата первого контакта</div>
       <input id="d-contact-date" type="date" onchange="saveDetailDate(this.value)"/>
     </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:.5px solid var(--border);">
+      <div class="sec-head"><i class="ti ti-map-pin"></i> Адрес встречи</div>
+      <input id="d-address" placeholder="ул. Ленина, 10, офис 5" onchange="saveDetailAddress(this.value)"/>
+    </div>
   </div>
 
   <!-- Заметки -->
@@ -1861,6 +1865,7 @@ function saveTask(){
     if(!c.tasks)c.tasks=[];
     const taskAddr=taskType.includes('Встреча')?document.getElementById('qt-addr').value.trim():'';
     c.tasks.push({id:genId(),type:taskType,text:document.getElementById('qt-text').value.trim(),address:taskAddr||undefined,date,time,done:false,createdAt:new Date().toISOString()});
+    if(taskAddr&&!c.address)c.address=taskAddr;
     save(); render(); closeTask();
   };
   const conflicts=getConflicts(date,time,null);
@@ -1905,6 +1910,7 @@ function refreshMeta(c){
   if(c.company)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-building"></i>${c.company}</span>`);
   phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:4px;">${msnIcon(p.msn)} ${p.num}</span>`));
   if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
+  if(c.address)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-map-pin"></i>${c.address}</span>`);
   // Amount inline edit
   mi.push(`<span style="display:flex;align-items:center;gap:3px;" title="Нажмите для изменения суммы">
     <i class="ti ti-coin"></i>
@@ -2011,6 +2017,7 @@ function renderPhonesPanel(c){
   document.getElementById('d-company').value=c.company||'';
   document.getElementById('d-amount').value=c.amount||'';
   document.getElementById('d-contact-date').value=isoToDateInput(c.createdAt);
+  document.getElementById('d-address').value=c.address||'';
   renderContacts(c);
 }
 
@@ -2112,6 +2119,10 @@ function saveDetailDate(val){
   if(lbl)lbl.textContent=fmtDt(c.createdAt);
   const inp=document.getElementById('d-timer-date-input');
   if(inp)inp.value=c.createdAt.slice(0,10);
+}
+function saveDetailAddress(val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  c.address=val.trim()||undefined; save();
 }
 function toggleContactDateEdit(forceHide){
   const lbl=document.getElementById('d-timer-date-lbl');
