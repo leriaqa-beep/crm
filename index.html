@@ -1539,6 +1539,7 @@ function renderSchedule(){
   // Collect meetings per day
   const meetByDay=days.map(d=>{
     const ds=dateToStr(d);
+    if(ds===dateToStr(days[5]))console.log('[SAT debug] ds=',ds,'tasks=',clients.flatMap(c=>(c.tasks||[]).filter(t=>t.date===ds)).map(t=>t.date+' '+t.time+' '+t.type));
     const arr=[];
     clients.forEach(c=>{
       (c.tasks||[]).forEach(t=>{
