@@ -1077,7 +1077,7 @@ function getFilteredClients(){
   if(!filterStr)return clients;
   return clients.filter(c=>{
     const hay=[
-      c.name, c.company||'', c.email||'',
+      c.name, c.company||'', c.email||'', c.address||'',
       ...(c.phones||[]).map(p=>p.num),
       ...(c.notes||[]).map(n=>n.text),
       ...(c.chips||[]).map(ch=>ch.label),
