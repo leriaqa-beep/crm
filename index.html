@@ -1936,6 +1936,9 @@ function toggleTask(cid,tid){
 function openDetail(id){
   activeId=id;
   const c=clients.find(x=>x.id===id); if(!c)return;
+  // clear recordings panel immediately to avoid showing stale data from previous client
+  const recEl=document.getElementById('rec-list');
+  if(recEl)recEl.innerHTML='';
   document.getElementById('d-name').value=c.name;
   refreshMeta(c);
   const days=daysBetween(c.createdAt,new Date().toISOString());
@@ -3440,6 +3443,8 @@ async function deleteRecording(cid,rid){
 
 async function renderRecordings(c){
   const el=document.getElementById('rec-list'); if(!el)return;
+  const targetId=c.id; // snapshot to detect client switch during async
+  el.innerHTML=''; // clear immediately
   const recs=c.recordings||[];
   if(!recs.length){
     el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:8px 0;">Нет записей — загрузите первую</div>';
@@ -3455,9 +3460,11 @@ async function renderRecordings(c){
       </div>
       <div id="recplayer-${r.id}"><div style="font-size:11px;color:var(--text3);">Загрузка...</div></div>
     </div>`).join('');
-  // load blobs and create object URLs for players
+  // load blobs — abort if user switched to another client
   for(const r of recs){
+    if(activeId!==targetId)return; // client changed, stop
     const blob=await getAudioBlob(r.id);
+    if(activeId!==targetId)return; // check again after await
     const pEl=document.getElementById('recplayer-'+r.id);
     if(!pEl)continue;
     if(!blob){pEl.innerHTML='<div style="font-size:11px;color:var(--red);">Файл не найден</div>';continue;}
