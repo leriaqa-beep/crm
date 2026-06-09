@@ -1472,6 +1472,7 @@ function renderMonthView(){
     new Date(year,month,1).toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
   const byDay={};
   clients.forEach(c=>(c.tasks||[]).forEach(t=>{
+    if(t.status==='cancelled')return;
     if(!byDay[t.date])byDay[t.date]=[];
     byDay[t.date].push(t);
   }));
@@ -1581,14 +1582,14 @@ function renderSchedule(){
     const arr=[];
     clients.forEach(c=>{
       (c.tasks||[]).forEach(t=>{
-        if(t.date===ds){
+        if(t.date===ds&&t.status!=='cancelled'){
           const notes=c.notes||[];
           const lastNote=notes.length?notes[notes.length-1].text:'';
           arr.push({...t,cName:c.name,cCo:c.company||'',cId:c.id,cNote:lastNote,free:false});
         }
       });
     });
-    freeTasks.filter(t=>t.date===ds).forEach(t=>arr.push({...t,cName:t.cat||'Без клиента',cCo:'',cId:null,cNote:t.note||'',free:true}));
+    freeTasks.filter(t=>t.date===ds&&t.status!=='cancelled').forEach(t=>arr.push({...t,cName:t.cat||'Без клиента',cCo:'',cId:null,cNote:t.note||'',free:true}));
     return arr.sort((a,b)=>a.time.localeCompare(b.time));
   });
 
@@ -1904,8 +1905,8 @@ function openConflict(conflicts, onConfirm, onAdjust){
   document.getElementById('modal-conflict').classList.add('open');
 }
 function closeConflict(){document.getElementById('modal-conflict').classList.remove('open');_conflictPendingFn=null;}
-function conflictConfirm(){closeConflict();_conflictPendingFn&&_conflictPendingFn.confirm&&_conflictPendingFn.confirm();}
-function conflictAdjust(){closeConflict();_conflictPendingFn&&_conflictPendingFn.adjust&&_conflictPendingFn.adjust();}
+function conflictConfirm(){const fn=_conflictPendingFn;closeConflict();fn&&fn.confirm&&fn.confirm();}
+function conflictAdjust(){const fn=_conflictPendingFn;closeConflict();fn&&fn.adjust&&fn.adjust();}
 
 function saveTask(){
   const date=document.getElementById('qt-date').value, time=document.getElementById('qt-time').value;
