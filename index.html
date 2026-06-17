@@ -3330,53 +3330,54 @@ function showMergeConfirm(selected){
 
   const rowsWrap=document.createElement('div');
 
-  function refreshLabels(activeId){
-    rowsWrap.querySelectorAll('label').forEach(lbl=>{
-      const active=lbl.dataset.mcard===activeId;
-      lbl.style.borderColor=active?'var(--blue)':'var(--border)';
-      lbl.style.background=active?'#e8f0fe':'var(--surface2)';
+  let activeId=selected[0].id;
+
+  function refreshRows(){
+    rowsWrap.querySelectorAll('[data-mcard]').forEach(row=>{
+      const active=row.dataset.mcard===activeId;
+      row.style.borderColor=active?'#4285f4':'#ddd';
+      row.style.background=active?'#e8f0fe':'#f9f9f9';
     });
   }
 
   selected.forEach((c,i)=>{
-    const lbl=document.createElement('label');
-    lbl.dataset.mcard=c.id;
-    lbl.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:1.5px solid var(--border);margin-bottom:6px;cursor:pointer;background:var(--surface2);';
+    const row=document.createElement('div');
+    row.dataset.mcard=c.id;
+    row.style.cssText='display:flex;flex-direction:row;align-items:center;gap:12px;padding:10px 12px;border-radius:6px;border:1.5px solid #ddd;margin-bottom:8px;cursor:pointer;background:#f9f9f9;box-sizing:border-box;';
+    row.onclick=()=>{activeId=c.id;refreshRows();};
 
-    const radio=document.createElement('input');
-    radio.type='radio';
-    radio.name='merge-main-sel';
-    radio.value=c.id;
-    radio.style.cssText='flex-shrink:0;accent-color:var(--blue);width:15px;height:15px;cursor:pointer;';
-    if(i===0)radio.checked=true;
-    radio.addEventListener('change',()=>refreshLabels(c.id));
+    const dot=document.createElement('div');
+    dot.style.cssText='width:16px;height:16px;border-radius:50%;border:2px solid #4285f4;flex-shrink:0;display:flex;align-items:center;justify-content:center;';
+    const dotInner=document.createElement('div');
+    dotInner.dataset.dotinner=c.id;
+    dotInner.style.cssText='width:8px;height:8px;border-radius:50%;background:#4285f4;display:'+(i===0?'block':'none')+';';
+    dot.appendChild(dotInner);
 
     const info=document.createElement('div');
-    info.style.cssText='flex:1;min-width:0;';
+    info.style.cssText='flex:1;min-width:0;overflow:hidden;';
 
     const nameRow=document.createElement('div');
-    nameRow.style.cssText='font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    nameRow.style.cssText='font-size:13px;font-weight:600;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     nameRow.textContent=c.name;
-    if(i===0){
-      const badge=document.createElement('span');
-      badge.style.cssText='font-size:10px;color:var(--blue);font-weight:400;margin-left:6px;';
-      badge.textContent='(по умолчанию)';
-      nameRow.appendChild(badge);
-    }
 
     const sub=document.createElement('div');
-    sub.style.cssText='font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    sub.style.cssText='font-size:11px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
     const phones=(c.phones||[]).map(p=>p.num).join(', ')||'нет тел.';
     sub.textContent=(c.company?c.company+' · ':'')+phones+' · '+(c.tasks||[]).length+' задач · '+(STAGES[c.stage]||'—');
 
     info.appendChild(nameRow);
     info.appendChild(sub);
-    lbl.appendChild(radio);
-    lbl.appendChild(info);
-    rowsWrap.appendChild(lbl);
+    row.appendChild(dot);
+    row.appendChild(info);
+    rowsWrap.appendChild(row);
+
+    row.addEventListener('click',()=>{
+      rowsWrap.querySelectorAll('[data-dotinner]').forEach(d=>{d.style.display='none';});
+      dotInner.style.display='block';
+    });
   });
 
-  refreshLabels(selected[0].id);
+  refreshRows();
 
   const btns=document.createElement('div');
   btns.style.cssText='display:flex;gap:8px;justify-content:flex-end;margin-top:16px;';
@@ -3403,11 +3404,12 @@ function showMergeConfirm(selected){
 
   window._mergeSelected=selected;
   window._mergeOverlay=overlay;
+  window._mergeGetMain=()=>activeId;
 }
 
 function confirmMergeExecute(){
   const selected=window._mergeSelected;
-  const mainId=document.querySelector('input[name=merge-main-sel]:checked')?.value;
+  const mainId=window._mergeGetMain?window._mergeGetMain():null;
   (window._mergeOverlay||document.getElementById('merge-confirm-overlay'))?.remove();
   if(!mainId||!selected)return;
 
