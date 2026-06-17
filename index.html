@@ -3313,56 +3313,102 @@ function showMergeConfirm(selected){
   const existing=document.getElementById('merge-confirm-overlay');
   if(existing)existing.remove();
 
-  const rows=selected.map((c,i)=>`
-    <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--r-sm);border:1.5px solid var(--border);margin-bottom:6px;cursor:pointer;background:var(--surface2);transition:border-color .15s;" onmouseenter="this.style.borderColor='var(--blue)'" onmouseleave="this.style.borderColor=document.querySelector('input[name=merge-main][value=\\'${c.id}\\']:checked')?'var(--blue)':'var(--border)'">
-      <input type="radio" name="merge-main" value="${c.id}" ${i===0?'checked':''} style="margin-top:2px;accent-color:var(--blue);" onchange="document.querySelectorAll('label[data-mcard]').forEach(l=>{l.style.borderColor=l.dataset.mcard===this.value?'var(--blue)':'var(--border)';l.style.background=l.dataset.mcard===this.value?'var(--blue-bg, #e8f0fe)':'var(--surface2)'})"/>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);">${c.name}${i===0?' <span style="font-size:10px;color:var(--blue);font-weight:400;">(по умолчанию)</span>':''}</div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;">
-          ${c.company?`<span style="color:var(--blue);font-weight:500;">${c.company}</span> · `:''}${(c.phones||[]).map(p=>p.num).join(', ')||'нет тел.'} · ${(c.tasks||[]).length} задач · ${STAGES[c.stage]||'—'}
-        </div>
-      </div>
-    </label>`).join('');
-
-  // patch data-mcard after render via inline attr
   const overlay=document.createElement('div');
   overlay.id='merge-confirm-overlay';
   overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;';
-  overlay.innerHTML=`
-    <div style="background:var(--surface);border-radius:var(--r-lg,10px);padding:24px;max-width:480px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.3);">
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">Объединить ${selected.length} карточки в одну</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Выберите карточку, которая останется главной. Остальные будут удалены, их данные (задачи, заметки, контакты) перенесутся в главную.</div>
-      <div id="merge-confirm-rows">${rows}</div>
-      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
-        <button onclick="document.getElementById('merge-confirm-overlay').remove()" style="padding:7px 18px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;">Отмена</button>
-        <button onclick="confirmMergeExecute()" class="btn-primary" style="padding:7px 18px;font-size:13px;"><i class="ti ti-git-merge" style="font-size:12px;margin-right:4px;"></i>Объединить</button>
-      </div>
-    </div>`;
+
+  const box=document.createElement('div');
+  box.style.cssText='background:var(--surface);border-radius:10px;padding:24px;max-width:460px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+
+  const title=document.createElement('div');
+  title.style.cssText='font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;';
+  title.textContent='Объединить '+selected.length+' карточки в одну';
+
+  const hint=document.createElement('div');
+  hint.style.cssText='font-size:12px;color:var(--text2);margin-bottom:14px;';
+  hint.textContent='Выберите главную карточку. Остальные удалятся, их данные (задачи, заметки, контакты) перенесутся в главную.';
+
+  const rowsWrap=document.createElement('div');
+
+  function refreshLabels(activeId){
+    rowsWrap.querySelectorAll('label').forEach(lbl=>{
+      const active=lbl.dataset.mcard===activeId;
+      lbl.style.borderColor=active?'var(--blue)':'var(--border)';
+      lbl.style.background=active?'#e8f0fe':'var(--surface2)';
+    });
+  }
+
+  selected.forEach((c,i)=>{
+    const lbl=document.createElement('label');
+    lbl.dataset.mcard=c.id;
+    lbl.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:6px;border:1.5px solid var(--border);margin-bottom:6px;cursor:pointer;background:var(--surface2);';
+
+    const radio=document.createElement('input');
+    radio.type='radio';
+    radio.name='merge-main-sel';
+    radio.value=c.id;
+    radio.style.cssText='flex-shrink:0;accent-color:var(--blue);width:15px;height:15px;cursor:pointer;';
+    if(i===0)radio.checked=true;
+    radio.addEventListener('change',()=>refreshLabels(c.id));
+
+    const info=document.createElement('div');
+    info.style.cssText='flex:1;min-width:0;';
+
+    const nameRow=document.createElement('div');
+    nameRow.style.cssText='font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    nameRow.textContent=c.name;
+    if(i===0){
+      const badge=document.createElement('span');
+      badge.style.cssText='font-size:10px;color:var(--blue);font-weight:400;margin-left:6px;';
+      badge.textContent='(по умолчанию)';
+      nameRow.appendChild(badge);
+    }
+
+    const sub=document.createElement('div');
+    sub.style.cssText='font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+    const phones=(c.phones||[]).map(p=>p.num).join(', ')||'нет тел.';
+    sub.textContent=(c.company?c.company+' · ':'')+phones+' · '+(c.tasks||[]).length+' задач · '+(STAGES[c.stage]||'—');
+
+    info.appendChild(nameRow);
+    info.appendChild(sub);
+    lbl.appendChild(radio);
+    lbl.appendChild(info);
+    rowsWrap.appendChild(lbl);
+  });
+
+  refreshLabels(selected[0].id);
+
+  const btns=document.createElement('div');
+  btns.style.cssText='display:flex;gap:8px;justify-content:flex-end;margin-top:16px;';
+
+  const btnCancel=document.createElement('button');
+  btnCancel.style.cssText='padding:7px 18px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;';
+  btnCancel.textContent='Отмена';
+  btnCancel.onclick=()=>overlay.remove();
+
+  const btnOk=document.createElement('button');
+  btnOk.className='btn-primary';
+  btnOk.style.cssText='padding:7px 18px;font-size:13px;';
+  btnOk.innerHTML='<i class="ti ti-git-merge" style="font-size:12px;margin-right:4px;"></i>Объединить';
+  btnOk.onclick=confirmMergeExecute;
+
+  btns.appendChild(btnCancel);
+  btns.appendChild(btnOk);
+  box.appendChild(title);
+  box.appendChild(hint);
+  box.appendChild(rowsWrap);
+  box.appendChild(btns);
+  overlay.appendChild(box);
   document.body.appendChild(overlay);
 
-  // patch data-mcard on labels
-  overlay.querySelectorAll('label').forEach((lbl,i)=>{
-    lbl.dataset.mcard=selected[i].id;
-    if(i===0){lbl.style.borderColor='var(--blue)';lbl.style.background='var(--blue-bg, #e8f0fe)';}
-  });
-  // wire radio change to update label styles
-  overlay.querySelectorAll('input[name=merge-main]').forEach(radio=>{
-    radio.addEventListener('change',()=>{
-      overlay.querySelectorAll('label[data-mcard]').forEach(lbl=>{
-        const active=lbl.dataset.mcard===radio.value;
-        lbl.style.borderColor=active?'var(--blue)':'var(--border)';
-        lbl.style.background=active?'var(--blue-bg, #e8f0fe)':'var(--surface2)';
-      });
-    });
-  });
-
   window._mergeSelected=selected;
+  window._mergeOverlay=overlay;
 }
 
 function confirmMergeExecute(){
   const selected=window._mergeSelected;
-  const mainId=document.querySelector('input[name=merge-main]:checked')?.value;
-  document.getElementById('merge-confirm-overlay')?.remove();
+  const mainId=document.querySelector('input[name=merge-main-sel]:checked')?.value;
+  (window._mergeOverlay||document.getElementById('merge-confirm-overlay'))?.remove();
   if(!mainId||!selected)return;
 
   createSnapshot('Перед объединением дубликатов');
