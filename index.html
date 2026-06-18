@@ -3817,23 +3817,30 @@ function openSendToTg(taskId,cId){
   if(!(tgSettings.colleagues||[]).length){alert('Добавьте коллег в настройках Telegram');openTgSettings();return;}
   _tgClient=clients.find(c=>c.id===cId)||null;
   _tgTask=(_tgClient&&(_tgClient.tasks||[]).find(t=>t.id===taskId))||freeTasks.find(t=>t.id===taskId)||null;
-  _tgColId=tgSettings.colleagues[0].chatId;
   const cols=document.getElementById('tg-send-cols');
   cols.innerHTML='';
   tgSettings.colleagues.forEach((c,i)=>{
     const row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:1.5px solid '+(i===0?'#3B82F6':'#ddd')+';background:'+(i===0?'#e8f0fe':'var(--surface2)')+';margin-bottom:6px;cursor:pointer;';
-    row.innerHTML='<i class="ti ti-user" style="color:#3B82F6;font-size:14px;flex-shrink:0;"></i>'
-      +'<span style="font-size:13px;font-weight:600;flex:1;">'+c.name+'</span>'
+    row.setAttribute('data-chatid', String(c.chatId));
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:6px;border:2px solid '+(i===0?'#3B82F6':'#ccc')+';background:'+(i===0?'#dbeafe':'var(--surface2)')+';margin-bottom:8px;cursor:pointer;user-select:none;';
+    row.innerHTML='<span style="font-size:18px;">'+(i===0?'🔵':'⚪')+'</span>'
+      +'<span style="font-size:14px;font-weight:600;flex:1;">'+c.name+'</span>'
       +'<span style="font-size:11px;color:#888;">'+c.chatId+'</span>';
     row.addEventListener('click',()=>{
-      _tgColId=c.chatId;
-      cols.querySelectorAll('div').forEach(d=>{ d.style.borderColor='#ddd'; d.style.background='var(--surface2)'; });
+      cols.querySelectorAll('[data-chatid]').forEach(d=>{
+        d.style.borderColor='#ccc';
+        d.style.background='var(--surface2)';
+        d.querySelector('span').textContent='⚪';
+      });
       row.style.borderColor='#3B82F6';
-      row.style.background='#e8f0fe';
+      row.style.background='#dbeafe';
+      row.querySelector('span').textContent='🔵';
+      document.getElementById('tg-send-btn').setAttribute('data-col', String(c.chatId));
     });
     cols.appendChild(row);
   });
+  const btn=document.getElementById('tg-send-btn');
+  btn.setAttribute('data-col', String(tgSettings.colleagues[0].chatId));
   document.getElementById('tg-send-preview').textContent=fmtMeetingCard(_tgTask,_tgClient);
   document.getElementById('modal-tg-send').classList.add('open');
 }
@@ -3856,13 +3863,14 @@ function fmtMeetingCard(task,client){
   return L.join('\n');
 }
 async function executeTgSend(){
-  if(!_tgColId){alert('Выберите коллегу');return;}
   const btn=document.getElementById('tg-send-btn');
+  const chatId=btn.getAttribute('data-col');
+  if(!chatId){alert('Выберите коллегу');return;}
   btn.disabled=true;btn.textContent='Отправляем…';
   try{
     const r=await fetch('https://api.telegram.org/bot'+tgSettings.token+'/sendMessage',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:_tgColId,text:fmtMeetingCard(_tgTask,_tgClient)})
+      body:JSON.stringify({chat_id:chatId,text:fmtMeetingCard(_tgTask,_tgClient)})
     });
     const j=await r.json();
     if(j.ok){
