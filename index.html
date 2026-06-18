@@ -3819,22 +3819,23 @@ function openSendToTg(taskId,cId){
   _tgTask=(_tgClient&&(_tgClient.tasks||[]).find(t=>t.id===taskId))||freeTasks.find(t=>t.id===taskId)||null;
   _tgColId=tgSettings.colleagues[0].chatId;
   const cols=document.getElementById('tg-send-cols');
-  cols.innerHTML=tgSettings.colleagues.map((c,i)=>`
-    <div data-cid="${c.chatId}" onclick="selectTgCol('${c.chatId}',this)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:1.5px solid ${i===0?'#3B82F6':'var(--border)'};background:${i===0?'#e8f0fe':'var(--surface2)'};margin-bottom:6px;cursor:pointer;">
-      <i class="ti ti-user" style="color:#3B82F6;font-size:14px;flex-shrink:0;"></i>
-      <span style="font-size:13px;font-weight:600;">${c.name}</span>
-      <span style="font-size:11px;color:var(--text2);">${c.chatId}</span>
-    </div>`).join('');
+  cols.innerHTML='';
+  tgSettings.colleagues.forEach((c,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:1.5px solid '+(i===0?'#3B82F6':'#ddd')+';background:'+(i===0?'#e8f0fe':'var(--surface2)')+';margin-bottom:6px;cursor:pointer;';
+    row.innerHTML='<i class="ti ti-user" style="color:#3B82F6;font-size:14px;flex-shrink:0;"></i>'
+      +'<span style="font-size:13px;font-weight:600;flex:1;">'+c.name+'</span>'
+      +'<span style="font-size:11px;color:#888;">'+c.chatId+'</span>';
+    row.addEventListener('click',()=>{
+      _tgColId=c.chatId;
+      cols.querySelectorAll('div').forEach(d=>{ d.style.borderColor='#ddd'; d.style.background='var(--surface2)'; });
+      row.style.borderColor='#3B82F6';
+      row.style.background='#e8f0fe';
+    });
+    cols.appendChild(row);
+  });
   document.getElementById('tg-send-preview').textContent=fmtMeetingCard(_tgTask,_tgClient);
   document.getElementById('modal-tg-send').classList.add('open');
-}
-function selectTgCol(chatId,el){
-  _tgColId=chatId;
-  document.querySelectorAll('#tg-send-cols [data-cid]').forEach(d=>{
-    const a=d.dataset.cid===chatId;
-    d.style.borderColor=a?'#3B82F6':'var(--border)';
-    d.style.background=a?'#e8f0fe':'var(--surface2)';
-  });
 }
 function fmtMeetingCard(task,client){
   if(!task)return'(задача не найдена)';
