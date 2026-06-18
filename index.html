@@ -400,24 +400,20 @@ textarea{resize:vertical;min-height:70px;}
 .dd-item-val{font-size:12px;font-weight:700;margin-top:4px;}
 .dd-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;}
 .dd-section-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding:0 2px;}
-@media (max-width: 700px) {
-  .sidebar { display: none !important; }
-  .main { padding: 6px !important; }
-  .view-btn { font-size: 11px; padding: 4px 7px; }
-  .sch-wrap { display: none !important; }
-  #mob-planner-wrap { display: flex !important; }
-  .mob-fab {
-    position: fixed; bottom: 20px; right: 20px; z-index: 1000;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: #3B82F6; color: #fff; border: none; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(59,130,246,.5);
-    display: flex; align-items: center; justify-content: center;
-  }
+/* ── MOBILE ── */
+@media(max-width:700px){
+  .sidebar{display:none!important;}
+  .main{padding:6px!important;}
+  .view-btn{font-size:10px;padding:4px 6px;}
+  .sch-wrap{display:none!important;}
+  #mob-planner-wrap{display:flex!important;}
+  .mob-fab{display:flex!important;}
 }
-@media (min-width: 701px) {
-  .mob-fab { display: none !important; }
-  #mob-planner-wrap { display: none !important; }
+@media(min-width:701px){
+  #mob-planner-wrap{display:none!important;}
+  .mob-fab{display:none!important;}
 }
+.mob-fab{position:fixed;bottom:22px;right:18px;z-index:1200;width:52px;height:52px;border-radius:50%;background:#3B82F6;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 18px rgba(59,130,246,.5);align-items:center;justify-content:center;font-size:22px;display:none;}
 </style>
 </head>
 <body>
@@ -441,10 +437,10 @@ textarea{resize:vertical;min-height:70px;}
     <button class="btn btn-outline" onclick="openTagCloud()" title="Облако тегов"><i class="ti ti-tags"></i> Теги</button>
     <button class="btn btn-outline" onclick="openFreeTasks()" title="Задачи без клиента"><i class="ti ti-checklist"></i> Задачи <span id="ft-badge" style="display:none;font-size:10px;background:var(--amber);color:#fff;border-radius:99px;padding:1px 6px;margin-left:2px;">0</span></button>
     <button class="btn btn-outline" onclick="openBackups()" title="Версии и резервные копии"><i class="ti ti-history"></i> Версии <span id="bk-badge" style="display:none;font-size:10px;background:var(--green);color:#fff;border-radius:99px;padding:1px 6px;margin-left:2px;">0</span></button>
+    <button class="btn btn-outline" onclick="openTgSettings()" title="Настройки Telegram"><i class="ti ti-brand-telegram"></i> Telegram</button>
     <button class="btn btn-outline" onclick="openMerge()" title="Объединить дубликаты по компании"><i class="ti ti-git-merge"></i> Дубликаты</button>
     <button class="btn btn-outline" onclick="exportData()" title="Скачать резервную копию"><i class="ti ti-download"></i> Бэкап</button>
     <label class="btn btn-outline" style="cursor:pointer;" title="Восстановить из файла"><i class="ti ti-upload"></i> Импорт<input type="file" accept=".json" onchange="importData(event)" style="display:none;"/></label>
-    <button class="btn btn-outline" onclick="openTgSettings()" title="Настройки Telegram"><i class="ti ti-brand-telegram"></i></button>
   </div>
 </div>
 
@@ -505,16 +501,18 @@ textarea{resize:vertical;min-height:70px;}
           <div id="sch-month-grid" class="sch-month-grid"></div>
         </div>
       </div>
-      <div id="mob-planner-wrap" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;flex-shrink:0;">
-    <button onclick="mobPlanPrev()" style="padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer;"><i class="ti ti-chevron-left"></i></button>
-    <span id="mob-plan-lbl" style="font-size:14px;font-weight:600;"></span>
-    <button onclick="mobPlanNext()" style="padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer;"><i class="ti ti-chevron-right"></i></button>
-    <button onclick="mobPlanToday()" style="font-size:11px;padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);cursor:pointer;">Сегодня</button>
-  </div>
-  <div id="mob-plan-list" style="flex:1;overflow-y:auto;padding:0 12px 80px;"></div>
-</div>
+      <!-- Mobile planner list -->
+      <div id="mob-planner-wrap" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;border-bottom:.5px solid var(--border);">
+          <button onclick="mobPlanPrev()" style="padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-size:14px;cursor:pointer;"><i class="ti ti-chevron-left"></i></button>
+          <span id="mob-plan-lbl" style="flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text);"></span>
+          <button onclick="mobPlanNext()" style="padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--text);font-size:14px;cursor:pointer;"><i class="ti ti-chevron-right"></i></button>
+          <button onclick="mobPlanToday()" style="padding:4px 10px;border:.5px solid var(--border2);border-radius:6px;background:var(--surface2);color:var(--blue);font-size:11px;cursor:pointer;font-weight:600;">Сег.</button>
+        </div>
+        <div id="mob-plan-list" style="flex:1;overflow-y:auto;padding:10px 10px 80px;"></div>
+      </div>
     </div>
+<button id="mob-fab" class="mob-fab" onclick="openSchAdd()" title="Добавить встречу"><i class="ti ti-plus"></i></button>
     <!-- Dashboard view -->
     <div id="view-dashboard" style="display:none;flex:1;overflow-y:auto;min-height:0;">
       <div class="dash-wrap" id="dash-wrap"></div>
@@ -1392,17 +1390,17 @@ function switchView(v){
   if(sb)sb.style.display=isSchedule?'none':'';
   const mn=document.querySelector('.main');
   if(mn)mn.style.padding=isSchedule?'10px 0 0 0':'14px';
+  const fab=document.getElementById('mob-fab');
+  if(fab)fab.style.display=isSchedule&&window.innerWidth<=700?'flex':'none';
   if(isSchedule){
     if(!schWeekStart)schWeekStart=getMonday(new Date());
     if(!schMonthDate)schMonthDate=new Date();
     if(schView==='week')renderSchedule();else renderMonthView();
     renderGoals();
+    if(window.innerWidth<=700){mobPlanDate=new Date();renderMobilePlanner();}
   }
   if(isPayments){updateOverduePayments();renderPaymentsGrid();}
   if(isDash){renderDashboard();}
-  const fab=document.getElementById('mob-fab');
-  if(fab)fab.style.display=isSchedule?'':'none';
-  if(isSchedule&&window.innerWidth<=700){mobPlanDate=new Date();renderMobilePlanner();}
 }
 function switchSchView(v){
   schView=v;
@@ -3219,9 +3217,6 @@ function renderFreeTasksList(){
 // ── VERSIONING / BACKUPS ──────────────────────────────────
 const BK_KEY='crm_backups';
 const BK_MAX=20;
-const TG_SETTINGS_KEY='crm_tg_settings';
-let tgSettings=JSON.parse(localStorage.getItem(TG_SETTINGS_KEY)||'{"token":"","colleagues":[]}');
-function saveTgSettings(){localStorage.setItem(TG_SETTINGS_KEY,JSON.stringify(tgSettings));}
 let _bkLastStr='';
 let _bkLastTime=0;
 
@@ -3736,208 +3731,185 @@ _updateFtBadge();
 
 render();
 
-// ── MOBILE PLANNER ─────────────────────────────────────────
-let mobPlanDate=new Date();
-
-function renderMobilePlanner(){
-  const ds=dateToStr(mobPlanDate);
-  const opts={weekday:'long',day:'numeric',month:'long'};
-  document.getElementById('mob-plan-lbl').textContent=mobPlanDate.toLocaleDateString('ru-RU',opts);
-  const tasks=[];
-  clients.forEach(c=>{
-    (c.tasks||[]).forEach(t=>{
-      if(t.date===ds&&t.status!=='cancelled')tasks.push({...t,cId:c.id,cName:c.name,cCompany:c.company||''});
-    });
-  });
-  freeTasks.filter(t=>t.date===ds&&t.status!=='cancelled').forEach(t=>tasks.push({...t,cName:t.text||'Задача',cCompany:'',free:true}));
-  tasks.sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
-  const el=document.getElementById('mob-plan-list');
-  if(!tasks.length){
-    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3);font-size:13px;">На этот день задач нет</div>';
-    return;
-  }
-  const TASK_COLORS={'Встреча':'#10B981','Созвон':'#3B82F6','Звонок':'#3B82F6','КП':'#F59E0B','Письмо':'#F59E0B'};
-  el.innerHTML=tasks.map(t=>{
-    const col=Object.entries(TASK_COLORS).find(([k])=>t.type&&t.type.includes(k))?.[1]||'#8B5CF6';
-    const isDone=t.done;
-    const isMeet=t.type&&(t.type.includes('Встреча')||t.type.includes('Созвон')||t.type.includes('Звонок'));
-    const tgBtn=isMeet&&tgSettings.token&&tgSettings.colleagues.length?`<button onclick="event.stopPropagation();openSendToTg('${t.id||''}','${t.cId||''}')" style="padding:4px 8px;font-size:10px;background:#229ED9;color:#fff;border:none;border-radius:4px;cursor:pointer;flex-shrink:0;" title="Отправить коллеге в Telegram"><i class="ti ti-send" style="font-size:10px;"></i> TG</button>`:'';
-    return `<div style="display:flex;gap:0;margin-bottom:8px;" data-tid="${t.id||''}" data-cid="${t.cId||''}">
-      <div style="width:4px;background:${col};border-radius:4px 0 0 4px;flex-shrink:0;opacity:${isDone?.4:1};"></div>
-      <div style="flex:1;background:var(--surface);border:.5px solid var(--border);border-left:none;border-radius:0 6px 6px 0;padding:10px 12px;opacity:${isDone?.6:1};" onclick="${t.free?'openFreeTasks()':("openDetail('"+t.cId+"')")}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:11px;color:${col};font-weight:600;">${t.time||'—'} · ${t.type||'Задача'}</div>
-            <div style="font-size:13px;font-weight:600;color:var(--text);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cName}</div>
-            ${t.cCompany?`<div style="font-size:11px;color:var(--blue);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cCompany}</div>`:''}
-            ${t.note?`<div style="font-size:11px;color:var(--text2);margin-top:3px;">${t.note}</div>`:''}
-          </div>
-          ${tgBtn}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function mobPlanPrev(){mobPlanDate=new Date(mobPlanDate);mobPlanDate.setDate(mobPlanDate.getDate()-1);renderMobilePlanner();}
-function mobPlanNext(){mobPlanDate=new Date(mobPlanDate);mobPlanDate.setDate(mobPlanDate.getDate()+1);renderMobilePlanner();}
-function mobPlanToday(){mobPlanDate=new Date();renderMobilePlanner();}
-
 // ── TELEGRAM SETTINGS ──────────────────────────────────────
+const TG_SETTINGS_KEY='crm_tg_settings';
+let tgSettings=JSON.parse(localStorage.getItem(TG_SETTINGS_KEY)||'{"token":"","colleagues":[]}');
+function saveTgSettings(){localStorage.setItem(TG_SETTINGS_KEY,JSON.stringify(tgSettings));}
+
 function openTgSettings(){
   document.getElementById('tg-token-input').value=tgSettings.token||'';
-  renderTgColleaguesList();
+  renderTgColleagues();
   document.getElementById('modal-tg-settings').classList.add('open');
 }
 function closeTgSettings(){document.getElementById('modal-tg-settings').classList.remove('open');}
-function renderTgColleaguesList(){
+
+function renderTgColleagues(){
   const el=document.getElementById('tg-colleagues-list');
-  el.innerHTML=(tgSettings.colleagues||[]).map((c,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:5px;margin-bottom:4px;">
-      <div style="flex:1;font-size:12px;"><b>${c.name}</b> <span style="color:var(--text2);">${c.chatId}</span></div>
-      <button onclick="removeTgColleague(${i})" style="padding:2px 7px;border:.5px solid var(--border2);border-radius:4px;background:transparent;color:var(--red,#ef4444);font-size:12px;cursor:pointer;">×</button>
-    </div>`).join('')||'<div style="font-size:12px;color:var(--text3);padding:6px;">Коллег пока нет</div>';
+  if(!(tgSettings.colleagues||[]).length){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);padding:6px 0;">Коллег пока нет</div>';return;
+  }
+  el.innerHTML=tgSettings.colleagues.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:5px;margin-bottom:4px;">
+      <span style="font-size:13px;flex:1;"><b>${c.name}</b> <span style="color:var(--text2);font-size:11px;">${c.chatId}</span></span>
+      <button onclick="removeTgColleague(${i})" style="padding:2px 8px;border:.5px solid var(--border2);border-radius:4px;background:transparent;color:#ef4444;font-size:13px;cursor:pointer;">×</button>
+    </div>`).join('');
 }
 function addTgColleague(){
   const name=document.getElementById('tg-col-name').value.trim();
   const chatId=document.getElementById('tg-col-id').value.trim();
   if(!name||!chatId){alert('Введите имя и Chat ID');return;}
-  if(!tgSettings.colleagues)tgSettings.colleagues=[];
-  tgSettings.colleagues.push({name,chatId});
+  (tgSettings.colleagues=tgSettings.colleagues||[]).push({name,chatId});
   document.getElementById('tg-col-name').value='';
   document.getElementById('tg-col-id').value='';
-  renderTgColleaguesList();
+  renderTgColleagues();
 }
-function removeTgColleague(i){tgSettings.colleagues.splice(i,1);renderTgColleaguesList();}
+function removeTgColleague(i){tgSettings.colleagues.splice(i,1);renderTgColleagues();}
 function saveTgSettingsModal(){
   tgSettings.token=document.getElementById('tg-token-input').value.trim();
   saveTgSettings();
   closeTgSettings();
 }
 
+// ── MOBILE PLANNER ─────────────────────────────────────────
+let mobPlanDate=new Date();
+function renderMobilePlanner(){
+  const ds=dateToStr(mobPlanDate);
+  document.getElementById('mob-plan-lbl').textContent=mobPlanDate.toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'long'});
+  const tasks=[];
+  clients.forEach(c=>{
+    (c.tasks||[]).filter(t=>t.date===ds&&t.status!=='cancelled').forEach(t=>tasks.push({...t,cId:c.id,cName:c.name,cCompany:c.company||''}));
+  });
+  freeTasks.filter(t=>t.date===ds&&t.status!=='cancelled').forEach(t=>tasks.push({...t,cName:t.text||'Задача',cCompany:'',free:true}));
+  tasks.sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
+  const el=document.getElementById('mob-plan-list');
+  if(!tasks.length){el.innerHTML='<div style="text-align:center;padding:48px 20px;color:var(--text3);font-size:13px;">На этот день задач нет</div>';return;}
+  const COL={'Встреча':'#10B981','Созвон':'#3B82F6','Звонок':'#3B82F6','КП':'#F59E0B','Письмо':'#F59E0B'};
+  el.innerHTML=tasks.map(t=>{
+    const col=Object.entries(COL).find(([k])=>(t.type||'').includes(k))?.[1]||'#8B5CF6';
+    const isMeet=t.type&&(t.type.includes('Встреча')||t.type.includes('Созвон')||t.type.includes('Звонок'));
+    const hasTg=isMeet&&tgSettings.token&&(tgSettings.colleagues||[]).length;
+    const tgBtn=hasTg?`<button onclick="event.stopPropagation();openSendToTg('${t.id||''}','${t.cId||''}')" style="padding:5px 9px;font-size:11px;background:#229ED9;color:#fff;border:none;border-radius:5px;cursor:pointer;flex-shrink:0;margin-top:4px;"><i class="ti ti-send" style="font-size:10px;margin-right:2px;"></i>Переслать</button>`:'';
+    const clickFn=t.free?`openFreeTasks()`:`openDetail('${t.cId}')`;
+    return `<div onclick="${clickFn}" style="display:flex;gap:0;margin-bottom:8px;cursor:pointer;">
+      <div style="width:4px;background:${col};border-radius:4px 0 0 4px;flex-shrink:0;opacity:${t.done?.4:1};"></div>
+      <div style="flex:1;background:var(--surface);border:.5px solid var(--border);border-left:none;border-radius:0 6px 6px 0;padding:10px 12px;opacity:${t.done?.6:1};">
+        <div style="font-size:11px;color:${col};font-weight:600;margin-bottom:2px;">${t.time||'—'} · ${t.type||'Задача'}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.cName}</div>
+        ${t.cCompany?`<div style="font-size:11px;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;">${t.cCompany}</div>`:''}
+        ${t.note?`<div style="font-size:11px;color:var(--text2);margin-top:3px;">${t.note}</div>`:''}
+        ${tgBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+function mobPlanPrev(){mobPlanDate=new Date(mobPlanDate);mobPlanDate.setDate(mobPlanDate.getDate()-1);renderMobilePlanner();}
+function mobPlanNext(){mobPlanDate=new Date(mobPlanDate);mobPlanDate.setDate(mobPlanDate.getDate()+1);renderMobilePlanner();}
+function mobPlanToday(){mobPlanDate=new Date();renderMobilePlanner();}
+
 // ── SEND MEETING TO TELEGRAM ───────────────────────────────
-let _tgSendTask=null;
-let _tgSendColleagueId=null;
+let _tgTask=null,_tgClient=null,_tgColId=null;
 
 function openSendToTg(taskId,cId){
-  if(!tgSettings.token){alert('Сначала настройте Telegram-бота в настройках');openTgSettings();return;}
-  if(!tgSettings.colleagues||!tgSettings.colleagues.length){alert('Добавьте хотя бы одного коллегу в настройках Telegram');openTgSettings();return;}
-
-  let task=null,client=null;
-  if(cId){
-    client=clients.find(c=>c.id===cId);
-    if(client)task=(client.tasks||[]).find(t=>t.id===taskId);
-  }
-  if(!task){task=freeTasks.find(t=>t.id===taskId);}
-  _tgSendTask=task;
-  _tgSendColleagueId=tgSettings.colleagues[0]?.chatId||null;
-
-  const cols=document.getElementById('tg-send-colleagues');
+  if(!tgSettings.token){alert('Сначала настройте Telegram-бота');openTgSettings();return;}
+  if(!(tgSettings.colleagues||[]).length){alert('Добавьте коллег в настройках Telegram');openTgSettings();return;}
+  _tgClient=clients.find(c=>c.id===cId)||null;
+  _tgTask=(_tgClient&&(_tgClient.tasks||[]).find(t=>t.id===taskId))||freeTasks.find(t=>t.id===taskId)||null;
+  _tgColId=tgSettings.colleagues[0].chatId;
+  const cols=document.getElementById('tg-send-cols');
   cols.innerHTML=tgSettings.colleagues.map((c,i)=>`
-    <div onclick="selectTgColleague('${c.chatId}',this)" data-chatid="${c.chatId}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;border:1.5px solid ${i===0?'#3B82F6':'var(--border)'};background:${i===0?'#e8f0fe':'var(--surface2)'};margin-bottom:6px;cursor:pointer;">
-      <i class="ti ti-user" style="font-size:14px;color:#3B82F6;"></i>
-      <span style="font-size:13px;font-weight:500;">${c.name}</span>
+    <div data-cid="${c.chatId}" onclick="selectTgCol('${c.chatId}',this)" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;border:1.5px solid ${i===0?'#3B82F6':'var(--border)'};background:${i===0?'#e8f0fe':'var(--surface2)'};margin-bottom:6px;cursor:pointer;">
+      <i class="ti ti-user" style="color:#3B82F6;font-size:14px;flex-shrink:0;"></i>
+      <span style="font-size:13px;font-weight:600;">${c.name}</span>
       <span style="font-size:11px;color:var(--text2);">${c.chatId}</span>
     </div>`).join('');
-
-  document.getElementById('tg-send-preview').textContent=formatMeetingCard(task,client);
+  document.getElementById('tg-send-preview').textContent=fmtMeetingCard(_tgTask,_tgClient);
   document.getElementById('modal-tg-send').classList.add('open');
 }
-
-function selectTgColleague(chatId,el){
-  _tgSendColleagueId=chatId;
-  document.querySelectorAll('#tg-send-colleagues [data-chatid]').forEach(d=>{
-    const active=d.dataset.chatid===chatId;
-    d.style.borderColor=active?'#3B82F6':'var(--border)';
-    d.style.background=active?'#e8f0fe':'var(--surface2)';
+function selectTgCol(chatId,el){
+  _tgColId=chatId;
+  document.querySelectorAll('#tg-send-cols [data-cid]').forEach(d=>{
+    const a=d.dataset.cid===chatId;
+    d.style.borderColor=a?'#3B82F6':'var(--border)';
+    d.style.background=a?'#e8f0fe':'var(--surface2)';
   });
 }
-
-function formatMeetingCard(task,client){
+function fmtMeetingCard(task,client){
   if(!task)return'(задача не найдена)';
-  const lines=[];
-  lines.push('📅 Встреча назначена');
-  if(task.type)lines.push('Тип: '+task.type);
-  if(task.date){
-    const d=new Date(task.date+'T00:00:00');
-    lines.push('Дата: '+d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
-  }
-  if(task.time)lines.push('Время: '+task.time);
+  const L=[];
+  L.push('📅 Встреча назначена');
+  if(task.type)L.push('Тип: '+task.type);
+  if(task.date){const d=new Date(task.date+'T12:00:00');L.push('Дата: '+d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));}
+  if(task.time)L.push('Время: '+task.time);
   if(client){
-    lines.push('');
-    if(client.name)lines.push('👤 Клиент: '+client.name);
-    if(client.company)lines.push('🏢 Компания: '+client.company);
-    const phones=(client.phones||[]).map(p=>p.num);
-    if(phones.length)lines.push('📞 Телефон: '+phones.join(', '));
-    if(client.email)lines.push('✉️ Email: '+client.email);
+    L.push('');
+    if(client.name)L.push('👤 Клиент: '+client.name);
+    if(client.company)L.push('🏢 Компания: '+client.company);
+    const ph=(client.phones||[]).map(p=>p.num);
+    if(ph.length)L.push('📞 '+ph.join(', '));
+    if(client.email)L.push('✉️ '+client.email);
   }
-  if(task.note){lines.push('');lines.push('💬 Заметка: '+task.note);}
-  return lines.join('\n');
+  if(task.note){L.push('');L.push('💬 '+task.note);}
+  return L.join('\n');
 }
-
 async function executeTgSend(){
-  if(!_tgSendColleagueId){alert('Выберите коллегу');return;}
+  if(!_tgColId){alert('Выберите коллегу');return;}
   const btn=document.getElementById('tg-send-btn');
-  btn.disabled=true;btn.textContent='Отправляем...';
+  btn.disabled=true;btn.textContent='Отправляем…';
   try{
-    const text=formatMeetingCard(_tgSendTask,_tgSendTask&&_tgSendTask.cId?clients.find(c=>c.id===_tgSendTask.cId):null);
-    const resp=await fetch('https://api.telegram.org/bot'+tgSettings.token+'/sendMessage',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({chat_id:_tgSendColleagueId,text,parse_mode:'HTML'})
+    const r=await fetch('https://api.telegram.org/bot'+tgSettings.token+'/sendMessage',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:_tgColId,text:fmtMeetingCard(_tgTask,_tgClient)})
     });
-    const json=await resp.json();
-    if(json.ok){
+    const j=await r.json();
+    if(j.ok){
       document.getElementById('modal-tg-send').classList.remove('open');
-      const t=document.createElement('div');
-      t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#10B981;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:99999;';
-      t.textContent='✓ Отправлено в Telegram';
-      document.body.appendChild(t);
-      setTimeout(()=>t.remove(),2500);
-    } else {
-      alert('Ошибка: '+(json.description||'неизвестная ошибка'));
-    }
+      const toast=document.createElement('div');
+      toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#10B981;color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);';
+      toast.textContent='✓ Отправлено в Telegram';
+      document.body.appendChild(toast);setTimeout(()=>toast.remove(),2500);
+    } else alert('Ошибка Telegram: '+(j.description||JSON.stringify(j)));
   }catch(e){alert('Ошибка сети: '+e.message);}
   finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-send" style="margin-right:4px;"></i>Отправить';}
 }
 </script>
-<button id="mob-fab" class="mob-fab" style="display:none;" onclick="openSchAdd()" title="Добавить встречу">
-  <i class="ti ti-plus" style="font-size:22px;"></i>
-</button>
+
+<!-- Telegram Settings Modal -->
 <div class="modal" id="modal-tg-settings">
-  <div class="modal-box" style="max-width:420px;">
+  <div class="modal-box" style="max-width:440px;">
     <div class="modal-header">
-      <span class="modal-title">Настройки Telegram</span>
+      <span class="modal-title"><i class="ti ti-brand-telegram" style="margin-right:6px;"></i>Настройки Telegram</span>
       <button class="modal-close" onclick="closeTgSettings()">×</button>
     </div>
     <div style="padding:16px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;">Токен бота и список коллег для отправки карточек встреч</div>
-      <input id="tg-token-input" placeholder="Токен бота (от @BotFather)" style="width:100%;padding:8px;border:.5px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:12px;"/>
-      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">Коллеги (Chat ID можно узнать через @userinfobot)</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Укажите токен бота (получить у @BotFather) и добавьте коллег с их Chat ID (узнать через @userinfobot).</div>
+      <input id="tg-token-input" type="password" placeholder="Токен бота: 123456:ABC-DEF..." style="width:100%;padding:9px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:14px;"/>
+      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">Коллеги:</div>
       <div id="tg-colleagues-list"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <input id="tg-col-name" placeholder="Имя коллеги" style="flex:1;padding:7px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
-        <input id="tg-col-id" placeholder="Chat ID" style="width:130px;padding:7px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
-        <button onclick="addTgColleague()" style="padding:7px 12px;background:var(--blue,#3B82F6);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">+</button>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <input id="tg-col-name" placeholder="Имя" style="flex:1;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
+        <input id="tg-col-id" placeholder="Chat ID" style="width:120px;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
+        <button onclick="addTgColleague()" style="padding:7px 14px;background:#3B82F6;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">+</button>
       </div>
       <button onclick="saveTgSettingsModal()" class="btn-primary" style="margin-top:14px;">Сохранить</button>
     </div>
   </div>
 </div>
+
+<!-- Telegram Send Modal -->
 <div class="modal" id="modal-tg-send">
   <div class="modal-box" style="max-width:400px;">
     <div class="modal-header">
-      <span class="modal-title"><i class="ti ti-send"></i> Отправить в Telegram</span>
+      <span class="modal-title"><i class="ti ti-send" style="margin-right:6px;"></i>Переслать коллеге</span>
       <button class="modal-close" onclick="document.getElementById('modal-tg-send').classList.remove('open')">×</button>
     </div>
     <div style="padding:16px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Выберите коллегу для отправки карточки встречи:</div>
-      <div id="tg-send-colleagues"></div>
-      <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--text2);">
-        <div style="font-weight:600;color:var(--text);margin-bottom:4px;">Предпросмотр сообщения:</div>
-        <div id="tg-send-preview" style="white-space:pre-wrap;font-family:monospace;font-size:11px;"></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Выберите коллегу:</div>
+      <div id="tg-send-cols"></div>
+      <div style="margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:6px;border:.5px solid var(--border);">
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Предпросмотр:</div>
+        <pre id="tg-send-preview" style="font-size:11px;color:var(--text);margin:0;white-space:pre-wrap;font-family:inherit;"></pre>
       </div>
-      <button id="tg-send-btn" onclick="executeTgSend()" class="btn-primary" style="margin-top:12px;background:var(--blue,#3B82F6);">
+      <button id="tg-send-btn" onclick="executeTgSend()" style="width:100%;padding:10px;background:#229ED9;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">
         <i class="ti ti-send" style="margin-right:4px;"></i>Отправить
       </button>
     </div>
