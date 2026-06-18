@@ -3874,45 +3874,41 @@ async function executeTgSend(){
 </script>
 
 <!-- Telegram Settings Modal -->
-<div class="modal" id="modal-tg-settings">
-  <div class="modal-box" style="max-width:440px;">
+<div class="modal-bg" id="modal-tg-settings">
+  <div class="modal" style="width:440px;">
     <div class="modal-header">
       <span class="modal-title"><i class="ti ti-brand-telegram" style="margin-right:6px;"></i>Настройки Telegram</span>
       <button class="modal-close" onclick="closeTgSettings()">×</button>
     </div>
-    <div style="padding:16px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Укажите токен бота (получить у @BotFather) и добавьте коллег с их Chat ID (узнать через @userinfobot).</div>
-      <input id="tg-token-input" type="password" placeholder="Токен бота: 123456:ABC-DEF..." style="width:100%;padding:9px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:14px;"/>
-      <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">Коллеги:</div>
-      <div id="tg-colleagues-list"></div>
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        <input id="tg-col-name" placeholder="Имя" style="flex:1;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
-        <input id="tg-col-id" placeholder="Chat ID" style="width:120px;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
-        <button onclick="addTgColleague()" style="padding:7px 14px;background:#3B82F6;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">+</button>
-      </div>
-      <button onclick="saveTgSettingsModal()" class="btn-primary" style="margin-top:14px;">Сохранить</button>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Укажите токен бота (получить у @BotFather) и добавьте коллег с их Chat ID (узнать через @userinfobot).</div>
+    <input id="tg-token-input" type="password" placeholder="Токен бота: 123456:ABC-DEF..." style="width:100%;padding:9px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:13px;background:var(--surface2);color:var(--text);box-sizing:border-box;margin-bottom:14px;"/>
+    <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;">Коллеги:</div>
+    <div id="tg-colleagues-list"></div>
+    <div style="display:flex;gap:6px;margin-top:8px;">
+      <input id="tg-col-name" placeholder="Имя" style="flex:1;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
+      <input id="tg-col-id" placeholder="Chat ID" style="width:120px;padding:7px 10px;border:.5px solid var(--border2);border-radius:6px;font-size:12px;background:var(--surface2);color:var(--text);"/>
+      <button onclick="addTgColleague()" style="padding:7px 14px;background:#3B82F6;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;">+</button>
     </div>
+    <button onclick="saveTgSettingsModal()" class="btn-primary" style="margin-top:14px;">Сохранить</button>
   </div>
 </div>
 
 <!-- Telegram Send Modal -->
-<div class="modal" id="modal-tg-send">
-  <div class="modal-box" style="max-width:400px;">
+<div class="modal-bg" id="modal-tg-send">
+  <div class="modal" style="width:400px;">
     <div class="modal-header">
       <span class="modal-title"><i class="ti ti-send" style="margin-right:6px;"></i>Переслать коллеге</span>
       <button class="modal-close" onclick="document.getElementById('modal-tg-send').classList.remove('open')">×</button>
     </div>
-    <div style="padding:16px;">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Выберите коллегу:</div>
-      <div id="tg-send-cols"></div>
-      <div style="margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:6px;border:.5px solid var(--border);">
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Предпросмотр:</div>
-        <pre id="tg-send-preview" style="font-size:11px;color:var(--text);margin:0;white-space:pre-wrap;font-family:inherit;"></pre>
-      </div>
-      <button id="tg-send-btn" onclick="executeTgSend()" style="width:100%;padding:10px;background:#229ED9;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">
-        <i class="ti ti-send" style="margin-right:4px;"></i>Отправить
-      </button>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Выберите коллегу:</div>
+    <div id="tg-send-cols"></div>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--surface2);border-radius:6px;border:.5px solid var(--border);">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;">Предпросмотр:</div>
+      <pre id="tg-send-preview" style="font-size:11px;color:var(--text);margin:0;white-space:pre-wrap;font-family:inherit;"></pre>
     </div>
+    <button id="tg-send-btn" onclick="executeTgSend()" style="width:100%;padding:10px;background:#229ED9;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">
+      <i class="ti ti-send" style="margin-right:4px;"></i>Отправить
+    </button>
   </div>
 </div>
 </body>
