@@ -1691,13 +1691,16 @@ function renderSchedule(){
       const bg=tc.bg,border=tc.border,color=tc.col;
       const hasConflict=total>1;
       const clickHandler=m.free?`openFreeTasks()`:`openDetail('${m.cId}')`;
-      return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};" onclick="${clickHandler}" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
+      const isMeetType=m.type&&(m.type.includes('Встреча')||m.type.includes('Созвон')||m.type.includes('Звонок'));
+      const tgBtnDesk=isMeetType&&tgSettings&&tgSettings.token&&(tgSettings.colleagues||[]).length&&ht>44?`<button onclick="event.stopPropagation();openSendToTg('${m.id||''}','${m.cId||''}')" style="position:absolute;bottom:3px;right:3px;padding:2px 5px;font-size:9px;background:#229ED9;color:#fff;border:none;border-radius:3px;cursor:pointer;opacity:.9;line-height:1.4;" title="Переслать коллеге в Telegram">✈ TG</button>`:'';
+      return `<div class="sch-event" style="top:${y}px;height:${ht}px;left:calc(${ci*pct}% + 2px);width:calc(${pct}% - 4px);background:${bg};border-left:3px solid ${border};color:${color};position:relative;" onclick="${clickHandler}" title="${m.cName}${m.cCo?' · '+m.cCo:''}${m.address?'\n📍'+m.address:''}${m.cNote?'\n'+m.cNote:''}">
         <div class="sch-ev-time">${m.time}${m.done?' ✓':''}</div>
         <div class="sch-ev-name">${m.cName}</div>
         ${m.cCo?`<div class="sch-ev-co">${m.cCo}</div>`:''}
         ${m.address?`<div class="sch-ev-addr"><i class="ti ti-map-pin" style="font-size:9px;"></i>${m.address}</div>`:''}
         ${m.cNote&&ht>50?`<div class="sch-ev-note">${m.cNote}</div>`:''}
         ${hasConflict?`<div class="sch-conflict">!</div>`:''}
+        ${tgBtnDesk}
       </div>`;
     }).join('');
 
