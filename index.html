@@ -1062,6 +1062,13 @@ function removeChip(i){
   const c=clients.find(x=>x.id===activeId); if(!c)return;
   c.chips.splice(i,1); save(); render(); renderChipsPanel(c);
 }
+function addStageChip(c,si){
+  const label=STAGES[si]; if(!label)return;
+  if(!c.chips)c.chips=[];
+  if(c.chips.find(ch=>ch.label===label))return;
+  const clr=stageColor(si);
+  c.chips.push({label,bg:clr+'22',color:clr});
+}
 
 // ── DATA ───────────────────────────────────────────────────
 // ── EXPORT / IMPORT ────────────────────────────────────────
@@ -1776,6 +1783,7 @@ function render(){
       c.stage=si;
       if(!c.stageHistory)c.stageHistory=[];
       if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
+      addStageChip(c,si);
       save();render();
       if(payStages.has(si)&&!(c.paymentSchedule&&c.paymentSchedule.active)){
         setTimeout(()=>openQuickPaySetup(c.id),150);
@@ -2025,6 +2033,7 @@ function saveDetailStage(si){
   c.stage=si;
   if(!c.stageHistory)c.stageHistory=[];
   c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
+  addStageChip(c,si);
   save(); render();
 }
 
@@ -2267,6 +2276,7 @@ function moveStage(si){
   c.stage=si;
   if(!c.stageHistory)c.stageHistory=[];
   if(!c.stageHistory.find(h=>h.stage===si))c.stageHistory.push({stage:si,stageName:STAGES[si],date:new Date().toISOString()});
+  addStageChip(c,si);
   save(); render(); renderStages(c); renderTimeline(c);
   if(payStages.has(si)&&!(c.paymentSchedule&&c.paymentSchedule.active)){
     setTimeout(()=>openQuickPaySetup(c.id),200);
