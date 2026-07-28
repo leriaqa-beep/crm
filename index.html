@@ -200,6 +200,9 @@ textarea{resize:vertical;min-height:70px;}
 .stage-btn{font-size:11px;padding:5px 11px;border:.5px solid var(--border2);border-radius:99px;background:var(--surface);color:var(--text2);cursor:pointer;}
 .stage-btn.active{color:#fff;border-color:transparent;}
 .sec-head{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.iv-row{margin-bottom:14px;}
+.iv-row textarea,.iv-row input{width:100%;font-size:13px;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font-family:inherit;resize:vertical;}
+.iv-row textarea:focus,.iv-row input:focus{outline:none;border-color:var(--blue);}
 .dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;border-left:3px solid transparent;}
 .dtask.done{opacity:.5;}
 .dtask.st-in_progress{border-left-color:#3B82F6;}
@@ -593,6 +596,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="tab"        id="tab-phones"  onclick="switchTab('phones')">📱 Контакты</button>
     <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
+    <button class="tab"        id="tab-interview" onclick="switchTab('interview')">📄 Анкета</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
     <button class="tab"        id="tab-payments" onclick="switchTab('payments')">💳 Оплаты</button>
     <button class="tab"        id="tab-recordings" onclick="switchTab('recordings')">🎙️ Записи</button>
@@ -667,6 +671,18 @@ textarea{resize:vertical;min-height:70px;}
       <input id="d-note-input" placeholder="Быстрая заметка — Enter для сохранения..." onkeydown="if(event.key==='Enter')addNote()"/>
       <button class="btn-send" onclick="addNote()"><i class="ti ti-send"></i></button>
     </div>
+  </div>
+
+  <!-- Анкета интервью -->
+  <div id="panel-interview" style="display:none;">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Заполняйте тезисно во время интервью — потом полноценная информация останется по полям.</div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-briefcase"></i> Деятельность компании</div><textarea id="iv-activity" rows="2" placeholder="Что делают, отрасль, продукт/услуга..." onblur="saveInterview('activity',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-users"></i> Количество человек</div><input id="iv-people" placeholder="Напр.: 25, из них 4 в офисе" onblur="saveInterview('people',this.value)"/></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-clock"></i> Формат работы</div><textarea id="iv-format" rows="2" placeholder="Офис / удалёнка / гибрид, рабочий график..." onblur="saveInterview('format',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-alert-triangle"></i> Основные боли</div><textarea id="iv-pains" rows="3" placeholder="Что не устраивает, где теряют время/деньги..." onblur="saveInterview('pains',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-scale"></i> Плюсы и минусы ЛК и цифровизации</div><textarea id="iv-lk" rows="3" placeholder="Что уже нравится в цифровых инструментах, что бесит..." onblur="saveInterview('lk',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-device-desktop"></i> Есть ли ИС в компании</div><textarea id="iv-is" rows="2" placeholder="1С, Битрикс, свой софт, Excel и т.д. + что в нём делают" onblur="saveInterview('is',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head"><i class="ti ti-dots"></i> Прочие заметки</div><textarea id="iv-other" rows="3" placeholder="Всё, что не влезло в поля выше..." onblur="saveInterview('other',this.value)"></textarea></div>
   </div>
 
   <!-- История -->
@@ -2038,7 +2054,7 @@ function saveDetailStage(si){
 }
 
 function switchTab(tab){
-  ['tasks','phones','chips','notes','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','interview','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.toggle('active',t===tab);
@@ -2049,9 +2065,27 @@ function switchTab(tab){
   if(tab==='phones')renderPhonesPanel(c);
   if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
+  if(tab==='interview')renderInterview(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
   if(tab==='payments')renderPaymentsPanel(c);
   if(tab==='recordings')renderRecordings(c);
+}
+function renderInterview(c){
+  const iv=c.interview||{};
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  set('iv-activity',iv.activity);
+  set('iv-people',iv.people);
+  set('iv-format',iv.format);
+  set('iv-pains',iv.pains);
+  set('iv-lk',iv.lk);
+  set('iv-is',iv.is);
+  set('iv-other',iv.other);
+}
+function saveInterview(field,val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.interview)c.interview={};
+  c.interview[field]=val;
+  save();
 }
 
 const TASK_STATUSES={
