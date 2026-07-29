@@ -204,6 +204,13 @@ textarea{resize:vertical;min-height:70px;}
 .iv-row{margin-bottom:14px;}
 .iv-row textarea,.iv-row input{width:100%;font-size:13px;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font-family:inherit;resize:vertical;}
 .iv-row textarea:focus,.iv-row input:focus{outline:none;border-color:var(--blue);}
+.file-item{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--surface2);border-radius:var(--r-md);margin-bottom:6px;}
+.file-icon{width:32px;height:32px;flex-shrink:0;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;}
+.file-name{font-size:13px;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-meta{font-size:10px;color:var(--text3);margin-top:2px;}
+.file-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:var(--r-sm);}
+.file-btn:hover{background:var(--surface3);color:var(--text);}
+.file-empty{text-align:center;padding:20px;color:var(--text3);font-size:12px;}
 .dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;border-left:3px solid transparent;}
 .dtask.done{opacity:.5;}
 .dtask.st-in_progress{border-left-color:#3B82F6;}
@@ -598,6 +605,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
     <button class="tab"        id="tab-interview" onclick="switchTab('interview')">📄 Анкета</button>
+    <button class="tab"        id="tab-files"   onclick="switchTab('files')">📎 Файлы</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
     <button class="tab"        id="tab-payments" onclick="switchTab('payments')">💳 Оплаты</button>
     <button class="tab"        id="tab-recordings" onclick="switchTab('recordings')">🎙️ Записи</button>
@@ -684,6 +692,19 @@ textarea{resize:vertical;min-height:70px;}
     <div class="iv-row"><div class="sec-head"><i class="ti ti-scale"></i> Плюсы и минусы ЛК и цифровизации</div><textarea id="iv-lk" rows="3" placeholder="Что уже нравится в цифровых инструментах, что бесит..." onblur="saveInterview('lk',this.value)"></textarea></div>
     <div class="iv-row"><div class="sec-head"><i class="ti ti-device-desktop"></i> Есть ли ИС в компании</div><textarea id="iv-is" rows="2" placeholder="1С, Битрикс, свой софт, Excel и т.д. + что в нём делают" onblur="saveInterview('is',this.value)"></textarea></div>
     <div class="iv-row"><div class="sec-head"><i class="ti ti-dots"></i> Прочие заметки</div><textarea id="iv-other" rows="3" placeholder="Всё, что не влезло в поля выше..." onblur="saveInterview('other',this.value)"></textarea></div>
+  </div>
+
+  <!-- Файлы -->
+  <div id="panel-files" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-head" style="margin:0;"><i class="ti ti-paperclip"></i> Файлы клиента</div>
+      <label class="btn btn-outline" style="padding:5px 10px;font-size:12px;cursor:pointer;">
+        <i class="ti ti-upload"></i> Загрузить
+        <input type="file" id="d-file-input" accept=".pdf,.txt,.doc,.docx,.rtf,.odt,.xlsx,.xls,.csv,.png,.jpg,.jpeg" multiple style="display:none;" onchange="uploadFiles(event)"/>
+      </label>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Поддерживаются PDF, TXT, Word/Excel, картинки. Лимит одного файла — 5 МБ. Файлы сохраняются в базе клиента и попадают в бэкап.</div>
+    <div id="d-files"></div>
   </div>
 
   <!-- История -->
@@ -2006,7 +2027,7 @@ function openDetail(id){
   const dateVal=c.createdAt?c.createdAt.slice(0,10):'';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;">Первый контакт: <span id="d-timer-date-lbl" style="cursor:pointer;text-decoration:underline dotted;color:var(--blue);" title="Нажмите чтобы изменить дату" onclick="toggleContactDateEdit()">${fmtDt(c.createdAt)}</span><input id="d-timer-date-input" type="date" value="${dateVal}" style="display:none;font-size:10px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailDate(this.value);toggleContactDateEdit(false)" onblur="toggleContactDateEdit(false)" onkeydown="if(event.key==='Escape')toggleContactDateEdit(false)"/></div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
-  ['tasks','phones','chips','notes','interview','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','interview','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.remove('active');
@@ -2016,6 +2037,7 @@ function openDetail(id){
   document.getElementById('panel-tasks').style.display='';
   renderTasks(c);
   renderInterview(c);
+  renderFiles(c);
   document.getElementById('modal-detail').classList.add('open');
 }
 
@@ -2058,7 +2080,7 @@ function saveDetailStage(si){
 }
 
 function switchTab(tab){
-  ['tasks','phones','chips','notes','interview','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','interview','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.toggle('active',t===tab);
@@ -2070,9 +2092,85 @@ function switchTab(tab){
   if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='interview')renderInterview(c);
+  if(tab==='files')renderFiles(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
   if(tab==='payments')renderPaymentsPanel(c);
   if(tab==='recordings')renderRecordings(c);
+}
+function fileIcon(name,type){
+  const ext=(name||'').split('.').pop().toLowerCase();
+  if(type&&type.includes('pdf')||ext==='pdf')return {bg:'#D94040',lbl:'PDF'};
+  if(['doc','docx','odt','rtf'].includes(ext))return {bg:'#2E7FD4',lbl:'DOC'};
+  if(['xls','xlsx','csv'].includes(ext))return {bg:'#1A9E72',lbl:'XLS'};
+  if(['png','jpg','jpeg','gif','webp'].includes(ext))return {bg:'#8B5CF6',lbl:'IMG'};
+  if(ext==='txt')return {bg:'#6B6B67',lbl:'TXT'};
+  return {bg:'#A8A8A3',lbl:ext.slice(0,3).toUpperCase()||'FILE'};
+}
+function fmtBytes(n){
+  if(n<1024)return n+' Б';
+  if(n<1048576)return (n/1024).toFixed(1)+' КБ';
+  return (n/1048576).toFixed(2)+' МБ';
+}
+function renderFiles(c){
+  const el=document.getElementById('d-files'); if(!el)return;
+  const files=c.files||[];
+  if(!files.length){
+    el.innerHTML='<div class="file-empty"><i class="ti ti-file-off" style="font-size:22px;display:block;margin-bottom:6px;"></i>Файлов пока нет.</div>';
+    return;
+  }
+  el.innerHTML=files.map((f,i)=>{
+    const ic=fileIcon(f.name,f.type);
+    const dt=f.date?new Date(f.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+    return `<div class="file-item">
+      <div class="file-icon" style="background:${ic.bg};">${ic.lbl}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="file-name" title="${f.name}">${f.name}</div>
+        <div class="file-meta">${fmtBytes(f.size||0)} · ${dt}</div>
+      </div>
+      <button class="file-btn" title="Скачать" onclick="downloadFile(${i})"><i class="ti ti-download"></i></button>
+      <button class="file-btn" title="Открыть" onclick="openFile(${i})"><i class="ti ti-external-link"></i></button>
+      <button class="file-btn" title="Удалить" onclick="deleteFile(${i})" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color=''"><i class="ti ti-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+function uploadFiles(ev){
+  const c=clients.find(x=>x.id===activeId); if(!c){ev.target.value='';return;}
+  const files=Array.from(ev.target.files||[]);
+  if(!c.files)c.files=[];
+  const MAX=5*1024*1024;
+  let done=0, total=files.length;
+  files.forEach(f=>{
+    if(f.size>MAX){alert(`Файл "${f.name}" (${fmtBytes(f.size)}) больше 5 МБ — не загружен.`);done++;if(done===total)finish();return;}
+    const rd=new FileReader();
+    rd.onload=e=>{
+      c.files.push({id:Date.now()+'_'+Math.random().toString(36).slice(2,7),name:f.name,size:f.size,type:f.type,date:new Date().toISOString(),data:e.target.result});
+      done++; if(done===total)finish();
+    };
+    rd.onerror=()=>{done++;if(done===total)finish();};
+    rd.readAsDataURL(f);
+  });
+  function finish(){
+    try{save();}catch(e){alert('⚠ Не хватает места в браузере. Удалите старые файлы или экспортируйте базу.');}
+    renderFiles(c); render(); ev.target.value='';
+  }
+}
+function downloadFile(i){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.files)return;
+  const f=c.files[i]; if(!f)return;
+  const a=document.createElement('a'); a.href=f.data; a.download=f.name; a.click();
+}
+function openFile(i){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.files)return;
+  const f=c.files[i]; if(!f)return;
+  const w=window.open(); if(!w){alert('Разрешите всплывающие окна');return;}
+  if(f.type&&f.type.startsWith('image/'))w.document.write(`<img src="${f.data}" style="max-width:100%"/>`);
+  else w.location.href=f.data;
+}
+function deleteFile(i){
+  const c=clients.find(x=>x.id===activeId); if(!c||!c.files)return;
+  const f=c.files[i]; if(!f)return;
+  if(!confirm(`Удалить файл "${f.name}"?`))return;
+  c.files.splice(i,1); save(); renderFiles(c); render();
 }
 function renderInterview(c){
   const iv=c.interview||{};
