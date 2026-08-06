@@ -211,6 +211,15 @@ textarea{resize:vertical;min-height:70px;}
 .file-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:var(--r-sm);}
 .file-btn:hover{background:var(--surface3);color:var(--text);}
 .file-empty{text-align:center;padding:20px;color:var(--text3);font-size:12px;}
+.jtbd-block-title{font-size:13px;font-weight:700;margin:16px 0 10px;display:flex;align-items:center;gap:6px;padding-bottom:6px;border-bottom:1.5px solid;}
+#panel-jtbd input,#panel-jtbd textarea{width:100%;font-size:13px;padding:7px 10px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font-family:inherit;resize:vertical;}
+#panel-jtbd input:focus,#panel-jtbd textarea:focus{outline:none;border-color:var(--blue);}
+.jtbd-job{display:grid;grid-template-columns:26px 1fr;gap:8px;margin-bottom:10px;align-items:start;}
+.jtbd-job-layer{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:3px;}
+.jtbd-job-fields{display:flex;flex-direction:column;gap:5px;}
+.jtbd-job-fields textarea{min-height:44px;}
+.jtbd-scen{display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;}
+.jtbd-scen-num{width:24px;height:24px;border-radius:50%;background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:5px;}
 .dtask{background:var(--surface2);border-radius:var(--r-md);padding:9px 11px;margin-bottom:6px;display:flex;gap:10px;border-left:3px solid transparent;}
 .dtask.done{opacity:.5;}
 .dtask.st-in_progress{border-left-color:#3B82F6;}
@@ -605,6 +614,7 @@ textarea{resize:vertical;min-height:70px;}
     <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
     <button class="tab"        id="tab-interview" onclick="switchTab('interview')">📄 Анкета</button>
+    <button class="tab"        id="tab-jtbd"    onclick="switchTab('jtbd')">🎯 JTBD</button>
     <button class="tab"        id="tab-files"   onclick="switchTab('files')">📎 Файлы</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
     <button class="tab"        id="tab-payments" onclick="switchTab('payments')">💳 Оплаты</button>
@@ -692,6 +702,66 @@ textarea{resize:vertical;min-height:70px;}
     <div class="iv-row"><div class="sec-head"><i class="ti ti-scale"></i> Плюсы и минусы ЛК и цифровизации</div><textarea id="iv-lk" rows="3" placeholder="Что уже нравится в цифровых инструментах, что бесит..." onblur="saveInterview('lk',this.value)"></textarea></div>
     <div class="iv-row"><div class="sec-head"><i class="ti ti-device-desktop"></i> Есть ли ИС в компании</div><textarea id="iv-is" rows="2" placeholder="1С, Битрикс, свой софт, Excel и т.д. + что в нём делают" onblur="saveInterview('is',this.value)"></textarea></div>
     <div class="iv-row"><div class="sec-head"><i class="ti ti-dots"></i> Прочие заметки</div><textarea id="iv-other" rows="3" placeholder="Всё, что не влезло в поля выше..." onblur="saveInterview('other',this.value)"></textarea></div>
+  </div>
+
+  <!-- JTBD -->
+  <div id="panel-jtbd" style="display:none;">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.4;">Карта JTBD — план демо-презентации, заполняется сразу после интервью. Клиент «нанимает» продукт выполнить работу: <b>функциональную</b>, <b>эмоциональную</b> и <b>социальную</b>. Формула: «Когда [ситуация], я хочу [действие], чтобы [результат]».</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div><div class="sec-head">Дата интервью</div><input id="jtbd-interviewDate" type="date" onblur="saveJtbd('interviewDate',this.value)"/></div>
+      <div><div class="sec-head">Менеджер</div><input id="jtbd-manager" onblur="saveJtbd('manager',this.value)"/></div>
+    </div>
+    <div class="iv-row"><div class="sec-head">Собеседник (имя, роль)</div><input id="jtbd-interviewee" onblur="saveJtbd('interviewee',this.value)"/></div>
+
+    <div class="jtbd-block-title" style="color:var(--blue);"><i class="ti ti-building"></i> Блок А. Профиль компании</div>
+    <div class="iv-row"><div class="sec-head">Чем занимается</div><textarea id="jtbd-a_activity" rows="2" onblur="saveJtbd('a_activity',this.value)"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="iv-row"><div class="sec-head">Размер команды</div><input id="jtbd-a_team" onblur="saveJtbd('a_team',this.value)"/></div>
+      <div class="iv-row"><div class="sec-head">Проектов в год</div><input id="jtbd-a_projects" onblur="saveJtbd('a_projects',this.value)"/></div>
+    </div>
+    <div class="iv-row"><div class="sec-head">Частота касаний с БГА</div><input id="jtbd-a_freq" onblur="saveJtbd('a_freq',this.value)"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="iv-row"><div class="sec-head">Кабинет АИС БГА</div><input id="jtbd-a_cabinet" placeholder="есть / нет" onblur="saveJtbd('a_cabinet',this.value)"/></div>
+      <div class="iv-row"><div class="sec-head">Пользуются реально</div><input id="jtbd-a_use" placeholder="онлайн / всё равно лично" onblur="saveJtbd('a_use',this.value)"/></div>
+    </div>
+    <div class="iv-row"><div class="sec-head">Мнение о кабинете (дословно)</div><textarea id="jtbd-a_opinion" rows="2" onblur="saveJtbd('a_opinion',this.value)"></textarea></div>
+    <div class="iv-row"><div class="sec-head">Другие госорганы (кому и как пишут)</div><textarea id="jtbd-a_others" rows="2" onblur="saveJtbd('a_others',this.value)"></textarea></div>
+
+    <div class="jtbd-block-title" style="color:#8B5CF6;"><i class="ti ti-target"></i> Блок Б. Работы клиента (JTBD)</div>
+    <div style="font-size:10px;color:var(--text2);margin-bottom:10px;">Записывай <b>дословно</b> из слов клиента. Слои: Ф — функциональная, Э — эмоциональная, С — социальная.</div>
+    <div id="jtbd-jobs"></div>
+
+    <div class="jtbd-block-title" style="color:var(--red);"><i class="ti ti-flame"></i> Блок В. Приоритетная боль</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px;">«Если убрать одну проблему — какую?» — <b>дословно клиент</b>. С этой боли начинаем показ.</div>
+    <textarea id="jtbd-priorityPain" rows="3" onblur="saveJtbd('priorityPain',this.value)" style="width:100%;font-size:13px;padding:8px 10px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font-family:inherit;resize:vertical;margin-bottom:14px;"></textarea>
+
+    <div class="jtbd-block-title" style="color:#1D9E75;"><i class="ti ti-coin"></i> Блок Г. Решение о покупке</div>
+    <div class="iv-row"><div class="sec-head">Кто принимает решение (ЛПР)</div><input id="jtbd-g_dm" onblur="saveJtbd('g_dm',this.value)"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="iv-row"><div class="sec-head">Собеседник = ЛПР?</div><input id="jtbd-g_dmSame" placeholder="да / нет" onblur="saveJtbd('g_dmSame',this.value)"/></div>
+      <div class="iv-row"><div class="sec-head">ЛПР будет на демо?</div><input id="jtbd-g_dmOnDemo" placeholder="да / нет / план" onblur="saveJtbd('g_dmOnDemo',this.value)"/></div>
+    </div>
+    <div class="iv-row"><div class="sec-head">Платят ли уже за софт</div><input id="jtbd-g_alreadyPays" placeholder="документооборот, CRM..." onblur="saveJtbd('g_alreadyPays',this.value)"/></div>
+    <div class="iv-row"><div class="sec-head">Ожидаемые возражения</div><textarea id="jtbd-g_objections" rows="2" placeholder="цена / безопасность / «привыкли так»..." onblur="saveJtbd('g_objections',this.value)"></textarea></div>
+
+    <div class="jtbd-block-title" style="color:#EF9F27;"><i class="ti ti-presentation"></i> Блок Д. План демо</div>
+    <div class="jtbd-scen"><div class="jtbd-scen-num">1</div><div style="flex:1;"><input id="jtbd-s1_title" placeholder="Сценарий показа" onblur="saveJtbd('s1_title',this.value)"/><input id="jtbd-s1_covers" placeholder="Какую работу из Блока Б закрывает (приоритетная боль)" style="margin-top:5px;font-size:11px;color:var(--text2);" onblur="saveJtbd('s1_covers',this.value)"/></div></div>
+    <div class="jtbd-scen"><div class="jtbd-scen-num">2</div><div style="flex:1;"><input id="jtbd-s2_title" placeholder="Сценарий показа" onblur="saveJtbd('s2_title',this.value)"/><input id="jtbd-s2_covers" placeholder="Какую работу закрывает" style="margin-top:5px;font-size:11px;color:var(--text2);" onblur="saveJtbd('s2_covers',this.value)"/></div></div>
+    <div class="jtbd-scen"><div class="jtbd-scen-num">3</div><div style="flex:1;"><input id="jtbd-s3_title" placeholder="Сценарий показа" onblur="saveJtbd('s3_title',this.value)"/><input id="jtbd-s3_covers" placeholder="Какую работу закрывает" style="margin-top:5px;font-size:11px;color:var(--text2);" onblur="saveJtbd('s3_covers',this.value)"/></div></div>
+
+    <div class="sec-head" style="margin-top:10px;">Расчёт ROI</div>
+    <div class="iv-row"><input id="jtbd-roi_now" placeholder="Сейчас: ___ часов/визитов/срывов в месяц → в деньгах ≈ ___" onblur="saveJtbd('roi_now',this.value)"/></div>
+    <div class="iv-row"><input id="jtbd-roi_after" placeholder="С системой: ___" onblur="saveJtbd('roi_after',this.value)"/></div>
+    <div class="iv-row"><input id="jtbd-roi_save" placeholder="Экономия: ___ в месяц / год" onblur="saveJtbd('roi_save',this.value)"/></div>
+
+    <div class="sec-head" style="margin-top:10px;">Демо: дата, формат, участники</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+      <input id="jtbd-demo_date" type="date" onblur="saveJtbd('demo_date',this.value)"/>
+      <input id="jtbd-demo_time" type="time" onblur="saveJtbd('demo_time',this.value)"/>
+      <input id="jtbd-demo_format" placeholder="онлайн / офис" onblur="saveJtbd('demo_format',this.value)"/>
+    </div>
+    <input id="jtbd-demo_participants" placeholder="Участники" onblur="saveJtbd('demo_participants',this.value)" style="width:100%;margin-bottom:14px;"/>
   </div>
 
   <!-- Файлы -->
@@ -2027,7 +2097,7 @@ function openDetail(id){
   const dateVal=c.createdAt?c.createdAt.slice(0,10):'';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;">Первый контакт: <span id="d-timer-date-lbl" style="cursor:pointer;text-decoration:underline dotted;color:var(--blue);" title="Нажмите чтобы изменить дату" onclick="toggleContactDateEdit()">${fmtDt(c.createdAt)}</span><input id="d-timer-date-input" type="date" value="${dateVal}" style="display:none;font-size:10px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailDate(this.value);toggleContactDateEdit(false)" onblur="toggleContactDateEdit(false)" onkeydown="if(event.key==='Escape')toggleContactDateEdit(false)"/></div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
-  ['tasks','phones','chips','notes','interview','files','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','interview','jtbd','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.remove('active');
@@ -2037,6 +2107,7 @@ function openDetail(id){
   document.getElementById('panel-tasks').style.display='';
   renderTasks(c);
   renderInterview(c);
+  renderJtbd(c);
   renderFiles(c);
   document.getElementById('modal-detail').classList.add('open');
 }
@@ -2080,7 +2151,7 @@ function saveDetailStage(si){
 }
 
 function switchTab(tab){
-  ['tasks','phones','chips','notes','interview','files','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','interview','jtbd','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.toggle('active',t===tab);
@@ -2092,6 +2163,7 @@ function switchTab(tab){
   if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
   if(tab==='interview')renderInterview(c);
+  if(tab==='jtbd')renderJtbd(c);
   if(tab==='files')renderFiles(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
   if(tab==='payments')renderPaymentsPanel(c);
@@ -2171,6 +2243,52 @@ function deleteFile(i){
   const f=c.files[i]; if(!f)return;
   if(!confirm(`Удалить файл "${f.name}"?`))return;
   c.files.splice(i,1); save(); renderFiles(c); render();
+}
+const JTBD_JOB_LAYERS=[
+  {code:'j1',layer:'Ф',bg:'#DBEAFE',color:'#1E40AF',hint:'Функциональная — что нужно сделать'},
+  {code:'j2',layer:'Ф',bg:'#DBEAFE',color:'#1E40AF',hint:'Функциональная — что нужно сделать'},
+  {code:'j3',layer:'Э',bg:'#FCE7F3',color:'#9D174D',hint:'Эмоциональная — что перестать / начать чувствовать'},
+  {code:'j4',layer:'Э',bg:'#FCE7F3',color:'#9D174D',hint:'Эмоциональная — что перестать / начать чувствовать'},
+  {code:'j5',layer:'С',bg:'#DCFCE7',color:'#166534',hint:'Социальная — как хочет выглядеть в глазах других'},
+];
+const JTBD_FIELDS=[
+  'interviewDate','interviewee','manager',
+  'a_activity','a_team','a_projects','a_freq','a_cabinet','a_use','a_opinion','a_others',
+  'j1_work','j1_quote','j1_loss','j2_work','j2_quote','j2_loss',
+  'j3_work','j3_quote','j3_loss','j4_work','j4_quote','j4_loss',
+  'j5_work','j5_quote','j5_loss',
+  'priorityPain',
+  'g_dm','g_dmSame','g_dmOnDemo','g_alreadyPays','g_objections',
+  's1_title','s1_covers','s2_title','s2_covers','s3_title','s3_covers',
+  'roi_now','roi_after','roi_save',
+  'demo_date','demo_time','demo_format','demo_participants'
+];
+function renderJtbdJobs(){
+  const el=document.getElementById('jtbd-jobs'); if(!el)return;
+  el.innerHTML=JTBD_JOB_LAYERS.map(L=>`
+    <div class="jtbd-job" title="${L.hint}">
+      <div class="jtbd-job-layer" style="background:${L.bg};color:${L.color};">${L.layer}</div>
+      <div class="jtbd-job-fields">
+        <textarea id="jtbd-${L.code}_work" rows="2" placeholder="Работа: «Когда..., я хочу..., чтобы...»" onblur="saveJtbd('${L.code}_work',this.value)"></textarea>
+        <input id="jtbd-${L.code}_quote" placeholder="Цитата клиента (дословно)" onblur="saveJtbd('${L.code}_quote',this.value)"/>
+        <input id="jtbd-${L.code}_loss" placeholder="Цифра потерь (напр. 6 визитов/мес)" onblur="saveJtbd('${L.code}_loss',this.value)"/>
+      </div>
+    </div>
+  `).join('');
+}
+function renderJtbd(c){
+  renderJtbdJobs();
+  const j=c.jtbd||{};
+  JTBD_FIELDS.forEach(f=>{
+    const el=document.getElementById('jtbd-'+f);
+    if(el)el.value=j[f]||'';
+  });
+}
+function saveJtbd(field,val){
+  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  if(!c.jtbd)c.jtbd={};
+  c.jtbd[field]=val;
+  save();
 }
 function renderInterview(c){
   const iv=c.interview||{};
