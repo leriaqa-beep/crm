@@ -613,7 +613,6 @@ textarea{resize:vertical;min-height:70px;}
     <button class="tab"        id="tab-phones"  onclick="switchTab('phones')">📱 Контакты</button>
     <button class="tab"        id="tab-chips"   onclick="switchTab('chips')">🏷️ Метки</button>
     <button class="tab"        id="tab-notes"   onclick="switchTab('notes')">📝 Заметки</button>
-    <button class="tab"        id="tab-interview" onclick="switchTab('interview')">📄 Анкета</button>
     <button class="tab"        id="tab-jtbd"    onclick="switchTab('jtbd')">🎯 JTBD</button>
     <button class="tab"        id="tab-files"   onclick="switchTab('files')">📎 Файлы</button>
     <button class="tab"        id="tab-history" onclick="switchTab('history')">📊 История</button>
@@ -690,18 +689,6 @@ textarea{resize:vertical;min-height:70px;}
       <input id="d-note-input" placeholder="Быстрая заметка — Enter для сохранения..." onkeydown="if(event.key==='Enter')addNote()"/>
       <button class="btn-send" onclick="addNote()"><i class="ti ti-send"></i></button>
     </div>
-  </div>
-
-  <!-- Анкета интервью -->
-  <div id="panel-interview" style="display:none;">
-    <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Заполняйте тезисно во время интервью — потом полноценная информация останется по полям.</div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-briefcase"></i> Деятельность компании</div><textarea id="iv-activity" rows="2" placeholder="Что делают, отрасль, продукт/услуга..." onblur="saveInterview('activity',this.value)"></textarea></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-users"></i> Количество человек</div><input id="iv-people" placeholder="Напр.: 25, из них 4 в офисе" onblur="saveInterview('people',this.value)"/></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-clock"></i> Формат работы</div><textarea id="iv-format" rows="2" placeholder="Офис / удалёнка / гибрид, рабочий график..." onblur="saveInterview('format',this.value)"></textarea></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-alert-triangle"></i> Основные боли</div><textarea id="iv-pains" rows="3" placeholder="Что не устраивает, где теряют время/деньги..." onblur="saveInterview('pains',this.value)"></textarea></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-scale"></i> Плюсы и минусы ЛК и цифровизации</div><textarea id="iv-lk" rows="3" placeholder="Что уже нравится в цифровых инструментах, что бесит..." onblur="saveInterview('lk',this.value)"></textarea></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-device-desktop"></i> Есть ли ИС в компании</div><textarea id="iv-is" rows="2" placeholder="1С, Битрикс, свой софт, Excel и т.д. + что в нём делают" onblur="saveInterview('is',this.value)"></textarea></div>
-    <div class="iv-row"><div class="sec-head"><i class="ti ti-dots"></i> Прочие заметки</div><textarea id="iv-other" rows="3" placeholder="Всё, что не влезло в поля выше..." onblur="saveInterview('other',this.value)"></textarea></div>
   </div>
 
   <!-- JTBD -->
@@ -2097,7 +2084,7 @@ function openDetail(id){
   const dateVal=c.createdAt?c.createdAt.slice(0,10):'';
   document.getElementById('d-timer').innerHTML=`<div class="deal-timer"><div><div style="font-size:12px;color:var(--text2);">${isClosed?'✓ Сделка закрыта за':'В работе'}</div><div style="font-size:10px;color:var(--text3);margin-top:2px;display:flex;align-items:center;gap:5px;">Первый контакт: <span id="d-timer-date-lbl" style="cursor:pointer;text-decoration:underline dotted;color:var(--blue);" title="Нажмите чтобы изменить дату" onclick="toggleContactDateEdit()">${fmtDt(c.createdAt)}</span><input id="d-timer-date-input" type="date" value="${dateVal}" style="display:none;font-size:10px;padding:1px 5px;border:.5px solid var(--border2);border-radius:var(--r-sm);background:var(--surface2);color:var(--text);" onchange="saveDetailDate(this.value);toggleContactDateEdit(false)" onblur="toggleContactDateEdit(false)" onkeydown="if(event.key==='Escape')toggleContactDateEdit(false)"/></div></div><div class="deal-timer-val" style="color:${col}">${fmtDays(dispDays)}</div></div>`;
   // reset tabs
-  ['tasks','phones','chips','notes','interview','jtbd','files','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','jtbd','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.remove('active');
@@ -2106,7 +2093,6 @@ function openDetail(id){
   document.getElementById('tab-tasks').classList.add('active');
   document.getElementById('panel-tasks').style.display='';
   renderTasks(c);
-  renderInterview(c);
   renderJtbd(c);
   renderFiles(c);
   document.getElementById('modal-detail').classList.add('open');
@@ -2151,7 +2137,7 @@ function saveDetailStage(si){
 }
 
 function switchTab(tab){
-  ['tasks','phones','chips','notes','interview','jtbd','files','history','payments','recordings'].forEach(t=>{
+  ['tasks','phones','chips','notes','jtbd','files','history','payments','recordings'].forEach(t=>{
     const tabEl=document.getElementById('tab-'+t);
     const panelEl=document.getElementById('panel-'+t);
     if(tabEl)tabEl.classList.toggle('active',t===tab);
@@ -2162,7 +2148,6 @@ function switchTab(tab){
   if(tab==='phones')renderPhonesPanel(c);
   if(tab==='chips')renderChipsPanel(c);
   if(tab==='notes')renderNotes(c);
-  if(tab==='interview')renderInterview(c);
   if(tab==='jtbd')renderJtbd(c);
   if(tab==='files')renderFiles(c);
   if(tab==='history'){renderStages(c);renderTimeline(c);}
@@ -2290,24 +2275,6 @@ function saveJtbd(field,val){
   c.jtbd[field]=val;
   save();
 }
-function renderInterview(c){
-  const iv=c.interview||{};
-  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
-  set('iv-activity',iv.activity);
-  set('iv-people',iv.people);
-  set('iv-format',iv.format);
-  set('iv-pains',iv.pains);
-  set('iv-lk',iv.lk);
-  set('iv-is',iv.is);
-  set('iv-other',iv.other);
-}
-function saveInterview(field,val){
-  const c=clients.find(x=>x.id===activeId); if(!c)return;
-  if(!c.interview)c.interview={};
-  c.interview[field]=val;
-  save();
-}
-
 const TASK_STATUSES={
   '':           {label:'Новая',       icon:''},
   'in_progress':{label:'В процессе',  icon:'🔄'},
