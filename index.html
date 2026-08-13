@@ -1054,7 +1054,7 @@ const STAGE_COLORS_POOL=['#378ADD','#EF9F27','#8B5CF6','#D4537E','#1D9E75','#E05
 const STAGES_KEY='crm_stages';
 const PAY_STAGES_KEY='crm_pay_stages';
 let payStages=new Set(JSON.parse(localStorage.getItem(PAY_STAGES_KEY)||'[]'));
-function savePayStages(){localStorage.setItem(PAY_STAGES_KEY,JSON.stringify([...payStages]));}
+function savePayStages(){lsSet(PAY_STAGES_KEY,JSON.stringify([...payStages]));}
 function togglePayStage(i,e){
   e.stopPropagation();
   if(payStages.has(i))payStages.delete(i);else payStages.add(i);
@@ -1062,7 +1062,7 @@ function togglePayStage(i,e){
 }
 let STAGES=JSON.parse(localStorage.getItem(STAGES_KEY)||'null')||['Первый звонок','Переговоры','Коммерческое предложение','Согласование','Закрытие сделки'];
 function stageColor(i){return STAGE_COLORS_POOL[i%STAGE_COLORS_POOL.length];}
-function saveStages(){localStorage.setItem(STAGES_KEY,JSON.stringify(STAGES));}
+function saveStages(){lsSet(STAGES_KEY,JSON.stringify(STAGES));}
 function startRenameStage(i){
   const lbl=document.getElementById('slbl-'+i);if(!lbl)return;
   lbl.setAttribute('contenteditable','true');
@@ -1195,7 +1195,7 @@ function importData(e){
 (function migrate(){
   if(!localStorage.getItem('crm_v4')){
     const old=localStorage.getItem('crm_v3');
-    if(old){localStorage.setItem('crm_v4',old);}
+    if(old){lsSet('crm_v4',old);}
   }
 })();
 
@@ -1209,7 +1209,7 @@ let clients=JSON.parse(localStorage.getItem('crm_v4')||'[]');
     const t=(c.tasks||[]).find(t=>t.type&&t.type.includes('Встреча')&&t.address);
     if(t){c.address=t.address;changed=true;}
   });
-  if(changed)localStorage.setItem('crm_v4',JSON.stringify(clients));
+  if(changed)lsSet('crm_v4',JSON.stringify(clients));
 })();
 
 
@@ -1263,17 +1263,19 @@ function getFilteredClients(){
     return filterStr.split(' ').every(word=>hay.includes(word));
   });
 }
-let _saveWarned=false;
-function save(){
-  try{localStorage.setItem('crm_v4',JSON.stringify(clients));}
+let _lsWarned=false;
+function lsSet(key,val){
+  try{localStorage.setItem(key,val);return true;}
   catch(e){
-    if(!_saveWarned){
-      _saveWarned=true;
-      alert('⚠ Не удалось сохранить: '+(e.name||'ошибка')+'\n\nПохоже, в браузере кончилось место. Экспортируйте базу (кнопка Бэкап), удалите тяжёлые файлы у клиентов и обновите страницу.');
+    if(!_lsWarned){
+      _lsWarned=true;
+      alert('⚠ Не удалось сохранить в браузер («'+key+'»): '+(e.name||'ошибка')+'\n\nПохоже, в браузере кончилось место. Экспортируйте базу (кнопка Бэкап), удалите тяжёлые файлы у клиентов и обновите страницу.');
     }
-    console.error('save() failed:',e);
+    console.error('lsSet failed for key',key,':',e);
+    return false;
   }
 }
+function save(){lsSet('crm_v4',JSON.stringify(clients));}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmtAmt(v){return Number(v).toLocaleString('ru-RU')+' с';}
 function fmtDs(iso){return new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});}
@@ -1424,7 +1426,7 @@ const DAY_PLAN_KEY='crm_day_plan';
 let schWeekStart=null, schMonthDate=null, schView='week', currentView='board';
 let schGoals=JSON.parse(localStorage.getItem(SCH_GOALS_KEY)||'{"calls":50,"meetings":20,"callsM":200,"meetingsM":80}');
 let dayPlan=JSON.parse(localStorage.getItem(DAY_PLAN_KEY)||'{"calls":14,"meets":2,"letters":1,"other":0}');
-function saveDayPlan(){localStorage.setItem(DAY_PLAN_KEY,JSON.stringify(dayPlan));}
+function saveDayPlan(){lsSet(DAY_PLAN_KEY,JSON.stringify(dayPlan));}
 function openDayPlan(){
   document.getElementById('dp-calls').value=dayPlan.calls||14;
   document.getElementById('dp-meets').value=dayPlan.meets||2;
@@ -1475,7 +1477,7 @@ function saveSchAdd(){
     } else {
       const ft={id:'ft'+Date.now(),type,text,date,time,done:false,cat:cat||type,note:'',assignee:'',createdAt:new Date().toISOString()};
       freeTasks.push(ft);
-      localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
+      lsSet(FT_KEY,JSON.stringify(freeTasks));
     }
     closeSchAdd();
     renderSchedule();
@@ -1607,7 +1609,7 @@ function editGoals(){
   if(m===null)return;
   schGoals[gk]=Math.max(1,parseInt(c)||1);
   schGoals[mk]=Math.max(1,parseInt(m)||1);
-  localStorage.setItem(SCH_GOALS_KEY,JSON.stringify(schGoals));
+  lsSet(SCH_GOALS_KEY,JSON.stringify(schGoals));
   renderGoals();
 }
 function schDayClick(ds){
@@ -3319,7 +3321,7 @@ let savedAssignees = JSON.parse(localStorage.getItem(ASSIGNEES_KEY)||'[]');
 let ftSelectedAssignee = null;
 let ftActiveAssigneeFilter = null; // set by tag cloud click
 
-function saveAssignees(){ localStorage.setItem(ASSIGNEES_KEY, JSON.stringify(savedAssignees)); }
+function saveAssignees(){ lsSet(ASSIGNEES_KEY, JSON.stringify(savedAssignees)); }
 
 function addFtAssignee(){
   const inp = document.getElementById('ft-assignee');
@@ -3361,7 +3363,7 @@ const FT_KEY = 'crm_free_tasks';
 let freeTasks = JSON.parse(localStorage.getItem(FT_KEY)||'[]');
 
 function saveFT(){
-  localStorage.setItem(FT_KEY,JSON.stringify(freeTasks));
+  lsSet(FT_KEY,JSON.stringify(freeTasks));
   _updateFtBadge();
 }
 
@@ -3479,7 +3481,7 @@ function _createSnapshotRaw(label,data){
   const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
   bk.unshift({date:new Date().toISOString(),label:label||'Авто',count:data.length,data:data});
   if(bk.length>BK_MAX)bk.splice(BK_MAX);
-  localStorage.setItem(BK_KEY,JSON.stringify(bk));
+  lsSet(BK_KEY,JSON.stringify(bk));
   _updateBkBadge();
 }
 
@@ -3925,7 +3927,7 @@ function deleteSnapshot(idx){
   if(!confirm('Удалить эту версию?'))return;
   const bk=JSON.parse(localStorage.getItem(BK_KEY)||'[]');
   bk.splice(idx,1);
-  localStorage.setItem(BK_KEY,JSON.stringify(bk));
+  lsSet(BK_KEY,JSON.stringify(bk));
   _updateBkBadge();
   renderBackupsList();
 }
@@ -3974,7 +3976,7 @@ importData=function(e){
     clients.push(nc);existingCos.add(co);added++;
   });
   save();
-  localStorage.setItem('crm_leads_imported','1');
+  lsSet('crm_leads_imported','1');
   console.log('База Лидов: добавлено '+added+' из 209 лидов');
 })();
 
@@ -3989,7 +3991,7 @@ render();
 // ── TELEGRAM SETTINGS ──────────────────────────────────────
 const TG_SETTINGS_KEY='crm_tg_settings';
 let tgSettings=JSON.parse(localStorage.getItem(TG_SETTINGS_KEY)||'{"token":"","colleagues":[]}');
-function saveTgSettings(){localStorage.setItem(TG_SETTINGS_KEY,JSON.stringify(tgSettings));}
+function saveTgSettings(){lsSet(TG_SETTINGS_KEY,JSON.stringify(tgSettings));}
 
 function openTgSettings(){
   document.getElementById('tg-token-input').value=tgSettings.token||'';
