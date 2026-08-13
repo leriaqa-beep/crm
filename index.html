@@ -1229,16 +1229,26 @@ function moveColumn(from,to){
   saveStages();save();render();
 }
 
+let _searchTimer=null;
 function onSearch(v){
-  filterStr=v.trim().toLowerCase();
+  const val=v.trim().toLowerCase();
   const clr=document.getElementById('srch-clr');
-  if(clr)clr.style.display=filterStr?'':'none';
-  render();
+  if(clr)clr.style.display=val?'':'none';
+  clearTimeout(_searchTimer);
+  _searchTimer=setTimeout(()=>{
+    if(filterStr===val)return;
+    filterStr=val;
+    render();
+  },200);
 }
 function clearSearch(){
   const inp=document.getElementById('srch');
   if(inp)inp.value='';
-  onSearch('');
+  clearTimeout(_searchTimer);
+  filterStr='';
+  const clr=document.getElementById('srch-clr');
+  if(clr)clr.style.display='none';
+  render();
 }
 function getFilteredClients(){
   if(!filterStr)return clients;
