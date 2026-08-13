@@ -1263,7 +1263,17 @@ function getFilteredClients(){
     return filterStr.split(' ').every(word=>hay.includes(word));
   });
 }
-function save(){localStorage.setItem('crm_v4',JSON.stringify(clients));}
+let _saveWarned=false;
+function save(){
+  try{localStorage.setItem('crm_v4',JSON.stringify(clients));}
+  catch(e){
+    if(!_saveWarned){
+      _saveWarned=true;
+      alert('⚠ Не удалось сохранить: '+(e.name||'ошибка')+'\n\nПохоже, в браузере кончилось место. Экспортируйте базу (кнопка Бэкап), удалите тяжёлые файлы у клиентов и обновите страницу.');
+    }
+    console.error('save() failed:',e);
+  }
+}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function fmtAmt(v){return Number(v).toLocaleString('ru-RU')+' с';}
 function fmtDs(iso){return new Date(iso).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});}
@@ -2374,10 +2384,10 @@ function renderContacts(c){
     </div>`).join('');
 }
 function addContact(){
-  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  const c=clients.find(x=>x.id===activeId); if(!c){alert('Клиент не найден. Закройте карточку и откройте заново.');return;}
   if(!c.contacts)c.contacts=[];
   c.contacts.push({name:'',role:'',phones:[{num:'',msn:'phone'}]});
-  save(); renderContacts(c);
+  renderContacts(c); save();
 }
 function deleteContact(ci){
   const c=clients.find(x=>x.id===activeId); if(!c)return;
