@@ -2480,10 +2480,11 @@ function renderNotes(c){
 function addNote(){
   const input=document.getElementById('d-note-input');
   const text=input.value.trim(); if(!text)return;
-  const c=clients.find(x=>x.id===activeId); if(!c)return;
+  const c=clients.find(x=>x.id===activeId); if(!c){alert('Клиент не найден. Закройте карточку и откройте заново.');return;}
   if(!c.notes)c.notes=[];
   c.notes.push({text,date:new Date().toISOString(),stage:STAGES[c.stage]||''});
-  save(); render(); renderNotes(c); input.value=''; input.focus();
+  renderNotes(c); input.value=''; input.focus();
+  save(); render();
 }
 
 function renderStages(c){
