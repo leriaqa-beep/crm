@@ -4164,5 +4164,34 @@ async function executeTgSend(){
     </button>
   </div>
 </div>
+
+<button id="scroll-top-btn" onclick="scrollToTop()" title="Наверх" style="position:fixed;bottom:22px;right:22px;width:44px;height:44px;border-radius:50%;background:var(--text);color:#fff;border:none;box-shadow:0 4px 14px rgba(0,0,0,.22);cursor:pointer;font-size:20px;z-index:10000;display:none;align-items:center;justify-content:center;opacity:.9;transition:transform .15s,opacity .15s;" onmouseover="this.style.opacity='1';this.style.transform='translateY(-2px)'" onmouseout="this.style.opacity='.9';this.style.transform=''">
+  <i class="ti ti-arrow-up"></i>
+</button>
+<script>
+(function initScrollTop(){
+  const SCROLL_SELECTORS=['.modal-bg.open .modal','#view-board','.sidebar-body','.sch-body','#view-dashboard','#view-payments','#sch-month-view','#mob-plan-list'];
+  function firstScrolled(threshold){
+    for(const s of SCROLL_SELECTORS){
+      const el=document.querySelector(s);
+      if(el && el.scrollTop > threshold) return el;
+    }
+    return null;
+  }
+  window.scrollToTop=function(){
+    const el=firstScrolled(0);
+    if(el)el.scrollTo({top:0,behavior:'smooth'});
+    else window.scrollTo({top:0,behavior:'smooth'});
+  };
+  const btn=document.getElementById('scroll-top-btn');
+  function update(){
+    if(!btn)return;
+    btn.style.display=firstScrolled(240)?'flex':'none';
+  }
+  window.addEventListener('scroll',update,true);
+  document.addEventListener('click',()=>setTimeout(update,150),true);
+  setInterval(update,600);
+})();
+</script>
 </body>
 </html>
