@@ -579,7 +579,7 @@ textarea{resize:vertical;min-height:70px;}
 </div>
 
 <!-- ══ МОДАЛ: ЗАДАЧА ══ -->
-<div class="modal-bg" id="modal-task">
+<div class="modal-bg" id="modal-task" style="z-index:110;">
 <div class="modal modal-sm">
   <div class="modal-header">
     <span class="modal-title">Запланировать задачу</span>
@@ -2032,7 +2032,7 @@ function openTask(e,cid){
   document.getElementById('modal-task').classList.add('open');
   setTimeout(()=>document.getElementById('qt-text').focus(),50);
 }
-function openTaskFromDetail(){const id=activeId;closeDetail();setTimeout(()=>openTask(null,id),120);}
+function openTaskFromDetail(){openTask(null,activeId);}
 function closeTask(){document.getElementById('modal-task').classList.remove('open');}
 // ── CONFLICT DETECTION ────────────────────────────────────
 let _conflictPendingFn = null;
@@ -2076,6 +2076,11 @@ function saveTask(){
     c.tasks.push({id:genId(),type:taskType,text:document.getElementById('qt-text').value.trim(),address:taskAddr||undefined,date,time,done:false,createdAt:new Date().toISOString()});
     if(taskAddr&&!c.address)c.address=taskAddr;
     save(); render(); closeTask();
+    // If detail modal was open for this client, refresh its tasks list
+    if(activeId===c.id){
+      renderTasks(c);
+      refreshMeta(c);
+    }
   };
   const conflicts=getConflicts(date,time,null);
   if(conflicts.length){
