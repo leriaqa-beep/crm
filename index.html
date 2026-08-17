@@ -1921,7 +1921,7 @@ function render(){
       const nextIsToday=next&&next.date===todayS;
       const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
       card.innerHTML=`
-        <div class="card-top"><div class="card-name">${c.name}</div><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div>
+        <div class="card-top"><div class="card-name">${c.name}</div><div style="display:flex;align-items:center;gap:4px;flex-shrink:0;"><button class="card-copy-btn" onclick="copyClientCard('${c.id}',event)" title="Скопировать карточку" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:2px 4px;border-radius:var(--r-sm);font-size:11px;line-height:1;" onmouseover="this.style.color='var(--blue)';this.style.background='var(--surface2)'" onmouseout="this.style.color='var(--text3)';this.style.background='none'"><i class="ti ti-copy"></i></button><span class="age-badge ${ageCls(days)}">${fmtDays(days)}</span></div></div>
         ${c.company?`<div class="card-company"><i class="ti ti-building" style="font-size:11px;"></i>${c.company}</div>`:''}
         ${phones.length?`<div class="card-phones">${phones.map(p=>`<span class="ph-badge">${msnIcon(p.msn)} ${p.num}</span>`).join('')}</div>`:''}
         <div class="card-dates">
@@ -2120,6 +2120,46 @@ function openDetail(id){
   document.getElementById('modal-detail').classList.add('open');
 }
 
+function buildClientCardText(c){
+  const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
+  const L=[];
+  if(c.name)L.push(c.name);
+  if(c.company)L.push(c.company);
+  phones.forEach(p=>{if(p.num)L.push(p.num);});
+  if(c.email)L.push(c.email);
+  if(c.address)L.push(c.address);
+  // Contact persons (if any)
+  (c.contacts||[]).forEach(ct=>{
+    const parts=[ct.name||'',ct.role?'('+ct.role+')':''].filter(Boolean).join(' ');
+    if(parts)L.push('— '+parts);
+    (ct.phones||[]).forEach(p=>{if(p.num)L.push('  '+p.num);});
+  });
+  return L.join('\n');
+}
+async function copyClientCard(id,ev){
+  if(ev)ev.stopPropagation();
+  const c=clients.find(x=>x.id===id); if(!c)return;
+  const text=buildClientCardText(c);
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('✓ Карточка скопирована');
+  }catch(e){
+    // fallback: legacy execCommand
+    const ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{document.execCommand('copy');showToast('✓ Карточка скопирована');}
+    catch(_){alert(text);}
+    document.body.removeChild(ta);
+  }
+}
+function showToast(msg,color){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:'+(color||'#10B981')+';color:#fff;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:10001;box-shadow:0 4px 12px rgba(0,0,0,.2);';
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
 function refreshMeta(c){
   const phones=c.phones||(c.phone?[{num:c.phone,msn:'phone'}]:[]);
   const mi=[];
@@ -2127,6 +2167,8 @@ function refreshMeta(c){
   phones.forEach(p=>mi.push(`<span style="display:flex;align-items:center;gap:4px;">${msnIcon(p.msn)} ${p.num}</span>`));
   if(c.email)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-mail"></i>${c.email}</span>`);
   if(c.address)mi.push(`<span style="display:flex;align-items:center;gap:3px;"><i class="ti ti-map-pin"></i>${c.address}</span>`);
+  // Copy button
+  mi.push(`<button onclick="copyClientCard('${c.id}',event)" title="Скопировать имя, компанию, телефон" style="display:flex;align-items:center;gap:3px;background:var(--surface2);border:.5px solid var(--border2);border-radius:99px;padding:2px 9px;font-size:11px;color:var(--text);cursor:pointer;"><i class="ti ti-copy"></i> Копировать</button>`);
   // Amount inline edit
   mi.push(`<span style="display:flex;align-items:center;gap:3px;" title="Нажмите для изменения суммы">
     <i class="ti ti-coin"></i>
